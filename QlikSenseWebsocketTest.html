@@ -1,0 +1,63 @@
+<script src="https://rawgit.com/mindspank/qsocks/master/qsocks.bundle.js"></script>
+<script>
+
+var xrfkey="0123456789abcdef";
+
+xmlhttp=new XMLHttpRequest();
+
+xmlhttp.onreadystatechange=function()
+  {
+  if (xmlhttp.readyState==4 && xmlhttp.status==200)
+    {
+    document.getElementById("Authenticated").innerHTML="Authenticated";
+    console.log("Authenticated");
+    }
+  }
+
+xmlhttp.open("GET","/hub?xrfkey="+xrfkey,true);
+xmlhttp.setRequestHeader('x-qlik-xrfkey', xrfkey);
+xmlhttp.send();
+
+//Test WSS configuration
+var configWSS = {
+    host: 'rd-flp2.qliktech.com',
+    isSecure: true,
+    rejectUnauthorized: true
+  };
+
+qsocks.Connect(configWSS).then(function(global) {
+    console.log(global)
+    document.getElementById("ConnectedWSS").innerHTML="Connected WSS"
+
+    //Get document list
+    global.getDocList().then(function(docList) {
+      var nbrOfDoc=docList.length.toString();
+      document.getElementById("DocListWSS").innerHTML="Document list of "+nbrOfDoc+"  retrieved using WSS";
+    });
+});
+
+   //Test WS configuration
+var configWS = {
+       host: 'rd-flp2.qliktech.com',
+       isSecure: false,
+};
+
+qsocks.Connect(configWS).then(function(global) {
+       console.log(global)
+       document.getElementById("ConnectedWS").innerHTML="Connected WSS"
+
+       //Get document list
+       global.getDocList().then(function(docList) {
+         var nbrOfDoc=docList.length.toString();
+         document.getElementById("DocListWS").innerHTML="Document list of "+nbrOfDoc+"  retrieved using WSS";
+       });
+});
+
+</script>
+<body>
+  <div id="Authenticated"></div>
+  <div id="ConnectedWSS"></div>
+  <div id="DocListWSS"></div>
+  <div id="ConnectedWS"></div>
+  <div id="DocListWS"></div>
+</body>
