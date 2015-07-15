@@ -48,6 +48,15 @@
 var xrfkey="0123456789abcdef";
 var protocol=location.protocol;
 var host=location.hostname;
+//Add support for virtual proxy. Need to not access the hub without the virtual proxy.
+var path=location.pathname;
+var regexpResults=/([\w\d-]*)\/content/i.exec(path);
+if (regexpResults!=null) {
+  var virtualProxy=regexpResults[1];
+} else {
+  var virtualProxy="";
+}
+
 
 if (protocol=="https:") {
   var isSecure=true;
@@ -58,7 +67,7 @@ if (protocol=="https:") {
   var isSecure=false;
 }
 
-authenticate = function () {
+authenticate = function (virtualProxy) {
   xmlhttp=new XMLHttpRequest();
 
   xmlhttp.onreadystatechange=function() {
@@ -67,11 +76,17 @@ authenticate = function () {
       document.getElementById("AuthenticatedDiv").classList.remove('alert-danger');
       document.getElementById("AuthenticatedDiv").classList.add('alert-success');
     } else if (xmlhttp.readyState==4) {
-      document.getElementById("Authenticated").innerHTML="Authentication error "+xmlhttp.status+" "+xmlhttp.responseText;
+      document.getElementById("Authenticated").innerHTML="Authentication error "+xmlhttp.status.toString()+" "+xmlhttp.responseText;
     }
   }
 
-  xmlhttp.open("GET","/hub?xrfkey="+xrfkey,true);
+  if(virtualProxy!="") {
+    var reqString="/"+virtualProxy+"/hub?xrfkey="+xrfkey;
+  } else {
+    var reqString="/hub?xrfkey="+xrfkey;
+  }
+
+  xmlhttp.open("GET",reqString,true);
   xmlhttp.setRequestHeader('x-qlik-xrfkey', xrfkey);
   xmlhttp.send();
 }
@@ -128,11 +143,11 @@ if (isSecure) {
       rejectUnauthorized: true
   };
 
-  authenticate();
+  authenticate(virtualProxy);
   testWS(configWSS);
 } else {
   //if HTTP test WS and WSS
-  authenticate();
+  authenticate(virtualProxy);
   var configWS = {
       host: host,
       isSecure: false,
