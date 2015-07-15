@@ -1,4 +1,5 @@
-<script src="https://rawgit.com/mindspank/qsocks/master/qsocks.bundle.js"></script>
+<!-- <script src="https://rawgit.com/mindspank/qsocks/master/qsocks.bundle.js"></script> -->
+<script src="qsocks.bundle.js"></script>
 <!-- Latest compiled and minified CSS -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
 
@@ -140,7 +141,8 @@ if (isSecure) {
   var configWSS = {
       host: host,
       isSecure: true,
-      rejectUnauthorized: true
+      rejectUnauthorized: true,
+      virtualProxy: virtualProxy ? virtualProxy : ''
   };
 
   authenticate(virtualProxy);
@@ -151,6 +153,7 @@ if (isSecure) {
   var configWS = {
       host: host,
       isSecure: false,
+      virtualProxy: virtualProxy ? virtualProxy : ''
   };
 
   testWS(configWS)
@@ -158,7 +161,8 @@ if (isSecure) {
   var configWSS = {
       host: host,
       isSecure: true,
-      rejectUnauthorized: true
+      rejectUnauthorized: true,
+      virtualProxy: virtualProxy ? virtualProxy : ''
   };
 
   testWS(configWSS);
