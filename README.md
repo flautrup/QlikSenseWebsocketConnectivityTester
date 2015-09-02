@@ -9,6 +9,3 @@ This web page can be used to assess websocket connectivity to your Qlik Sense in
 * In the QMC create a content library
 * Upload QlikSenseWebsocketTest.hml file to content library
 * Browse content library content and press link
-
-##Limitations
-Currently limited support for virtual proxies. Will be added later.
