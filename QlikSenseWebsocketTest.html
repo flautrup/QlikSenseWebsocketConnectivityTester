@@ -9,6 +9,8 @@
 <!-- Latest compiled and minified JavaScript -->
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js"></script>
+
 <body>
   <div class="page-header">
     <h1 style="text-align: center">Qlik Sense Websocket Connectivity Tester</h1>
@@ -40,6 +42,9 @@
   <div id="DocListWSDiv" class="alert alert-danger" role="alert">
     <span id="DocListWSIcon" class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>
     <span id="DocListWS">Application list through websocket</span>
+  </div>
+  <div id="ResponsetimeChart" style="width: 100%">
+    <canvas id="Chart" width="600" height="200"></canvas>
   </div>
 </body>
 
@@ -144,6 +149,56 @@ testWS = function (config) {
   });
 }
 
+chartReposeTime=function (config) {
+  var labels=[];
+  var values=[];
+  for(count=0;count<100;count++) {
+    labels.push("");
+    values.push("0");
+  }
+
+  var data = {
+    labels: labels,
+    datasets: [
+        {
+            label: "Response Time",
+            fillColor: "rgba(220,220,220,0.2)",
+            strokeColor: "#4C8C2B",
+            pointColor: " #5F6062",
+            pointStrokeColor: "#fff",
+            pointHighlightFill: "#fff",
+            pointHighlightStroke: "rgba(220,220,220,1)",
+            data: values
+        }
+    ]
+  };
+
+  var ctx = document.getElementById("Chart").getContext("2d");
+  var myNewChart = new Chart(ctx).Line(data, {responsive: true});
+
+  qsocks.Connect(config).then(function(global) {
+    setInterval(function () {
+      var startTime=new Date(); //Start
+      //Get server version
+      global.productVersion().then(function(productVersion) {
+        var endTime=new Date();
+        var responseTime=endTime.getTime()-startTime.getTime();
+        myNewChart.addData([responseTime],"");
+        myNewChart.removeData();
+        myNewChart.update();
+      }, function (err) {
+        myNewChart.addData([0],"");
+        myNewChart.removeData();
+        myNewChart.update();
+      });
+
+
+    },1000);
+
+  })
+}
+
+
 if (isSecure) {
   //if HTTPS only test WSS
   var configWSS = {
@@ -155,6 +210,7 @@ if (isSecure) {
 
   authenticate(virtualProxy);
   testWS(configWSS);
+  chartReposeTime(configWSS);
 } else {
   //if HTTP test WS and WSS
   authenticate(virtualProxy);
@@ -174,7 +230,7 @@ if (isSecure) {
   };
 
   testWS(configWSS);
-
+  chartReposeTime(configWS);
 }
 
 </script>
