@@ -113,12 +113,16 @@ testWS = function (config) {
       document.getElementById(connectElement).innerHTML="Connected "+connectionType;
       document.getElementById(connectElement+"Div").classList.remove('alert-danger');
       document.getElementById(connectElement+"Div").classList.add('alert-success');
+      document.getElementById(connectElement+"Icon").classList.remove('glyphicon-ban-circle');
+      document.getElementById(connectElement+"Icon").classList.add('glyphicon-ok-circle');
 
       //Get server version
       global.productVersion().then(function(productVersion) {
         document.getElementById(productVersionElement).innerHTML="Connected to "+productVersion+" retrieved using "+connectionType;
         document.getElementById(productVersionElement+"Div").classList.remove('alert-danger');
         document.getElementById(productVersionElement+"Div").classList.add('alert-success');
+        document.getElementById(productVersionElement+"Icon").classList.remove('glyphicon-ban-circle');
+        document.getElementById(productVersionElement+"Icon").classList.add('glyphicon-ok-circle');
 
       }, function (err) {
         document.getElementById(productVersionElement).innerHTML="Failed to get productVersion "+err+" using "+connectionType;
@@ -130,6 +134,8 @@ testWS = function (config) {
         document.getElementById(docListElement).innerHTML="Application list of "+nbrOfDoc+" applications retrieved using "+connectionType;
         document.getElementById(docListElement+"Div").classList.remove('alert-danger');
         document.getElementById(docListElement+"Div").classList.add('alert-success');
+        document.getElementById(docListElement+"Icon").classList.remove('glyphicon-ban-circle');
+        document.getElementById(docListElement+"Icon").classList.add('glyphicon-ok-circle');
       }, function (err) {
         document.getElementById(docListElement).innerHTML="Failed to get application list "+err+" using "+connectionType;
       });
