@@ -14,31 +14,31 @@
     <h1 style="text-align: center">Qlik Sense Websocket Connectivity Tester</h1>
   </div>
   <div id="AuthenticatedDiv" class="alert alert-danger" role="alert" >
-    <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+    <span id="AuthenticatedIcon" class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>
     <span id="Authenticated">Authentication</span>
   </div>
   <div id="ConnectedWSSDiv" class="alert alert-danger" role="alert" >
-    <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+    <span id="ConnectedWSSIcon" class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>
     <span id="ConnectedWSS">Connect secure websocket</span>
   </div>
   <div  id="ProductVersionWSSDiv" class="alert alert-danger" role="alert" >
-    <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+    <span id="ProductVersionWSSIcon" class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>
     <span id="ProductVersionWSS">Product version collected through secure websocket</span>
   </div>
   <div  id="DocListWSSDiv" class="alert alert-danger" role="alert" >
-    <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+    <span id="DocListWSSIcon" class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>
     <span id="DocListWSS">Application list through secure websocket</span>
   </div>
   <div id="ConnectedWSDiv" class="alert alert-danger" role="alert">
-    <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+    <span id="ConnectedWSIcon" class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>
     <span id="ConnectedWS">Connect websocket</span>
   </div>
   <div id="ProductVersionWSDiv" class="alert alert-danger" role="alert">
-    <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+    <span id="ProductVersionWSIcon" class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>
     <span id="ProductVersionWS">Product version collected through websocket</span>
   </div>
   <div id="DocListWSDiv" class="alert alert-danger" role="alert">
-    <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+    <span id="DocListWSIcon" class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>
     <span id="DocListWS">Application list through websocket</span>
   </div>
 </body>
@@ -76,6 +76,8 @@ authenticate = function (virtualProxy) {
       document.getElementById("Authenticated").innerHTML="Authenticated";
       document.getElementById("AuthenticatedDiv").classList.remove('alert-danger');
       document.getElementById("AuthenticatedDiv").classList.add('alert-success');
+      document.getElementById("AuthenticatedIcon").classList.remove('glyphicon-ban-circle');
+      document.getElementById("AuthenticatedIcon").classList.add('glyphicon-ok-circle');
     } else if (xmlhttp.readyState==4) {
       document.getElementById("Authenticated").innerHTML="Authentication error "+xmlhttp.status.toString()+" "+xmlhttp.responseText;
     }
