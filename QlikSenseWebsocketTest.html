@@ -52,6 +52,7 @@
 
 //Setup
 var xrfkey="0123456789abcdef";
+var hasFocus=true;
 var protocol=location.protocol;
 var host=location.hostname;
 //Add support for virtual proxy. Need to not access the hub without the virtual proxy.
@@ -149,13 +150,15 @@ testWS = function (config) {
   });
 }
 
+window.onfocus = function() {
+    hasFocus = true;
+};
+
+window.onblur = function() { hasFocus = false; };
+
 chartReposeTime=function (config) {
   var labels=[];
   var values=[];
-  for(count=0;count<100;count++) {
-    labels.push("");
-    values.push("0");
-  }
 
   var data = {
     labels: labels,
@@ -176,22 +179,31 @@ chartReposeTime=function (config) {
   var ctx = document.getElementById("Chart").getContext("2d");
   var myNewChart = new Chart(ctx).Line(data, {responsive: true});
 
+  var trackResponse = new Array();
+
   qsocks.Connect(config).then(function(global) {
     setInterval(function () {
-      var startTime=new Date(); //Start
-      //Get server version
-      global.productVersion().then(function(productVersion) {
-        var endTime=new Date();
-        var responseTime=endTime.getTime()-startTime.getTime();
-        myNewChart.addData([responseTime],"");
-        myNewChart.removeData();
-        myNewChart.update();
-      }, function (err) {
-        myNewChart.addData([0],"");
-        myNewChart.removeData();
-        myNewChart.update();
-      });
+      if(hasFocus) {
+        var startTime=new Date(); //Start
+        //Get server version
+        global.productVersion().then(function(productVersion) {
+          var endTime=new Date();
+          var responseTime=endTime.getTime()-startTime.getTime();
+          trackResponse.push(responseTime);
+          console.log(responseTime);
 
+          myNewChart.addData([responseTime],"");
+          if (myNewChart.datasets[0].points.length>90) {
+            myNewChart.removeData();
+          }
+
+        }, function (err) {
+          myNewChart.addData([0],"");
+          if (myNewChart.datasets[0].points.length>90) {
+            myNewChart.removeData();
+          }
+        });
+      }
 
     },1000);
 
