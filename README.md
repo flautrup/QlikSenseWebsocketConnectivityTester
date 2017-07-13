@@ -1,9 +1,9 @@
-#Qlik Sense Websocket Connectivity Tester
+# Qlik Sense Websocket Connectivity Tester
 
-##Description:
+## Description:
 This web page can be used to assess websocket connectivity to your Qlik Sense installation.
 
-##Installation:
+## Installation:
 * Download from github
 * Unzip
 * In the QMC create a content library
