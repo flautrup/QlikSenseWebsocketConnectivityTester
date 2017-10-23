@@ -1,0 +1,28 @@
+{
+  "name": "qliksensewebsocketconnectivitytester",
+  "version": "1.0.0",
+  "description": "## Description: This web page can be used to assess websocket connectivity to your Qlik Sense installation.",
+  "main": "app.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "dependencies": {
+    "chart.js": "^2.7.0",
+    "qrcode-js": "0.0.2",
+    "qsocks": "^3.2.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/flautrup/QlikSenseWebsocketConnectivityTester.git"
+  },
+  "author": "Fredrik Lautrup",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/flautrup/QlikSenseWebsocketConnectivityTester/issues"
+  },
+  "homepage": "https://github.com/flautrup/QlikSenseWebsocketConnectivityTester#readme"
+}
