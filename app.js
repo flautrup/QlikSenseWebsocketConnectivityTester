@@ -1,22 +1,15 @@
 const qsocks = require('qsocks');
 const Chart = require('chart.js');
 const QRCode = require('qrcode-js');
+const enigma = require('enigma.js');
+const SenseUtilities = require('enigma.js/sense-utilities');
+const schema = require('enigma.js/schemas/12.20.0.json');
 
 //Setup
 var xrfkey = "0123456789abcdef";
 var hasFocus = true;
 var protocol = location.protocol;
 var host = location.hostname;
-
-/*var qrcode = new QRCode(document.getElementById("qrcode"), {
-    text: window.location.href.toString(),
-    width: 128,
-    height: 128,
-    colorDark : "#000000",
-    colorLight : "#ffffff",
-    //correctLevel : QRCode.CorrectLevel.H
-  });
-*/
 
 //Add support for virtual proxy. Need to not access the hub without the virtual proxy.
 var path = location.pathname;
@@ -26,7 +19,6 @@ if (regexpResults != null) {
 } else {
     var virtualProxy = "";
 }
-
 
 if (protocol == "https:") {
     var isSecure = true;
@@ -65,7 +57,7 @@ authenticate = function (virtualProxy) {
 
 //Test web socket configuration
 testWS = function (config) {
-    if (config.isSecure) {
+    if (config.secure) {
         var connectElement = "ConnectedWSS";
         var docListElement = "DocListWSS";
         var productVersionElement = "ProductVersionWSS";
@@ -77,7 +69,12 @@ testWS = function (config) {
         var connectionType = "WS";
     }
 
-    qsocks.Connect(config).then(function (global) {
+    //Connect to server
+    const session = enigma.create(config);
+
+    //Open Session
+    session.open().then((global) => {
+
         console.log(global)
         document.getElementById(connectElement).innerHTML = "Connected " + connectionType;
         document.getElementById(connectElement + "Div").classList.remove('alert-danger');
@@ -172,15 +169,18 @@ chartReposeTime = function (config) {
     function removeData(chart) {
         chart.data.labels.pop();
         chart.data.datasets.forEach((dataset) => {
-            dataset.data.pop();
+            dataset.data.splice(0, 1);
         });
         chart.update();
     }
 
 
     var trackResponse = new Array();
+    //Connect to server
+    const session = enigma.create(config);
 
-    qsocks.Connect(config).then(function (global) {
+    //Open Session
+    session.open().then((global) => {
         setInterval(function () {
             if (hasFocus) {
                 var startTime = new Date(); //Start
@@ -192,13 +192,13 @@ chartReposeTime = function (config) {
                     console.log(responseTime);
 
                     addData(myNewChart, "", responseTime);
-                    if (myNewChart.datasets[0].points.length > 90) {
+                    if (myNewChart.data.datasets[0].data.length > 90) {
                         removeData(myNewChart);
                     }
 
                 }, function (err) {
                     addData(myNewChart, "Error", 0);
-                    if (myNewChart.datasets[0].points.length > 90) {
+                    if (myNewChart.data.datasets[0].data.length > 90) {
                         removeData(myNewChart);
                     }
                 });
@@ -212,12 +212,20 @@ chartReposeTime = function (config) {
 
 if (isSecure) {
     //if HTTPS only test WSS
-    var configWSS = {
+    var senseURL = SenseUtilities.buildUrl({
         host: host,
-        isSecure: true,
-        rejectUnauthorized: true,
+        port: 443,
+        secure: true,
         prefix: virtualProxy ? "/" + virtualProxy : ''
+    });
+
+    const configWSS = {
+        schema,
+        url: senseURL,
+        createSocket: url => new WebSocket(url),
+        secure: true
     };
+
 
     authenticate(virtualProxy);
     testWS(configWSS);
@@ -225,19 +233,34 @@ if (isSecure) {
 } else {
     //if HTTP test WS and WSS
     authenticate(virtualProxy);
-    var configWS = {
+    var senseURL = SenseUtilities.buildUrl({
         host: host,
-        isSecure: false,
+        port: 80,
+        secure: false,
         prefix: virtualProxy ? "/" + virtualProxy : ''
+    });
+
+    const configWS = {
+        schema,
+        url: senseURL,
+        createSocket: url => new WebSocket(url),
+        secure: false
     };
 
     testWS(configWS)
 
-    var configWSS = {
+    var senseURL = SenseUtilities.buildUrl({
         host: host,
-        isSecure: true,
-        rejectUnauthorized: true,
+        port: 443,
+        secure: true,
         prefix: virtualProxy ? "/" + virtualProxy : ''
+    });
+
+    const configWSS = {
+        schema,
+        url: senseURL,
+        createSocket: url => new WebSocket(url),
+        secure: true
     };
 
     testWS(configWSS);

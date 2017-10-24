@@ -1,23 +1,17 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function (global){
 const qsocks = require('qsocks');
 const Chart = require('chart.js');
 const QRCode = require('qrcode-js');
+const enigma = require('enigma.js');
+const SenseUtilities = require('enigma.js/sense-utilities');
+const schema = require('enigma.js/schemas/12.20.0.json');
 
 //Setup
 var xrfkey = "0123456789abcdef";
 var hasFocus = true;
 var protocol = location.protocol;
 var host = location.hostname;
-
-/*var qrcode = new QRCode(document.getElementById("qrcode"), {
-    text: window.location.href.toString(),
-    width: 128,
-    height: 128,
-    colorDark : "#000000",
-    colorLight : "#ffffff",
-    //correctLevel : QRCode.CorrectLevel.H
-  });
-*/
 
 //Add support for virtual proxy. Need to not access the hub without the virtual proxy.
 var path = location.pathname;
@@ -27,7 +21,6 @@ if (regexpResults != null) {
 } else {
     var virtualProxy = "";
 }
-
 
 if (protocol == "https:") {
     var isSecure = true;
@@ -66,7 +59,7 @@ authenticate = function (virtualProxy) {
 
 //Test web socket configuration
 testWS = function (config) {
-    if (config.isSecure) {
+    if (config.secure) {
         var connectElement = "ConnectedWSS";
         var docListElement = "DocListWSS";
         var productVersionElement = "ProductVersionWSS";
@@ -78,7 +71,12 @@ testWS = function (config) {
         var connectionType = "WS";
     }
 
-    qsocks.Connect(config).then(function (global) {
+    //Connect to server
+    const session = enigma.create(config);
+
+    //Open Session
+    session.open().then((global) => {
+
         console.log(global)
         document.getElementById(connectElement).innerHTML = "Connected " + connectionType;
         document.getElementById(connectElement + "Div").classList.remove('alert-danger');
@@ -173,15 +171,18 @@ chartReposeTime = function (config) {
     function removeData(chart) {
         chart.data.labels.pop();
         chart.data.datasets.forEach((dataset) => {
-            dataset.data.pop();
+            dataset.data.splice(0, 1);
         });
         chart.update();
     }
 
 
     var trackResponse = new Array();
+    //Connect to server
+    const session = enigma.create(config);
 
-    qsocks.Connect(config).then(function (global) {
+    //Open Session
+    session.open().then((global) => {
         setInterval(function () {
             if (hasFocus) {
                 var startTime = new Date(); //Start
@@ -193,13 +194,13 @@ chartReposeTime = function (config) {
                     console.log(responseTime);
 
                     addData(myNewChart, "", responseTime);
-                    if (myNewChart.datasets[0].points.length > 90) {
+                    if (myNewChart.data.datasets[0].data.length > 90) {
                         removeData(myNewChart);
                     }
 
                 }, function (err) {
                     addData(myNewChart, "Error", 0);
-                    if (myNewChart.datasets[0].points.length > 90) {
+                    if (myNewChart.data.datasets[0].data.length > 90) {
                         removeData(myNewChart);
                     }
                 });
@@ -213,12 +214,20 @@ chartReposeTime = function (config) {
 
 if (isSecure) {
     //if HTTPS only test WSS
-    var configWSS = {
+    var senseURL = SenseUtilities.buildUrl({
         host: host,
-        isSecure: true,
-        rejectUnauthorized: true,
+        port: 443,
+        secure: true,
         prefix: virtualProxy ? "/" + virtualProxy : ''
+    });
+
+    const configWSS = {
+        schema,
+        url: senseURL,
+        createSocket: url => new WebSocket(url),
+        secure: true
     };
+
 
     authenticate(virtualProxy);
     testWS(configWSS);
@@ -226,25 +235,41 @@ if (isSecure) {
 } else {
     //if HTTP test WS and WSS
     authenticate(virtualProxy);
-    var configWS = {
+    var senseURL = SenseUtilities.buildUrl({
         host: host,
-        isSecure: false,
+        port: 80,
+        secure: false,
         prefix: virtualProxy ? "/" + virtualProxy : ''
+    });
+
+    const configWS = {
+        schema,
+        url: senseURL,
+        createSocket: url => new WebSocket(url),
+        secure: false
     };
 
     testWS(configWS)
 
-    var configWSS = {
+    var senseURL = SenseUtilities.buildUrl({
         host: host,
-        isSecure: true,
-        rejectUnauthorized: true,
+        port: 443,
+        secure: true,
         prefix: virtualProxy ? "/" + virtualProxy : ''
+    });
+
+    const configWSS = {
+        schema,
+        url: senseURL,
+        createSocket: url => new WebSocket(url),
+        secure: true
     };
 
     testWS(configWSS);
     chartReposeTime(configWS);
 }
-},{"chart.js":4,"qrcode-js":69,"qsocks":79}],2:[function(require,module,exports){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"chart.js":4,"enigma.js":60,"enigma.js/schemas/12.20.0.json":61,"enigma.js/sense-utilities":62,"qrcode-js":72,"qsocks":82}],2:[function(require,module,exports){
 "use strict";
 
 // rawAsap provides everything we need except exception management.
@@ -12900,7 +12925,7 @@ module.exports = function(Chart) {
 	Chart.scaleService.registerScaleType('time', TimeScale, defaultConfig);
 };
 
-},{"../core/core.defaults":22,"../helpers/index":42,"moment":60}],55:[function(require,module,exports){
+},{"../core/core.defaults":22,"../helpers/index":42,"moment":63}],55:[function(require,module,exports){
 /* MIT license */
 var colorNames = require('color-name');
 
@@ -14558,6 +14583,4766 @@ module.exports = {
 };
 
 },{}],60:[function(require,module,exports){
+/**
+ * enigma.js v2.1.1
+ * Copyright (c) 2017 QlikTech International AB
+ * This library is licensed under MIT - See the LICENSE file for full details
+ */
+
+(function (global, factory) {
+	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+	typeof define === 'function' && define.amd ? define(factory) :
+	(global.enigma = factory());
+}(this, (function () { 'use strict';
+
+/**
+ * Utility functions
+ */
+
+var util = {};
+
+util.isObject = function isObject(arg) {
+  return typeof arg === 'object' && arg !== null;
+};
+
+util.isNumber = function isNumber(arg) {
+  return typeof arg === 'number';
+};
+
+util.isUndefined = function isUndefined(arg) {
+  return arg === void 0;
+};
+
+util.isFunction = function isFunction(arg){
+  return typeof arg === 'function';
+};
+
+
+/**
+ * EventEmitter class
+ */
+
+function EventEmitter() {
+  EventEmitter.init.call(this);
+}
+var nodeEventEmitter = EventEmitter;
+
+// Backwards-compat with node 0.10.x
+EventEmitter.EventEmitter = EventEmitter;
+
+EventEmitter.prototype._events = undefined;
+EventEmitter.prototype._maxListeners = undefined;
+
+// By default EventEmitters will print a warning if more than 10 listeners are
+// added to it. This is a useful default which helps finding memory leaks.
+EventEmitter.defaultMaxListeners = 10;
+
+EventEmitter.init = function() {
+  this._events = this._events || {};
+  this._maxListeners = this._maxListeners || undefined;
+};
+
+// Obviously not all Emitters should be limited to 10. This function allows
+// that to be increased. Set to zero for unlimited.
+EventEmitter.prototype.setMaxListeners = function(n) {
+  if (!util.isNumber(n) || n < 0 || isNaN(n))
+    throw TypeError('n must be a positive number');
+  this._maxListeners = n;
+  return this;
+};
+
+EventEmitter.prototype.emit = function(type) {
+  var er, handler, len, args, i, listeners;
+
+  if (!this._events)
+    this._events = {};
+
+  // If there is no 'error' event listener then throw.
+  if (type === 'error' && !this._events.error) {
+    er = arguments[1];
+    if (er instanceof Error) {
+      throw er; // Unhandled 'error' event
+    } else {
+      throw Error('Uncaught, unspecified "error" event.');
+    }
+    return false;
+  }
+
+  handler = this._events[type];
+
+  if (util.isUndefined(handler))
+    return false;
+
+  if (util.isFunction(handler)) {
+    switch (arguments.length) {
+      // fast cases
+      case 1:
+        handler.call(this);
+        break;
+      case 2:
+        handler.call(this, arguments[1]);
+        break;
+      case 3:
+        handler.call(this, arguments[1], arguments[2]);
+        break;
+      // slower
+      default:
+        len = arguments.length;
+        args = new Array(len - 1);
+        for (i = 1; i < len; i++)
+          args[i - 1] = arguments[i];
+        handler.apply(this, args);
+    }
+  } else if (util.isObject(handler)) {
+    len = arguments.length;
+    args = new Array(len - 1);
+    for (i = 1; i < len; i++)
+      args[i - 1] = arguments[i];
+
+    listeners = handler.slice();
+    len = listeners.length;
+    for (i = 0; i < len; i++)
+      listeners[i].apply(this, args);
+  }
+
+  return true;
+};
+
+EventEmitter.prototype.addListener = function(type, listener) {
+  var m;
+
+  if (!util.isFunction(listener))
+    throw TypeError('listener must be a function');
+
+  if (!this._events)
+    this._events = {};
+
+  // To avoid recursion in the case that type === "newListener"! Before
+  // adding it to the listeners, first emit "newListener".
+  if (this._events.newListener)
+    this.emit('newListener', type,
+              util.isFunction(listener.listener) ?
+              listener.listener : listener);
+
+  if (!this._events[type])
+    // Optimize the case of one listener. Don't need the extra array object.
+    this._events[type] = listener;
+  else if (util.isObject(this._events[type]))
+    // If we've already got an array, just append.
+    this._events[type].push(listener);
+  else
+    // Adding the second element, need to change to array.
+    this._events[type] = [this._events[type], listener];
+
+  // Check for listener leak
+  if (util.isObject(this._events[type]) && !this._events[type].warned) {
+    var m;
+    if (!util.isUndefined(this._maxListeners)) {
+      m = this._maxListeners;
+    } else {
+      m = EventEmitter.defaultMaxListeners;
+    }
+
+    if (m && m > 0 && this._events[type].length > m) {
+      this._events[type].warned = true;
+
+      if (util.isFunction(console.error)) {
+        console.error('(node) warning: possible EventEmitter memory ' +
+                      'leak detected. %d listeners added. ' +
+                      'Use emitter.setMaxListeners() to increase limit.',
+                      this._events[type].length);
+      }
+      if (util.isFunction(console.trace))
+        console.trace();
+    }
+  }
+
+  return this;
+};
+
+EventEmitter.prototype.on = EventEmitter.prototype.addListener;
+
+EventEmitter.prototype.once = function(type, listener) {
+  if (!util.isFunction(listener))
+    throw TypeError('listener must be a function');
+
+  var fired = false;
+
+  function g() {
+    this.removeListener(type, g);
+
+    if (!fired) {
+      fired = true;
+      listener.apply(this, arguments);
+    }
+  }
+
+  g.listener = listener;
+  this.on(type, g);
+
+  return this;
+};
+
+// emits a 'removeListener' event iff the listener was removed
+EventEmitter.prototype.removeListener = function(type, listener) {
+  var list, position, length, i;
+
+  if (!util.isFunction(listener))
+    throw TypeError('listener must be a function');
+
+  if (!this._events || !this._events[type])
+    return this;
+
+  list = this._events[type];
+  length = list.length;
+  position = -1;
+
+  if (list === listener ||
+      (util.isFunction(list.listener) && list.listener === listener)) {
+    delete this._events[type];
+    if (this._events.removeListener)
+      this.emit('removeListener', type, listener);
+
+  } else if (util.isObject(list)) {
+    for (i = length; i-- > 0;) {
+      if (list[i] === listener ||
+          (list[i].listener && list[i].listener === listener)) {
+        position = i;
+        break;
+      }
+    }
+
+    if (position < 0)
+      return this;
+
+    if (list.length === 1) {
+      list.length = 0;
+      delete this._events[type];
+    } else {
+      list.splice(position, 1);
+    }
+
+    if (this._events.removeListener)
+      this.emit('removeListener', type, listener);
+  }
+
+  return this;
+};
+
+EventEmitter.prototype.removeAllListeners = function(type) {
+  var key, listeners;
+
+  if (!this._events)
+    return this;
+
+  // not listening for removeListener, no need to emit
+  if (!this._events.removeListener) {
+    if (arguments.length === 0)
+      this._events = {};
+    else if (this._events[type])
+      delete this._events[type];
+    return this;
+  }
+
+  // emit removeListener for all listeners on all events
+  if (arguments.length === 0) {
+    for (key in this._events) {
+      if (key === 'removeListener') continue;
+      this.removeAllListeners(key);
+    }
+    this.removeAllListeners('removeListener');
+    this._events = {};
+    return this;
+  }
+
+  listeners = this._events[type];
+
+  if (util.isFunction(listeners)) {
+    this.removeListener(type, listeners);
+  } else if (Array.isArray(listeners)) {
+    // LIFO order
+    while (listeners.length)
+      this.removeListener(type, listeners[listeners.length - 1]);
+  }
+  delete this._events[type];
+
+  return this;
+};
+
+EventEmitter.prototype.listeners = function(type) {
+  var ret;
+  if (!this._events || !this._events[type])
+    ret = [];
+  else if (util.isFunction(this._events[type]))
+    ret = [this._events[type]];
+  else
+    ret = this._events[type].slice();
+  return ret;
+};
+
+EventEmitter.listenerCount = function(emitter, type) {
+  var ret;
+  if (!emitter._events || !emitter._events[type])
+    ret = 0;
+  else if (util.isFunction(emitter._events[type]))
+    ret = 1;
+  else
+    ret = emitter._events[type].length;
+  return ret;
+};
+
+/**
+* @module EventEmitter
+*/
+var Events = {
+
+  /**
+  * Function used to add event handling to objects passed in.
+  * @param {Object} obj Object instance that will get event handling.
+  */
+  mixin: function mixin(obj) {
+    Object.keys(nodeEventEmitter.prototype).forEach(function (key) {
+      obj[key] = nodeEventEmitter.prototype[key];
+    });
+    nodeEventEmitter.init(obj);
+  }
+};
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
+  return typeof obj;
+} : function (obj) {
+  return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+};
+
+
+
+
+
+var asyncGenerator = function () {
+  function AwaitValue(value) {
+    this.value = value;
+  }
+
+  function AsyncGenerator(gen) {
+    var front, back;
+
+    function send(key, arg) {
+      return new Promise(function (resolve, reject) {
+        var request = {
+          key: key,
+          arg: arg,
+          resolve: resolve,
+          reject: reject,
+          next: null
+        };
+
+        if (back) {
+          back = back.next = request;
+        } else {
+          front = back = request;
+          resume(key, arg);
+        }
+      });
+    }
+
+    function resume(key, arg) {
+      try {
+        var result = gen[key](arg);
+        var value = result.value;
+
+        if (value instanceof AwaitValue) {
+          Promise.resolve(value.value).then(function (arg) {
+            resume("next", arg);
+          }, function (arg) {
+            resume("throw", arg);
+          });
+        } else {
+          settle(result.done ? "return" : "normal", result.value);
+        }
+      } catch (err) {
+        settle("throw", err);
+      }
+    }
+
+    function settle(type, value) {
+      switch (type) {
+        case "return":
+          front.resolve({
+            value: value,
+            done: true
+          });
+          break;
+
+        case "throw":
+          front.reject(value);
+          break;
+
+        default:
+          front.resolve({
+            value: value,
+            done: false
+          });
+          break;
+      }
+
+      front = front.next;
+
+      if (front) {
+        resume(front.key, front.arg);
+      } else {
+        back = null;
+      }
+    }
+
+    this._invoke = send;
+
+    if (typeof gen.return !== "function") {
+      this.return = undefined;
+    }
+  }
+
+  if (typeof Symbol === "function" && Symbol.asyncIterator) {
+    AsyncGenerator.prototype[Symbol.asyncIterator] = function () {
+      return this;
+    };
+  }
+
+  AsyncGenerator.prototype.next = function (arg) {
+    return this._invoke("next", arg);
+  };
+
+  AsyncGenerator.prototype.throw = function (arg) {
+    return this._invoke("throw", arg);
+  };
+
+  AsyncGenerator.prototype.return = function (arg) {
+    return this._invoke("return", arg);
+  };
+
+  return {
+    wrap: function (fn) {
+      return function () {
+        return new AsyncGenerator(fn.apply(this, arguments));
+      };
+    },
+    await: function (value) {
+      return new AwaitValue(value);
+    }
+  };
+}();
+
+
+
+
+
+var classCallCheck = function (instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+};
+
+var createClass = function () {
+  function defineProperties(target, props) {
+    for (var i = 0; i < props.length; i++) {
+      var descriptor = props[i];
+      descriptor.enumerable = descriptor.enumerable || false;
+      descriptor.configurable = true;
+      if ("value" in descriptor) descriptor.writable = true;
+      Object.defineProperty(target, descriptor.key, descriptor);
+    }
+  }
+
+  return function (Constructor, protoProps, staticProps) {
+    if (protoProps) defineProperties(Constructor.prototype, protoProps);
+    if (staticProps) defineProperties(Constructor, staticProps);
+    return Constructor;
+  };
+}();
+
+
+
+
+
+
+
+var _extends = Object.assign || function (target) {
+  for (var i = 1; i < arguments.length; i++) {
+    var source = arguments[i];
+
+    for (var key in source) {
+      if (Object.prototype.hasOwnProperty.call(source, key)) {
+        target[key] = source[key];
+      }
+    }
+  }
+
+  return target;
+};
+
+var get = function get(object, property, receiver) {
+  if (object === null) object = Function.prototype;
+  var desc = Object.getOwnPropertyDescriptor(object, property);
+
+  if (desc === undefined) {
+    var parent = Object.getPrototypeOf(object);
+
+    if (parent === null) {
+      return undefined;
+    } else {
+      return get(parent, property, receiver);
+    }
+  } else if ("value" in desc) {
+    return desc.value;
+  } else {
+    var getter = desc.get;
+
+    if (getter === undefined) {
+      return undefined;
+    }
+
+    return getter.call(receiver);
+  }
+};
+
+var inherits = function (subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+  }
+
+  subClass.prototype = Object.create(superClass && superClass.prototype, {
+    constructor: {
+      value: subClass,
+      enumerable: false,
+      writable: true,
+      configurable: true
+    }
+  });
+  if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+};
+
+
+
+
+
+
+
+
+
+
+
+var possibleConstructorReturn = function (self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }
+
+  return call && (typeof call === "object" || typeof call === "function") ? call : self;
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+var toConsumableArray = function (arr) {
+  if (Array.isArray(arr)) {
+    for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
+
+    return arr2;
+  } else {
+    return Array.from(arr);
+  }
+};
+
+var RPC_CLOSE_NORMAL = 1000;
+var RPC_CLOSE_MANUAL_SUSPEND = 4000;
+
+var cacheId = 0;
+
+var Session = function () {
+  /**
+  * Creates a new Session instance.
+  * @param {Object} options The configuration option for this class.
+  * @param {Intercept} options.intercept The intercept instance to use.
+  * @param {ApiCache} options.apis The ApiCache instance to bridge events towards.
+  * @param {Promise} options.Promise The promise constructor to use.
+  * @param {RPC} options.rpc The RPC instance to use when communicating towards Engine.
+  * @param {Schema} options.definition The Schema instance to use when generating APIs.
+  * @param {Object} options.protocol Additional protocol properties.
+  * @param {Boolean} options.protocol.delta Flag indicating if delta should be used or not.
+  * @param {SuspendResume} options.suspendResume The SuspendResume instance to use.
+  * @param {Object} [options.eventListeners] An object containing keys (event names) and
+  *                                          values (event handlers) that will be bound
+  *                                          during instantiation.
+  */
+  function Session(options) {
+    classCallCheck(this, Session);
+
+    var session = this;
+    _extends(session, options);
+    Events.mixin(session);
+    cacheId += 1;
+    session.id = cacheId;
+    session.rpc.on('socket-error', session.onRpcError.bind(session));
+    session.rpc.on('closed', session.onRpcClosed.bind(session));
+    session.rpc.on('message', session.onRpcMessage.bind(session));
+    session.rpc.on('notification', session.onRpcNotification.bind(session));
+    session.rpc.on('traffic', session.onRpcTraffic.bind(session));
+    session.on('closed', function () {
+      return session.onSessionClosed();
+    });
+  }
+
+  /**
+  * Event handler for re-triggering error events from RPC.
+  * @emits socket-error
+  * @param {Error} err Webocket error event.
+  */
+
+
+  createClass(Session, [{
+    key: 'onRpcError',
+    value: function onRpcError(err) {
+      if (this.suspendResume.isSuspended) {
+        return;
+      }
+      this.emit('socket-error', err);
+    }
+
+    /**
+    * Event handler for the RPC close event.
+    * @emits suspended
+    * @emits closed
+    * @param {Event} evt WebSocket close event.
+    */
+
+  }, {
+    key: 'onRpcClosed',
+    value: function onRpcClosed(evt) {
+      var _this = this;
+
+      if (this.suspendResume.isSuspended) {
+        return;
+      }
+      if (evt.code === RPC_CLOSE_NORMAL || evt.code === RPC_CLOSE_MANUAL_SUSPEND) {
+        return;
+      }
+      if (this.suspendOnClose) {
+        this.suspendResume.suspend().then(function () {
+          return _this.emit('suspended', { initiator: 'network' });
+        });
+      } else {
+        this.emit('closed', evt);
+      }
+    }
+
+    /**
+    * Event handler for the RPC message event.
+    * @param {Object} response JSONRPC response.
+    */
+
+  }, {
+    key: 'onRpcMessage',
+    value: function onRpcMessage(response) {
+      var _this2 = this;
+
+      if (this.suspendResume.isSuspended) {
+        return;
+      }
+      if (response.change) {
+        response.change.forEach(function (handle) {
+          return _this2.emitHandleChanged(handle);
+        });
+      }
+      if (response.close) {
+        response.close.forEach(function (handle) {
+          return _this2.emitHandleClosed(handle);
+        });
+      }
+    }
+
+    /**
+    * Event handler for the RPC notification event.
+    * @emits notification:*
+    * @emits notification:[JSONRPC notification name]
+    * @param {Object} response The JSONRPC notification.
+    */
+
+  }, {
+    key: 'onRpcNotification',
+    value: function onRpcNotification(response) {
+      this.emit('notification:*', response.method, response.params);
+      this.emit('notification:' + response.method, response.params);
+    }
+
+    /**
+    * Event handler for the RPC traffic event.
+    * @emits traffic:*
+    * @emits traffic:sent
+    * @emits traffic:received
+    * @param {String} dir The traffic direction, sent or received.
+    * @param {Object} data JSONRPC request/response/WebSocket message.
+    */
+
+  }, {
+    key: 'onRpcTraffic',
+    value: function onRpcTraffic(dir, data) {
+      this.emit('traffic:*', dir, data);
+      this.emit('traffic:' + dir, data);
+    }
+
+    /**
+    * Event handler for cleaning up API instances when a session has been closed.
+    * @emits api#closed
+    */
+
+  }, {
+    key: 'onSessionClosed',
+    value: function onSessionClosed() {
+      this.apis.getApis().forEach(function (entry) {
+        entry.api.emit('closed');
+        entry.api.removeAllListeners();
+      });
+      this.apis.clear();
+    }
+
+    /**
+     * Function used to get an API for a backend object.
+     * @param {Object} args Arguments used to create object API.
+     * @param {Number} args.handle Handle of the backend object.
+     * @param {String} args.id ID of the backend object.
+     * @param {String} args.type QIX type of the backend object. Can for example
+     *                           be "Doc" or "GenericVariable".
+     * @param {String} args.genericType Custom type of the backend object, if defined in qInfo.
+     * @returns {*} Returns the generated and possibly augmented API.
+     */
+
+  }, {
+    key: 'getObjectApi',
+    value: function getObjectApi(args) {
+      var handle = args.handle,
+          id = args.id,
+          type = args.type,
+          genericType = args.genericType;
+
+      var api = this.apis.getApi(handle);
+      if (api) {
+        return api;
+      }
+      api = this.definition.generate(type).create(this, handle, id, genericType);
+      this.apis.add(handle, api);
+      return api;
+    }
+
+    /**
+    * Establishes the RPC socket connection and returns the Global instance.
+    * @returns {Promise} Eventually resolved if the connection was successful.
+    */
+
+  }, {
+    key: 'open',
+    value: function open() {
+      var _this3 = this;
+
+      if (!this.globalPromise) {
+        var args = {
+          handle: -1,
+          id: 'Global',
+          type: 'Global',
+          genericType: 'Global'
+        };
+        this.globalPromise = this.rpc.open().then(function () {
+          return _this3.getObjectApi(args);
+        }).then(function (global) {
+          _this3.emit('opened');
+          return global;
+        });
+      }
+      return this.globalPromise;
+    }
+
+    /**
+    * Function used to send data on the RPC socket.
+    * @param {Object} request The request to be sent. (data and some meta info)
+    * @returns {Object} Returns a promise instance.
+    */
+
+  }, {
+    key: 'send',
+    value: function send(request) {
+      var _this4 = this;
+
+      if (this.suspendResume.isSuspended) {
+        return this.Promise.reject(new Error('Session suspended'));
+      }
+      request.id = this.rpc.createRequestId();
+      var promise = this.intercept.executeRequests(this, this.Promise.resolve(request)).then(function (augmentedRequest) {
+        var data = _extends({}, _this4.protocol, augmentedRequest);
+        // the outKey value is used by multiple-out interceptor, at some point
+        // we need to refactor that implementation and figure out how to transport
+        // this value without hijacking the JSONRPC request object:
+        delete data.outKey;
+        var response = _this4.rpc.send(data);
+        augmentedRequest.retry = function () {
+          return _this4.send(request);
+        };
+        return _this4.intercept.executeResponses(_this4, response, augmentedRequest);
+      });
+      Session.addToPromiseChain(promise, 'requestId', request.id);
+      return promise;
+    }
+
+    /**
+    * Suspends the session ("sleeping state"), and closes the RPC connection.
+    * @emits suspended
+    * @returns {Promise} Eventually resolved when the RPC connection is closed.
+    */
+
+  }, {
+    key: 'suspend',
+    value: function suspend() {
+      var _this5 = this;
+
+      return this.suspendResume.suspend().then(function () {
+        return _this5.emit('suspended', { initiator: 'manual' });
+      });
+    }
+
+    /**
+    * Resumes a previously suspended session.
+    * @param {Boolean} onlyIfAttached If true, resume only if the session was re-attached.
+    * @returns {Promise} Eventually resolved if the session was successfully resumed,
+    *                    otherwise rejected.
+    */
+
+  }, {
+    key: 'resume',
+    value: function resume(onlyIfAttached) {
+      var _this6 = this;
+
+      return this.suspendResume.resume(onlyIfAttached).then(function (value) {
+        _this6.emit('resumed');
+        return value;
+      });
+    }
+
+    /**
+    * Function used to close the session.
+    * @returns {Promise} Eventually resolved when the RPC connection is closed.
+    */
+
+  }, {
+    key: 'close',
+    value: function close() {
+      var _this7 = this;
+
+      this.globalPromise = undefined;
+      return this.rpc.close().then(function (evt) {
+        return _this7.emit('closed', evt);
+      });
+    }
+
+    /**
+    * Given a handle, this function will emit the 'changed' event on the
+    * corresponding API instance.
+    * @param {Number} handle The handle of the API instance.
+    * @emits api#changed
+    */
+
+  }, {
+    key: 'emitHandleChanged',
+    value: function emitHandleChanged(handle) {
+      var api = this.apis.getApi(handle);
+      if (api) {
+        api.emit('changed');
+      }
+    }
+
+    /**
+    * Given a handle, this function will emit the 'closed' event on the
+    * corresponding API instance.
+    * @param {Number} handle The handle of the API instance.
+    * @emits api#closed
+    */
+
+  }, {
+    key: 'emitHandleClosed',
+    value: function emitHandleClosed(handle) {
+      var api = this.apis.getApi(handle);
+      if (api) {
+        api.emit('closed');
+        api.removeAllListeners();
+      }
+    }
+
+    /**
+    * Function used to add info on the promise chain.
+    * @private
+    * @param {Promise} promise The promise to add info on.
+    * @param {String} name The property to add info on.
+    * @param {Any} value The info to add.
+    */
+
+  }], [{
+    key: 'addToPromiseChain',
+    value: function addToPromiseChain(promise, name, value) {
+      promise[name] = value;
+      var then = promise.then;
+
+      promise.then = function patchedThen() {
+        for (var _len = arguments.length, params = Array(_len), _key = 0; _key < _len; _key++) {
+          params[_key] = arguments[_key];
+        }
+
+        var chain = then.apply(this, params);
+        Session.addToPromiseChain(chain, name, value);
+        return chain;
+      };
+    }
+  }]);
+  return Session;
+}();
+
+/**
+* Key-value cache
+*/
+var KeyValueCache = function () {
+  function KeyValueCache() {
+    classCallCheck(this, KeyValueCache);
+
+    this.entries = {};
+  }
+
+  /**
+  * Adds an entry.
+  * @function KeyValueCache#add
+  * @param {String} key The key representing an entry.
+  * @param {*} entry The entry to be added.
+  */
+
+
+  createClass(KeyValueCache, [{
+    key: 'add',
+    value: function add(key, entry) {
+      key += '';
+      if (typeof this.entries[key] !== 'undefined') {
+        throw new Error('Entry already defined with key ' + key);
+      }
+      this.entries[key] = entry;
+    }
+
+    /**
+    * Sets an entry.
+    * @function KeyValueCache#set
+    * @param {String} key The key representing an entry.
+    * @param {*} entry The entry.
+    */
+
+  }, {
+    key: 'set',
+    value: function set$$1(key, entry) {
+      key += '';
+      this.entries[key] = entry;
+    }
+
+    /**
+    * Removes an entry.
+    * @function KeyValueCache#remove
+    * @param {String} key The key representing an entry.
+    */
+
+  }, {
+    key: 'remove',
+    value: function remove(key) {
+      delete this.entries[key];
+    }
+
+    /**
+    * Gets an entry.
+    * @function KeyValueCache#get
+    * @param {String} key The key representing an entry.
+    * @returns {*} The entry for the key.
+    */
+
+  }, {
+    key: 'get',
+    value: function get$$1(key) {
+      return this.entries[key];
+    }
+
+    /**
+    * Gets a list of all entries.
+    * @function KeyValueCache#getAll
+    * @returns {Array} The list of entries including its `key` and `value` properties.
+    */
+
+  }, {
+    key: 'getAll',
+    value: function getAll() {
+      var _this = this;
+
+      return Object.keys(this.entries).map(function (key) {
+        return {
+          key: key,
+          value: _this.entries[key]
+        };
+      });
+    }
+
+    /**
+    * Gets a key for an entry.
+    * @function KeyValueCache#getKey
+    * @param {*} entry The entry to locate the key for.
+    * @returns {String} The key representing an entry.
+    */
+
+  }, {
+    key: 'getKey',
+    value: function getKey(entry) {
+      var _this2 = this;
+
+      return Object.keys(this.entries).filter(function (key) {
+        return _this2.entries[key] === entry;
+      })[0];
+    }
+
+    /**
+    * Clears the cache of all entries.
+    * @function KeyValueCache#clear
+    */
+
+  }, {
+    key: 'clear',
+    value: function clear() {
+      this.entries = {};
+    }
+  }]);
+  return KeyValueCache;
+}();
+
+var hasOwnProperty$1 = Object.prototype.hasOwnProperty;
+
+/**
+* Returns the camelCase counterpart of a symbol.
+* @param {String} symbol The symbol.
+* @return the camelCase counterpart.
+*/
+
+function toCamelCase(symbol) {
+  return symbol.substring(0, 1).toLowerCase() + symbol.substring(1);
+}
+
+/**
+ * A facade function that allows parameters to be passed either by name
+ * (through an object), or by position (through an array).
+ * @param {Function} base The function that is being overriden. Will be
+ *                        called with parameters in array-form.
+ * @param {Object} defaults Parameter list and it's default values.
+ * @param {*} params The parameters.
+ */
+function namedParamFacade(base, defaults$$1) {
+  for (var _len = arguments.length, params = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+    params[_key - 2] = arguments[_key];
+  }
+
+  if (params.length === 1 && _typeof(params[0]) === 'object') {
+    var valid = Object.keys(params[0]).every(function (key) {
+      return hasOwnProperty$1.call(defaults$$1, key);
+    });
+    if (valid) {
+      params = Object.keys(defaults$$1).map(function (key) {
+        return params[0][key] || defaults$$1[key];
+      });
+    }
+  }
+  return base.apply(this, params);
+}
+
+/**
+* Qix schema definition.
+*/
+
+var Schema = function () {
+  /**
+  * Create a new schema instance.
+  * @param {Configuration} config The configuration for QIX.
+  */
+  function Schema(config) {
+    classCallCheck(this, Schema);
+
+    this.config = config;
+    this.Promise = config.Promise;
+    this.schema = config.schema;
+    this.mixins = new KeyValueCache();
+    this.types = new KeyValueCache();
+  }
+
+  /**
+  * Function used to add a mixin object to the mixin cache. Will be mixed into the API
+  * of the specified key when generated.
+  * @param {Object} mixin Mixin object.
+  * @param {String|Array<String>} mixin.types String or array of strings containing the
+  *                                           API-types that will be mixed in.
+  * @param {Object} [mixin.extend] Object literal containing the methods that
+  *                                will be extended on the specified API.
+  * @param {Object} [mixin.override] Object literal containing the methods to
+  *                                  override existing methods.
+  * @param {Function} [mixin.init] Init function that, if defined, will run when an API is
+  *                                instantiated. It runs with Promise and API object as parameters.
+  */
+
+
+  createClass(Schema, [{
+    key: 'registerMixin',
+    value: function registerMixin(_ref) {
+      var _this = this;
+
+      var types = _ref.types,
+          type = _ref.type,
+          extend = _ref.extend,
+          override = _ref.override,
+          init = _ref.init;
+
+      if (!Array.isArray(types)) {
+        types = [types];
+      }
+      // to support a single type
+      if (type) {
+        types.push(type);
+      }
+      var cached = { extend: extend, override: override, init: init };
+      types.forEach(function (typeKey) {
+        var entryList = _this.mixins.get(typeKey);
+        if (entryList) {
+          entryList.push(cached);
+        } else {
+          _this.mixins.add(typeKey, [cached]);
+        }
+      });
+    }
+
+    /**
+    * Function used to generate a type definition.
+    * @param {String} type The type.
+    * @returns {{create: Function, def: Object}} Returns an object with a definition
+    *          of the type and a create factory.
+    */
+
+  }, {
+    key: 'generate',
+    value: function generate(type) {
+      var entry = this.types.get(type);
+      if (entry) {
+        return entry;
+      }
+      if (!this.schema.structs[type]) {
+        throw new Error(type + ' not found');
+      }
+      var factory = this.generateApi(type, this.schema.structs[type]);
+      this.types.add(type, factory);
+      return factory;
+    }
+
+    /**
+    * Function used to generate an API definition for a given type.
+    * @param {String} type The type to generate.
+    * @param {Object} schema The schema describing the type.
+    * @returns {{create: (function(session:Object, handle:Number, id:String,
+    *          customKey:String)), def: Object}} Returns the API definition.
+    */
+
+  }, {
+    key: 'generateApi',
+    value: function generateApi(type, schema) {
+      var api = Object.create({});
+
+      this.generateDefaultApi(api, schema); // Generate default
+      this.mixinType(type, api); // Mixin default type
+      this.mixinNamedParamFacade(api, schema); // Mixin named parameter support
+
+      var create = function create(session, handle, id, customKey) {
+        var _this2 = this;
+
+        var instance = Object.create(api);
+
+        Events.mixin(instance); // Always mixin event-emitter per instance
+
+        Object.defineProperties(instance, {
+          session: {
+            enumerable: true,
+            value: session
+          },
+          handle: {
+            enumerable: true,
+            value: handle,
+            writable: true
+          },
+          id: {
+            enumerable: true,
+            value: id
+          },
+          type: {
+            enumerable: true,
+            value: type
+          },
+          genericType: {
+            enumerable: true,
+            value: customKey
+          }
+        });
+
+        var mixinList = this.mixins.get(type) || [];
+        if (customKey !== type) {
+          this.mixinType(customKey, instance); // Mixin custom types
+          mixinList = mixinList.concat(this.mixins.get(customKey) || []);
+        }
+        mixinList.forEach(function (mixin) {
+          if (typeof mixin.init === 'function') {
+            mixin.init({ config: _this2.config, api: instance });
+          }
+        });
+
+        return instance;
+      }.bind(this);
+
+      return {
+        create: create,
+        def: api
+      };
+    }
+
+    /**
+    * Function used to generate the methods with the right handlers to the object
+    * API that is being generated.
+    * @param {Object} api The object API that is currently being generated.
+    * @param {Object} schema The API definition.
+    */
+
+  }, {
+    key: 'generateDefaultApi',
+    value: function generateDefaultApi(api, schema) {
+      Object.keys(schema).forEach(function (method) {
+        var out = schema[method].Out && schema[method].Out;
+        var outKey = out.length === 1 ? out[0].Name : -1;
+        var fnName = toCamelCase(method);
+
+        api[fnName] = function generatedMethod() {
+          for (var _len2 = arguments.length, params = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+            params[_key2] = arguments[_key2];
+          }
+
+          return this.session.send({
+            handle: this.handle,
+            method: method,
+            params: params,
+            outKey: outKey
+          });
+        };
+      });
+    }
+
+    /**
+    * Function used to add mixin methods to a specified API.
+    * @param {String} type Used to specify which mixin should be woven in.
+    * @param {Object} api The object that will be woven.
+    */
+
+  }, {
+    key: 'mixinType',
+    value: function mixinType(type, api) {
+      var mixinList = this.mixins.get(type);
+      if (mixinList) {
+        mixinList.forEach(function (_ref2) {
+          var _ref2$extend = _ref2.extend,
+              extend = _ref2$extend === undefined ? {} : _ref2$extend,
+              _ref2$override = _ref2.override,
+              override = _ref2$override === undefined ? {} : _ref2$override;
+
+          Object.keys(override).forEach(function (key) {
+            if (typeof api[key] === 'function' && typeof override[key] === 'function') {
+              var baseFn = api[key];
+              api[key] = function wrappedFn() {
+                for (var _len3 = arguments.length, args = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+                  args[_key3] = arguments[_key3];
+                }
+
+                return override[key].apply(this, [baseFn.bind(this)].concat(args));
+              };
+            } else {
+              throw new Error('No function to override. Type: ' + type + ' function: ' + key);
+            }
+          });
+          Object.keys(extend).forEach(function (key) {
+            // handle overrides
+            if (typeof api[key] === 'function' && typeof extend[key] === 'function') {
+              throw new Error('Extend is not allowed for this mixin. Type: ' + type + ' function: ' + key);
+            } else {
+              api[key] = extend[key];
+            }
+          });
+        });
+      }
+    }
+
+    /**
+    * Function used to mixin the named parameter facade.
+    * @param {Object} api The object API that is currently being generated.
+    * @param {Object} schema The API definition.
+    */
+
+  }, {
+    key: 'mixinNamedParamFacade',
+    value: function mixinNamedParamFacade(api, schema) {
+      Object.keys(schema).forEach(function (key) {
+        var fnName = toCamelCase(key);
+        var base = api[fnName];
+        var defaults$$1 = schema[key].In.reduce(function (result, item) {
+          result[item.Name] = item.DefaultValue;
+          return result;
+        }, {});
+
+        api[fnName] = function namedParamWrapper() {
+          for (var _len4 = arguments.length, params = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+            params[_key4] = arguments[_key4];
+          }
+
+          return namedParamFacade.apply(this, [base, defaults$$1].concat(params));
+        };
+      });
+    }
+  }]);
+  return Schema;
+}();
+
+/**
+ * Helper class for handling RPC calls
+ */
+
+var RPCResolver = function () {
+  function RPCResolver(id, resolve, reject) {
+    classCallCheck(this, RPCResolver);
+
+    Events.mixin(this);
+    this.id = id;
+    this.resolve = resolve;
+    this.reject = reject;
+  }
+
+  createClass(RPCResolver, [{
+    key: 'resolveWith',
+    value: function resolveWith(data) {
+      this.resolve(data);
+      this.emit('resolved', this.id);
+    }
+  }, {
+    key: 'rejectWith',
+    value: function rejectWith(err) {
+      this.reject(err);
+      this.emit('rejected', this.id);
+    }
+  }]);
+  return RPCResolver;
+}();
+
+/**
+* This class handles remote procedure calls on a web socket.
+*/
+
+var RPC = function () {
+  /**
+  * Create a new RPC instance.
+  * @param {Object} options The configuration options for this class.
+  * @param {Function} options.Promise The promise constructor to use.
+  * @param {String} options.url The complete websocket URL used to connect.
+  * @param {Function} options.createSocket The function callback to create a WebSocket.
+  */
+  function RPC(options) {
+    classCallCheck(this, RPC);
+
+    _extends(this, options);
+    Events.mixin(this);
+    this.resolvers = {};
+    this.requestId = 0;
+    this.openedPromise = undefined;
+  }
+
+  /**
+  * Opens a connection to the configured endpoint.
+  * @param {Boolean} force - ignores all previous and outstanding open calls if set to true.
+  * @returns {Object} A promise instance.
+  */
+
+
+  createClass(RPC, [{
+    key: 'open',
+    value: function open() {
+      var _this = this;
+
+      var force = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+
+      if (!force && this.openedPromise) {
+        return this.openedPromise;
+      }
+
+      try {
+        this.socket = this.createSocket(this.url);
+      } catch (err) {
+        return this.Promise.reject(err);
+      }
+
+      this.socket.onopen = this.onOpen.bind(this);
+      this.socket.onclose = this.onClose.bind(this);
+      this.socket.onerror = this.onError.bind(this);
+      this.socket.onmessage = this.onMessage.bind(this);
+      this.openedPromise = new this.Promise(function (resolve, reject) {
+        return _this.registerResolver('opened', resolve, reject);
+      });
+      this.closedPromise = new this.Promise(function (resolve, reject) {
+        return _this.registerResolver('closed', resolve, reject);
+      });
+      return this.openedPromise;
+    }
+
+    /**
+    * Resolves the open promise when a connection is successfully established.
+    */
+
+  }, {
+    key: 'onOpen',
+    value: function onOpen() {
+      var _this2 = this;
+
+      this.resolvers.opened.resolveWith(function () {
+        return _this2.closedPromise;
+      });
+    }
+
+    /**
+    * Resolves the close promise when a connection is closed.
+    * @param {Object} event - The event describing close.
+    */
+
+  }, {
+    key: 'onClose',
+    value: function onClose(event) {
+      this.emit('closed', event);
+      this.resolvers.closed.resolveWith(event);
+      this.rejectAllOutstandingResolvers({ code: -1, message: 'Socket closed' });
+    }
+
+    /**
+    * Closes a connection.
+    * @param {Number} [code=1000] - The reason code for closing the connection.
+    * @param {String} [reason=""] - The human readable string describing why the connection is closed.
+    * @returns {Object} Returns a promise instance.
+    */
+
+  }, {
+    key: 'close',
+    value: function close() {
+      var code = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1000;
+      var reason = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
+
+      if (this.socket) {
+        this.socket.close(code, reason);
+        this.socket = null;
+      }
+      return this.closedPromise;
+    }
+
+    /**
+    * Emits an error event and rejects the open promise if an error is raised on the connection.
+    * @param {Object} event - The event describing the error.
+    */
+
+  }, {
+    key: 'onError',
+    value: function onError(event) {
+      if (this.resolvers.opened) {
+        this.resolvers.opened.rejectWith(event);
+      } else {
+        // only emit errors after the initial open promise has been resolved,
+        // this makes it possible to catch early websocket errors as well
+        // as run-time ones:
+        this.emit('socket-error', event);
+      }
+      this.rejectAllOutstandingResolvers({ code: -1, message: 'Socket error' });
+    }
+
+    /**
+    * Parses the onMessage event on the connection and resolve the promise for the request.
+    * @param {Object} event - The event describing the message.
+    */
+
+  }, {
+    key: 'onMessage',
+    value: function onMessage(event) {
+      var data = JSON.parse(event.data);
+      this.emit('traffic', 'received', data);
+      if (typeof data.id !== 'undefined') {
+        this.emit('message', data);
+        this.resolvers[data.id].resolveWith(data);
+      } else {
+        this.emit(data.params ? 'notification' : 'message', data);
+      }
+    }
+
+    /**
+    * Rejects all outstanding resolvers.
+    * @param {Object} reason - The reject reason.
+    */
+
+  }, {
+    key: 'rejectAllOutstandingResolvers',
+    value: function rejectAllOutstandingResolvers(reason) {
+      var _this3 = this;
+
+      Object.keys(this.resolvers).forEach(function (id) {
+        if (id === 'opened' || id === 'closed') {
+          return; // "opened" and "closed" should not be handled here
+        }
+        var resolver = _this3.resolvers[id];
+        resolver.rejectWith(reason);
+      });
+    }
+
+    /**
+    * Unregisters a resolver.
+    * @param {Number|String} id - The ID to unregister the resolver with.
+    */
+
+  }, {
+    key: 'unregisterResolver',
+    value: function unregisterResolver(id) {
+      var resolver = this.resolvers[id];
+      resolver.removeAllListeners();
+      delete this.resolvers[id];
+    }
+
+    /**
+    * Registers a resolver.
+    * @param {Number|String} id - The ID to register the resolver with.
+    * @returns {Function} The promise executor function.
+    */
+
+  }, {
+    key: 'registerResolver',
+    value: function registerResolver(id, resolve, reject) {
+      var _this4 = this;
+
+      var resolver = new RPCResolver(id, resolve, reject);
+      this.resolvers[id] = resolver;
+      resolver.on('resolved', function (resolvedId) {
+        return _this4.unregisterResolver(resolvedId);
+      });
+      resolver.on('rejected', function (rejectedId) {
+        return _this4.unregisterResolver(rejectedId);
+      });
+    }
+
+    /**
+    * Sends data on the socket.
+    * @param {Object} data - The data to send.
+    * @returns {Object} A promise instance.
+    */
+
+  }, {
+    key: 'send',
+    value: function send(data) {
+      var _this5 = this;
+
+      if (!this.socket || this.socket.readyState !== this.socket.OPEN) {
+        return this.Promise.reject(new Error('Not connected'));
+      }
+      if (!data.id) {
+        data.id = this.createRequestId();
+      }
+      data.jsonrpc = '2.0';
+      return new this.Promise(function (resolve, reject) {
+        _this5.socket.send(JSON.stringify(data));
+        _this5.emit('traffic', 'sent', data);
+        return _this5.registerResolver(data.id, resolve, reject);
+      });
+    }
+  }, {
+    key: 'createRequestId',
+    value: function createRequestId() {
+      this.requestId += 1;
+      return this.requestId;
+    }
+  }]);
+  return RPC;
+}();
+
+var ON_ATTACHED_TIMEOUT_MS = 5000;
+var RPC_CLOSE_MANUAL_SUSPEND$1 = 4000;
+
+var SuspendResume = function () {
+  /**
+  * Creates a new SuspendResume instance.
+  * @param {Object} options The configuration option for this class.
+  * @param {Promise} options.Promise The promise constructor to use.
+  * @param {RPC} options.rpc The RPC instance to use when communicating towards Engine.
+  * @param {ApiCache} options.apis The ApiCache instance to use.
+  */
+  function SuspendResume(options) {
+    var _this = this;
+
+    classCallCheck(this, SuspendResume);
+
+    _extends(this, options);
+    this.isSuspended = false;
+    this.rpc.on('traffic', function (dir, data) {
+      if (dir === 'sent' && data.method === 'OpenDoc') {
+        _this.openDocParams = data.params;
+      }
+    });
+  }
+
+  /**
+  * Function used to restore the rpc connection.
+  * @param {Boolean} onlyIfAttached - if true, the returned promise will resolve
+  *                                   only if the session can be re-attached.
+  * @returns {Object} Returns a promise instance.
+  */
+
+
+  createClass(SuspendResume, [{
+    key: 'restoreRpcConnection',
+    value: function restoreRpcConnection(onlyIfAttached) {
+      var _this2 = this;
+
+      return this.reopen(ON_ATTACHED_TIMEOUT_MS).then(function (sessionState) {
+        if (sessionState === 'SESSION_CREATED' && onlyIfAttached) {
+          return _this2.Promise.reject(new Error('Not attached'));
+        }
+        return _this2.Promise.resolve();
+      });
+    }
+
+    /**
+    * Function used to restore the global API.
+    * @param {Object} changed - A list where the restored APIs will be added.
+    * @returns {Object} Returns a promise instance.
+    */
+
+  }, {
+    key: 'restoreGlobal',
+    value: function restoreGlobal(changed) {
+      var global = this.apis.getApisByType('Global').pop();
+      changed.push(global.api);
+      return this.Promise.resolve();
+    }
+
+    /**
+    * Function used to restore the doc API.
+    * @param {String} sessionState - The state of the session, attached or created.
+    * @param {Array} closed - A list where the closed of APIs APIs will be added.
+    * @param {Object} changed - A list where the restored APIs will be added.
+    * @returns {Object} Returns a promise instance.
+    */
+
+  }, {
+    key: 'restoreDoc',
+    value: function restoreDoc(closed, changed) {
+      var _this3 = this;
+
+      var doc = this.apis.getApisByType('Doc').pop();
+
+      if (!doc) {
+        return this.Promise.resolve();
+      }
+
+      return this.rpc.send({
+        method: 'GetActiveDoc',
+        handle: -1,
+        params: []
+      }).then(function (response) {
+        if (response.error && _this3.openDocParams) {
+          return _this3.rpc.send({
+            method: 'OpenDoc',
+            handle: -1,
+            params: _this3.openDocParams
+          });
+        }
+        return response;
+      }).then(function (response) {
+        if (response.error) {
+          closed.push(doc.api);
+          return _this3.Promise.resolve();
+        }
+        var handle = response.result.qReturn.qHandle;
+        doc.api.handle = handle;
+        changed.push(doc.api);
+        return _this3.Promise.resolve(doc.api);
+      });
+    }
+
+    /**
+    * Function used to restore the APIs on the doc.
+    * @param {Object} doc - The doc API on which the APIs we want to restore exist.
+    * @param {Array} closed - A list where the closed of APIs APIs will be added.
+    * @param {Object} changed - A list where the restored APIs will be added.
+    * @returns {Object} Returns a promise instance.
+    */
+
+  }, {
+    key: 'restoreDocObjects',
+    value: function restoreDocObjects(doc, closed, changed) {
+      var _this4 = this;
+
+      var tasks = [];
+      var apis = this.apis.getApis().map(function (entry) {
+        return entry.api;
+      }).filter(function (api) {
+        return api.type !== 'Global' && api.type !== 'Doc';
+      });
+
+      if (!doc) {
+        apis.forEach(function (api) {
+          return closed.push(api);
+        });
+        return this.Promise.resolve();
+      }
+
+      apis.forEach(function (api) {
+        var method = SuspendResume.buildGetMethodName(api.type);
+
+        if (!method) {
+          closed.push(api);
+        } else {
+          var request = _this4.rpc.send({
+            method: method,
+            handle: doc.handle,
+            params: [api.id]
+          }).then(function (response) {
+            if (response.error || !response.result.qReturn.qHandle) {
+              closed.push(api);
+            } else {
+              api.handle = response.result.qReturn.qHandle;
+              changed.push(api);
+            }
+          });
+          tasks.push(request);
+        }
+      });
+      return this.Promise.all(tasks);
+    }
+
+    /**
+    * Set the instance as suspended.
+    */
+
+  }, {
+    key: 'suspend',
+    value: function suspend() {
+      this.isSuspended = true;
+      return this.rpc.close(RPC_CLOSE_MANUAL_SUSPEND$1);
+    }
+
+    /**
+    * Resumes a previously suspended RPC connection, and refreshes the API cache.
+    *                                APIs unabled to be restored has their 'closed'
+    *                                event triggered, otherwise 'changed'.
+    * @param {Boolean} onlyIfAttached if true, resume only if the session was re-attached.
+    * @returns {Promise} Eventually resolved if the RPC connection was successfully resumed,
+    *                    otherwise rejected.
+    */
+
+  }, {
+    key: 'resume',
+    value: function resume(onlyIfAttached) {
+      var _this5 = this;
+
+      var changed = [];
+      var closed = [];
+
+      return this.restoreRpcConnection(onlyIfAttached).then(function () {
+        return _this5.restoreGlobal(changed);
+      }).then(function () {
+        return _this5.restoreDoc(closed, changed);
+      }).then(function (doc) {
+        return _this5.restoreDocObjects(doc, closed, changed);
+      }).then(function () {
+        _this5.isSuspended = false;
+        _this5.apis.clear();
+        closed.forEach(function (api) {
+          api.emit('closed');
+          api.removeAllListeners();
+        });
+        changed.forEach(function (api) {
+          _this5.apis.add(api.handle, api);
+          if (api.type !== 'Global') {
+            api.emit('changed');
+          }
+        });
+      }).catch(function (err) {
+        return _this5.rpc.close().then(function () {
+          return _this5.Promise.reject(err);
+        });
+      });
+    }
+
+    /**
+    * Reopens the connection and waits for the OnConnected notification.
+    * @param {Number} timeout - The time to wait for the OnConnected notification.
+    * @returns {Object} A promise containing the session state (SESSION_CREATED or SESSION_ATTACHED).
+    */
+
+  }, {
+    key: 'reopen',
+    value: function reopen(timeout) {
+      var _this6 = this;
+
+      var timer = void 0;
+      var notificationResolve = void 0;
+      var notificationReceived = false;
+      var notificationPromise = new this.Promise(function (resolve) {
+        notificationResolve = resolve;
+      });
+
+      var waitForNotification = function waitForNotification() {
+        if (!notificationReceived) {
+          timer = setTimeout(function () {
+            return notificationResolve('SESSION_CREATED');
+          }, timeout);
+        }
+        return notificationPromise;
+      };
+
+      var onNotification = function onNotification(data) {
+        if (data.method !== 'OnConnected') return;
+        clearTimeout(timer);
+        notificationResolve(data.params.qSessionState);
+        notificationReceived = true;
+      };
+
+      this.rpc.on('notification', onNotification);
+
+      return this.rpc.open(true).then(waitForNotification).then(function (state) {
+        _this6.rpc.removeListener('notification', onNotification);
+        return state;
+      }).catch(function (err) {
+        _this6.rpc.removeListener('notification', onNotification);
+        return _this6.Promise.reject(err);
+      });
+    }
+
+    /**
+    * Function used to build the get method names for Doc APIs.
+    * @param {String} type - The API type.
+    * @returns {String} Returns the get method name, or undefined if the type cannot be restored.
+    */
+
+  }], [{
+    key: 'buildGetMethodName',
+    value: function buildGetMethodName(type) {
+      if (type === 'Field' || type === 'Variable') {
+        return null;
+      } else if (type === 'GenericVariable') {
+        return 'GetVariableById';
+      }
+      return type.replace('Generic', 'Get');
+    }
+  }]);
+  return SuspendResume;
+}();
+
+var SUCCESS_KEY = 'qSuccess';
+
+function deltaRequestInterceptor(session, request) {
+  var delta = session.protocol.delta && request.outKey !== -1 && request.outKey !== SUCCESS_KEY;
+  if (delta) {
+    request.delta = delta;
+  }
+  return request;
+}
+
+/**
+* Response interceptor for generating APIs. Handles the quirks of engine not
+* returning an error when an object is missing.
+* @param {Object} session - The session the intercept is being executed on.
+* @param {Object} request - The JSON-RPC request.
+* @param {Object} response - The response.
+* @returns {Object} - Returns the generated API
+*/
+function apiInterceptor(session, request, response) {
+  if (response.qHandle && response.qType) {
+    return session.getObjectApi({
+      handle: response.qHandle,
+      type: response.qType,
+      id: response.qGenericId,
+      genericType: response.qGenericType
+    });
+  } else if (response.qHandle === null && response.qType === null) {
+    throw new Error('Object not found');
+  }
+  return response;
+}
+
+'use strict';
+
+var hasOwn = Object.prototype.hasOwnProperty;
+var toStr = Object.prototype.toString;
+
+var isArray$1 = function isArray(arr) {
+	if (typeof Array.isArray === 'function') {
+		return Array.isArray(arr);
+	}
+
+	return toStr.call(arr) === '[object Array]';
+};
+
+var isPlainObject = function isPlainObject(obj) {
+	if (!obj || toStr.call(obj) !== '[object Object]') {
+		return false;
+	}
+
+	var hasOwnConstructor = hasOwn.call(obj, 'constructor');
+	var hasIsPrototypeOf = obj.constructor && obj.constructor.prototype && hasOwn.call(obj.constructor.prototype, 'isPrototypeOf');
+	// Not own constructor property must be Object
+	if (obj.constructor && !hasOwnConstructor && !hasIsPrototypeOf) {
+		return false;
+	}
+
+	// Own properties are enumerated firstly, so to speed up,
+	// if last one is own, then all properties are own.
+	var key;
+	for (key in obj) { /**/ }
+
+	return typeof key === 'undefined' || hasOwn.call(obj, key);
+};
+
+var extend$1 = function extend() {
+	var options, name, src, copy, copyIsArray, clone;
+	var target = arguments[0];
+	var i = 1;
+	var length = arguments.length;
+	var deep = false;
+
+	// Handle a deep copy situation
+	if (typeof target === 'boolean') {
+		deep = target;
+		target = arguments[1] || {};
+		// skip the boolean and the target
+		i = 2;
+	}
+	if (target == null || (typeof target !== 'object' && typeof target !== 'function')) {
+		target = {};
+	}
+
+	for (; i < length; ++i) {
+		options = arguments[i];
+		// Only deal with non-null/undefined values
+		if (options != null) {
+			// Extend the base object
+			for (name in options) {
+				src = target[name];
+				copy = options[name];
+
+				// Prevent never-ending loop
+				if (target !== copy) {
+					// Recurse if we're merging plain objects or arrays
+					if (deep && copy && (isPlainObject(copy) || (copyIsArray = isArray$1(copy)))) {
+						if (copyIsArray) {
+							copyIsArray = false;
+							clone = src && isArray$1(src) ? src : [];
+						} else {
+							clone = src && isPlainObject(src) ? src : {};
+						}
+
+						// Never move original objects, clone them
+						target[name] = extend(deep, clone, copy);
+
+					// Don't bring in undefined values
+					} else if (typeof copy !== 'undefined') {
+						target[name] = copy;
+					}
+				}
+			}
+		}
+	}
+
+	// Return the modified object
+	return target;
+};
+
+var extend = extend$1.bind(null, true);
+var JSONPatch = {};
+var isArray = Array.isArray;
+
+function isObject(v) {
+  return v != null && !Array.isArray(v) && (typeof v === 'undefined' ? 'undefined' : _typeof(v)) === 'object';
+}
+function isUndef(v) {
+  return typeof v === 'undefined';
+}
+function isFunction(v) {
+  return typeof v === 'function';
+}
+
+/**
+* Generate an exact duplicate (with no references) of a specific value.
+*
+* @private
+* @param {Object} The value to duplicate
+* @returns {Object} a unique, duplicated value
+*/
+function generateValue(val) {
+  if (val) {
+    return extend({}, { val: val }).val;
+  }
+  return val;
+}
+
+/**
+* An additional type checker used to determine if the property is of internal
+* use or not a type that can be translated into JSON (like functions).
+*
+* @private
+* @param {Object} obj The object which has the property to check
+* @param {String} The property name to check
+* @returns {Boolean} Whether the property is deemed special or not
+*/
+function isSpecialProperty(obj, key) {
+  return isFunction(obj[key]) || key.substring(0, 2) === '$$' || key.substring(0, 1) === '_';
+}
+
+/**
+* Finds the parent object from a JSON-Pointer ("/foo/bar/baz" = "bar" is "baz" parent),
+* also creates the object structure needed.
+*
+* @private
+* @param {Object} data The root object to traverse through
+* @param {String} The JSON-Pointer string to use when traversing
+* @returns {Object} The parent object
+*/
+function getParent(data, str) {
+  var seperator = '/';
+  var parts = str.substring(1).split(seperator).slice(0, -1);
+  var numPart = void 0;
+
+  parts.forEach(function (part, i) {
+    if (i === parts.length) {
+      return;
+    }
+    numPart = +part;
+    var newPart = !isNaN(numPart) ? [] : {};
+    data[numPart || part] = isUndef(data[numPart || part]) ? newPart : data[part];
+    data = data[numPart || part];
+  });
+
+  return data;
+}
+
+/**
+* Cleans an object of all its properties, unless they're deemed special or
+* cannot be removed by configuration.
+*
+* @private
+* @param {Object} obj The object to clean
+*/
+function emptyObject(obj) {
+  Object.keys(obj).forEach(function (key) {
+    var config = Object.getOwnPropertyDescriptor(obj, key);
+
+    if (config.configurable && !isSpecialProperty(obj, key)) {
+      delete obj[key];
+    }
+  });
+}
+
+/**
+* Compare an object with another, could be object, array, number, string, bool.
+*
+* @param {Object} a The first object to compare
+* @param {Object} a The second object to compare
+* @returns {Boolean} Whether the objects are identical
+*/
+function compare(a, b) {
+  var isIdentical = true;
+
+  if (isObject(a) && isObject(b)) {
+    if (Object.keys(a).length !== Object.keys(b).length) {
+      return false;
+    }
+    Object.keys(a).forEach(function (key) {
+      if (!compare(a[key], b[key])) {
+        isIdentical = false;
+      }
+    });
+    return isIdentical;
+  } else if (isArray(a) && isArray(b)) {
+    if (a.length !== b.length) {
+      return false;
+    }
+    for (var i = 0, l = a.length; i < l; i += 1) {
+      if (!compare(a[i], b[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+  return a === b;
+}
+
+/**
+* Generates patches by comparing two arrays.
+*
+* @private
+* @param {Array} oldA The old (original) array, which will be patched
+* @param {Array} newA The new array, which will be used to compare against
+* @returns {Array} An array of patches (if any)
+*/
+function patchArray(original, newA, basePath) {
+  var patches = [];
+  var oldA = original.slice();
+  var tmpIdx = -1;
+
+  function findIndex(a, id, idx) {
+    if (a[idx] && isUndef(a[idx].qInfo)) {
+      return null;
+    } else if (a[idx] && a[idx].qInfo.qId === id) {
+      // shortcut if identical
+      return idx;
+    }
+    for (var ii = 0, ll = a.length; ii < ll; ii += 1) {
+      if (a[ii] && a[ii].qInfo.qId === id) {
+        return ii;
+      }
+    }
+    return -1;
+  }
+
+  if (compare(newA, oldA)) {
+    // array is unchanged
+    return patches;
+  }
+
+  if (!isUndef(newA[0]) && isUndef(newA[0].qInfo)) {
+    // we cannot create patches without unique identifiers, replace array...
+    patches.push({
+      op: 'replace',
+      path: basePath,
+      value: newA
+    });
+    return patches;
+  }
+
+  for (var i = oldA.length - 1; i >= 0; i -= 1) {
+    tmpIdx = findIndex(newA, oldA[i].qInfo && oldA[i].qInfo.qId, i);
+    if (tmpIdx === -1) {
+      patches.push({
+        op: 'remove',
+        path: basePath + '/' + i
+      });
+      oldA.splice(i, 1);
+    } else {
+      patches = patches.concat(JSONPatch.generate(oldA[i], newA[tmpIdx], basePath + '/' + i));
+    }
+  }
+
+  for (var _i = 0, l = newA.length; _i < l; _i += 1) {
+    tmpIdx = findIndex(oldA, newA[_i].qInfo && newA[_i].qInfo.qId);
+    if (tmpIdx === -1) {
+      patches.push({
+        op: 'add',
+        path: basePath + '/' + _i,
+        value: newA[_i]
+      });
+      oldA.splice(_i, 0, newA[_i]);
+    } else if (tmpIdx !== _i) {
+      patches.push({
+        op: 'move',
+        path: basePath + '/' + _i,
+        from: basePath + '/' + tmpIdx
+      });
+      oldA.splice(_i, 0, oldA.splice(tmpIdx, 1)[0]);
+    }
+  }
+  return patches;
+}
+
+/**
+* Generate an array of JSON-Patch:es following the JSON-Patch Specification Draft.
+*
+* See [specification draft](http://tools.ietf.org/html/draft-ietf-appsawg-json-patch-10)
+*
+* Does NOT currently generate patches for arrays (will replace them)
+*
+* @param {Object} original The object to patch to
+* @param {Object} newData The object to patch from
+* @param {String} [basePath] The base path to use when generating the paths for
+*                            the patches (normally not used)
+* @returns {Array} An array of patches
+*/
+JSONPatch.generate = function generate(original, newData, basePath) {
+  basePath = basePath || '';
+  var patches = [];
+
+  Object.keys(newData).forEach(function (key) {
+    var val = generateValue(newData[key]);
+    var oldVal = original[key];
+    var tmpPath = basePath + '/' + key;
+
+    if (compare(val, oldVal) || isSpecialProperty(newData, key)) {
+      return;
+    }
+    if (isUndef(oldVal)) {
+      // property does not previously exist
+      patches.push({
+        op: 'add',
+        path: tmpPath,
+        value: val
+      });
+    } else if (isObject(val) && isObject(oldVal)) {
+      // we need to generate sub-patches for this, since it already exist
+      patches = patches.concat(JSONPatch.generate(oldVal, val, tmpPath));
+    } else if (isArray(val) && isArray(oldVal)) {
+      patches = patches.concat(patchArray(oldVal, val, tmpPath));
+    } else {
+      // it's a simple property (bool, string, number)
+      patches.push({
+        op: 'replace',
+        path: basePath + '/' + key,
+        value: val
+      });
+    }
+  });
+
+  Object.keys(original).forEach(function (key) {
+    if (isUndef(newData[key]) && !isSpecialProperty(original, key)) {
+      // this property does not exist anymore
+      patches.push({
+        op: 'remove',
+        path: basePath + '/' + key
+      });
+    }
+  });
+
+  return patches;
+};
+
+/**
+* Apply a list of patches to an object.
+*
+* @param {Object} original The object to patch
+* @param {Array} patches The list of patches to apply
+*/
+JSONPatch.apply = function apply(original, patches) {
+  patches.forEach(function (patch) {
+    var parent = getParent(original, patch.path);
+    var key = patch.path.split('/').splice(-1)[0];
+    var target = key && isNaN(+key) ? parent[key] : parent[+key] || parent;
+    var from = patch.from ? patch.from.split('/').splice(-1)[0] : null;
+
+    if (patch.path === '/') {
+      parent = null;
+      target = original;
+    }
+
+    if (patch.op === 'add' || patch.op === 'replace') {
+      if (isArray(parent)) {
+        // trust indexes from patches, so don't replace the index if it's an add
+        if (key === '-') {
+          key = parent.length;
+        }
+        parent.splice(+key, patch.op === 'add' ? 0 : 1, patch.value);
+      } else if (isArray(target) && isArray(patch.value)) {
+        var _target;
+
+        var newValues = patch.value.slice();
+        // keep array reference if possible...
+        target.length = 0;
+        (_target = target).push.apply(_target, toConsumableArray(newValues));
+      } else if (isObject(target) && isObject(patch.value)) {
+        // keep object reference if possible...
+        emptyObject(target);
+        extend(target, patch.value);
+      } else if (!parent) {
+        throw new Error('Patchee is not an object we can patch');
+      } else {
+        // simple value
+        parent[key] = patch.value;
+      }
+    } else if (patch.op === 'move') {
+      var oldParent = getParent(original, patch.from);
+      if (isArray(parent)) {
+        parent.splice(+key, 0, oldParent.splice(+from, 1)[0]);
+      } else {
+        parent[key] = oldParent[from];
+        delete oldParent[from];
+      }
+    } else if (patch.op === 'remove') {
+      if (isArray(parent)) {
+        parent.splice(+key, 1);
+      } else {
+        delete parent[key];
+      }
+    }
+  });
+};
+
+/**
+* Deep clone an object.
+*
+* @param {Object} obj The object to clone
+* @returns {Object} A new object identical to the `obj`
+*/
+JSONPatch.clone = function clone(obj) {
+  return extend({}, obj);
+};
+
+/**
+* Creates a JSON-patch.
+*
+* @param {String} op The operation of the patch. Available values: "add", "remove", "move"
+* @param {Object} [val] The value to set the `path` to. If `op` is `move`, `val`
+*                       is the "from JSON-path" path
+* @param {String} path The JSON-path for the property to change (e.g. "/qHyperCubeDef/columnOrder")
+* @returns {Object} A patch following the JSON-patch specification
+*/
+JSONPatch.createPatch = function createPatch(op, val, path) {
+  var patch = {
+    op: op.toLowerCase(),
+    path: path
+  };
+  if (patch.op === 'move') {
+    patch.from = val;
+  } else if (typeof val !== 'undefined') {
+    patch.value = val;
+  }
+  return patch;
+};
+
+/**
+* Apply the differences of two objects (keeping references if possible).
+* Identical to running `JSONPatch.apply(original, JSONPatch.generate(original, newData));`
+*
+* @param {Object} original The object to update/patch
+* @param {Object} newData the object to diff against
+*
+* @example
+* var obj1 = { foo: [1,2,3], bar: { baz: true, qux: 1 } };
+* var obj2 = { foo: [4,5,6], bar: { baz: false } };
+* JSONPatch.updateObject(obj1, obj2);
+* // => { foo: [4,5,6], bar: { baz: false } };
+*/
+JSONPatch.updateObject = function updateObject(original, newData) {
+  if (!Object.keys(original).length) {
+    extend(original, newData);
+    return;
+  }
+  JSONPatch.apply(original, JSONPatch.generate(original, newData));
+};
+
+var sessions = {};
+
+/**
+* Function to make sure we release handle caches when they are closed.
+*
+* @param {Session} session The session instance to listen on.
+*/
+var bindSession = function bindSession(session) {
+  if (!sessions[session.id]) {
+    var cache = {};
+    sessions[session.id] = cache;
+    session.on('traffic:received', function (data) {
+      return data.close && data.close.forEach(function (handle) {
+        return delete cache[handle];
+      });
+    });
+    session.on('closed', function () {
+      return delete sessions[session.id];
+    });
+  }
+};
+
+/**
+* Simple function that ensures the session events has been bound, and returns
+* either an existing key-value cache or creates one for the specified handle.
+*
+* @param {Session} session The session that owns the handle.
+* @param {Number} handle The object handle to retrieve the cache for.
+* @returns {KeyValueCache} The cache instance.
+*/
+var getHandleCache = function getHandleCache(session, handle) {
+  bindSession(session);
+  var cache = sessions[session.id];
+  if (!cache[handle]) {
+    cache[handle] = new KeyValueCache();
+  }
+  return cache[handle];
+};
+
+/**
+* Function used to apply a list of patches and return the patched value.
+* @param {Session} session The session.
+* @param {Number} handle The object handle.
+* @param {String} cacheId The cacheId.
+* @param {Array} patches The patches.
+* @returns {Object} Returns the patched value.
+*/
+var patchValue = function patchValue(session, handle, cacheId, patches) {
+  var cache = getHandleCache(session, handle);
+  var entry = cache.get(cacheId);
+  if (typeof entry === 'undefined') {
+    entry = Array.isArray(patches[0].value) ? [] : {};
+  }
+  if (patches.length) {
+    if (patches[0].path === '/' && _typeof(patches[0].value) !== 'object') {
+      // 'plain' values on root path is not supported (no object reference),
+      // so we simply store the value directly:
+      entry = patches[0].value;
+    } else {
+      JSONPatch.apply(entry, patches);
+    }
+    cache.set(cacheId, entry);
+  }
+  return entry;
+};
+
+/**
+* Process delta interceptor.
+* @param {Session} session The session the intercept is being executed on.
+* @param {Object} request The JSON-RPC request.
+* @param {Object} response The response.
+* @returns {Object} Returns the patched response
+*/
+function deltaInterceptor(session, request, response) {
+  var delta = response.delta,
+      result = response.result;
+
+  if (delta) {
+    // when delta is on the response data is expected to be an array of patches:
+    Object.keys(result).forEach(function (key) {
+      if (!Array.isArray(result[key])) {
+        throw new Error('Unexpected RPC response, expected array of patches');
+      }
+      result[key] = patchValue(session, request.handle, request.method + '-' + key, result[key]);
+    });
+    // return a cloned response object to avoid patched object references:
+    return JSON.parse(JSON.stringify(response));
+  }
+  return response;
+}
+
+// export object reference for testing purposes:
+deltaInterceptor.sessions = sessions;
+
+/**
+* Process error interceptor.
+* @param {Object} session - The session the intercept is being executed on.
+* @param {Object} request - The JSON-RPC request.
+* @param {Object} response - The response.
+* @returns {Object} - Returns the defined error for an error, else the response.
+*/
+function errorInterceptor(session, request, response) {
+  if (typeof response.error !== 'undefined') {
+    var data = response.error;
+    var error = new Error(data.message);
+    error.code = data.code;
+    error.parameter = data.parameter;
+    // reject the promise chain:
+    throw error;
+  }
+  return response;
+}
+
+var RETURN_KEY = 'qReturn';
+
+/**
+* Picks out the result "out" parameter based on the QIX method+schema, with
+* some specific handling for some methods that breaks the predictable protocol.
+* @param {Object} session - The session the intercept is being executed on.
+* @param {Object} request - The JSON-RPC request.
+* @param {Object} response - The response.
+* @returns {Object} - Returns the result property on the response
+*/
+function outParamInterceptor(session, request, response) {
+  if (request.method === 'CreateSessionApp' || request.method === 'CreateSessionAppFromApp') {
+    // this method returns multiple out params that we need
+    // to normalize before processing the response further:
+    response[RETURN_KEY].qGenericId = response[RETURN_KEY].qGenericId || response.qSessionAppId;
+  } else if (request.method === 'GetInteract') {
+    // this method returns a qReturn value when it should only return
+    // meta.outKey:
+    delete response[RETURN_KEY];
+  }
+
+  if (hasOwnProperty.call(response, RETURN_KEY)) {
+    return response[RETURN_KEY];
+  } else if (request.outKey !== -1) {
+    return response[request.outKey];
+  }
+
+  return response;
+}
+
+/**
+* Process result interceptor.
+* @param {Object} session - The session the intercept is being executed on.
+* @param {Object} request - The JSON-RPC request.
+* @param {Object} response - The response.
+* @returns {Object} - Returns the result property on the response
+*/
+function resultInterceptor(session, request, response) {
+  return response.result;
+}
+
+var Intercept = function () {
+  /**
+  * Create a new Intercept instance.
+  * @param {Object} options The configuration options for this class.
+  * @param {Promise} options.Promise The promise constructor to use.
+  * @param {ApiCache} options.apis The ApiCache instance to use.
+  * @param {Array<Object>} [options.request] The additional request interceptors to use.
+  * @param {Array<Object>} [options.response] The additional response interceptors to use.
+  */
+  function Intercept(options) {
+    classCallCheck(this, Intercept);
+
+    _extends(this, options);
+    this.request = [{ onFulfilled: deltaRequestInterceptor }].concat(toConsumableArray(this.request || []));
+    this.response = [{ onFulfilled: errorInterceptor }, { onFulfilled: deltaInterceptor }, { onFulfilled: resultInterceptor }, { onFulfilled: outParamInterceptor }].concat(toConsumableArray(this.response || []), [{ onFulfilled: apiInterceptor }]);
+  }
+
+  /**
+  * Execute the request interceptor queue, each interceptor will get the result from
+  * the previous interceptor.
+  * @param {Object} session The session instance to execute against.
+  * @param {Promise} promise The promise to chain on to.
+  * @returns {Promise}
+  */
+
+
+  createClass(Intercept, [{
+    key: 'executeRequests',
+    value: function executeRequests(session, promise) {
+      var _this = this;
+
+      return this.request.reduce(function (interception, interceptor) {
+        var intercept = interceptor.onFulfilled && interceptor.onFulfilled.bind(_this, session);
+        return interception.then(intercept);
+      }, promise);
+    }
+
+    /**
+    * Execute the response interceptor queue, each interceptor will get the result from
+    * the previous interceptor.
+    * @param {Object} session The session instance to execute against.
+    * @param {Promise} promise The promise to chain on to.
+    * @param {Object} request The JSONRPC request object for the intercepted response.
+    * @returns {Promise}
+    */
+
+  }, {
+    key: 'executeResponses',
+    value: function executeResponses(session, promise, request) {
+      var _this2 = this;
+
+      return this.response.reduce(function (interception, interceptor) {
+        return interception.then(interceptor.onFulfilled && interceptor.onFulfilled.bind(_this2, session, request), interceptor.onRejected && interceptor.onRejected.bind(_this2, session, request));
+      }, promise);
+    }
+  }]);
+  return Intercept;
+}();
+
+/**
+* API cache for instances of QIX types, e.g. GenericObject.
+* @extends KeyValueCache
+*/
+
+var ApiCache = function (_KeyValueCache) {
+  inherits(ApiCache, _KeyValueCache);
+
+  function ApiCache() {
+    classCallCheck(this, ApiCache);
+    return possibleConstructorReturn(this, (ApiCache.__proto__ || Object.getPrototypeOf(ApiCache)).apply(this, arguments));
+  }
+
+  createClass(ApiCache, [{
+    key: 'add',
+
+    /**
+    * Adds an API.
+    * @function ApiCache#add
+    * @param {Number} handle - The handle for the API.
+    * @param {*} api - The API.
+    * @returns {{api: *}} The entry.
+    */
+    value: function add(handle, api) {
+      var _this2 = this;
+
+      var entry = { api: api };
+      get(ApiCache.prototype.__proto__ || Object.getPrototypeOf(ApiCache.prototype), 'add', this).call(this, handle.toString(), entry);
+      api.on('closed', function () {
+        return _this2.remove(handle);
+      });
+      return entry;
+    }
+
+    /**
+    * Gets an API.
+    * @function ApiCache#getApi
+    * @param {Number} handle - The handle for the API.
+    * @returns {*} The API for the handle.
+    */
+
+  }, {
+    key: 'getApi',
+    value: function getApi(handle) {
+      var entry = typeof handle !== 'undefined' ? this.get(handle.toString()) : undefined;
+      return entry && entry.api;
+    }
+
+    /**
+    * Gets a list of APIs.
+    * @function ApiCache#getApis
+    * @returns {Array} The list of entries including `handle` and `api` properties for each entry.
+    */
+
+  }, {
+    key: 'getApis',
+    value: function getApis() {
+      return get(ApiCache.prototype.__proto__ || Object.getPrototypeOf(ApiCache.prototype), 'getAll', this).call(this).map(function (entry) {
+        return {
+          handle: entry.key,
+          api: entry.value.api
+        };
+      });
+    }
+
+    /**
+    * Gets a list of APIs with a given type.
+    * @function ApiCache#getApisByType
+    * @param {String} type - The type of APIs to get.
+    * @returns {Array} The list of entries including `handle` and `api` properties for each entry.
+    */
+
+  }, {
+    key: 'getApisByType',
+    value: function getApisByType(type) {
+      return this.getApis().filter(function (entry) {
+        return entry.api.type === type;
+      });
+    }
+  }]);
+  return ApiCache;
+}(KeyValueCache);
+
+/**
+* Qix service.
+*/
+
+var Qix = function () {
+  function Qix() {
+    classCallCheck(this, Qix);
+  }
+
+  createClass(Qix, null, [{
+    key: 'getSession',
+
+    /**
+    * Function used to get a session.
+    * @param {Configuration} config The configuration object for this session.
+    * @returns {Object} Returns a session instance.
+    */
+    value: function getSession(config) {
+      var createSocket = config.createSocket,
+          definition = config.definition,
+          Promise = config.Promise,
+          protocol = config.protocol,
+          requestInterceptors = config.requestInterceptors,
+          responseInterceptors = config.responseInterceptors,
+          suspendOnClose = config.suspendOnClose,
+          url = config.url;
+
+      var apis = new ApiCache();
+      var intercept = new Intercept({
+        apis: apis,
+        request: requestInterceptors,
+        response: responseInterceptors,
+        Promise: Promise
+      });
+      var rpc = new RPC({ createSocket: createSocket, Promise: Promise, url: url });
+      var suspendResume = new SuspendResume({ apis: apis, Promise: Promise, rpc: rpc });
+      var session = new Session({
+        apis: apis,
+        definition: definition,
+        intercept: intercept,
+        Promise: Promise,
+        protocol: protocol,
+        rpc: rpc,
+        suspendOnClose: suspendOnClose,
+        suspendResume: suspendResume
+      });
+      return session;
+    }
+
+    /**
+    * Function used to create a QIX session.
+    * @param {Object} config The configuration object for the QIX session.
+    * @returns {Session} Returns a new QIX session.
+    */
+
+  }, {
+    key: 'create',
+    value: function create(config) {
+      Qix.configureDefaults(config);
+      config.mixins.forEach(function (mixin) {
+        config.definition.registerMixin(mixin);
+      });
+      return Qix.getSession(config);
+    }
+
+    /**
+    * Function used to configure defaults.
+    * @param {Configuration} config The configuration object for how to connect
+    *                               and retrieve end QIX APIs.
+    */
+
+  }, {
+    key: 'configureDefaults',
+    value: function configureDefaults(config) {
+      if (!config) {
+        throw new Error('You need to supply a configuration.');
+      }
+
+      // eslint-disable-next-line no-restricted-globals
+      if (!config.Promise && typeof Promise === 'undefined') {
+        throw new Error('Your environment has no Promise implementation. You must provide a Promise implementation in the config.');
+      }
+
+      if (typeof config.createSocket !== 'function' && typeof WebSocket === 'function') {
+        // eslint-disable-next-line no-undef
+        config.createSocket = function (url) {
+          return new WebSocket(url);
+        };
+      }
+
+      if (typeof config.suspendOnClose === 'undefined') {
+        config.suspendOnClose = false;
+      }
+
+      config.protocol = config.protocol || {};
+      config.protocol.delta = typeof config.protocol.delta !== 'undefined' ? config.protocol.delta : true;
+      // eslint-disable-next-line no-restricted-globals
+      config.Promise = config.Promise || Promise;
+      config.mixins = config.mixins || [];
+      config.definition = config.definition || new Schema(config);
+    }
+  }]);
+  return Qix;
+}();
+
+return Qix;
+
+})));
+
+
+},{}],61:[function(require,module,exports){
+module.exports={
+	"structs": {
+		"Field":{
+			"GetCardinal": {
+				"In": [],
+				"Out": []
+			},
+			"GetAndMode": {
+				"In": [],
+				"Out": []
+			},
+			"SelectValues": {
+				"In": [{ "Name": "qFieldValues","DefaultValue": [{"qText": "", "qIsNumeric": false, "qNumber": 0}] }, { "Name": "qToggleMode","DefaultValue": false, "Optional": true }, { "Name": "qSoftLock","DefaultValue": false, "Optional": true }],
+				"Out": []
+			},
+			"Select": {
+				"In": [{ "Name": "qMatch","DefaultValue": "" }, { "Name": "qSoftLock","DefaultValue": false, "Optional": true }, { "Name": "qExcludedValuesMode","DefaultValue": 0, "Optional": true }],
+				"Out": []
+			},
+			"ToggleSelect": {
+				"In": [{ "Name": "qMatch","DefaultValue": "" }, { "Name": "qSoftLock","DefaultValue": false, "Optional": true }, { "Name": "qExcludedValuesMode","DefaultValue": 0, "Optional": true }],
+				"Out": []
+			},
+			"ClearAllButThis": {
+				"In": [{ "Name": "qSoftLock","DefaultValue": false, "Optional": true }],
+				"Out": []
+			},
+			"SelectPossible": {
+				"In": [{ "Name": "qSoftLock","DefaultValue": false, "Optional": true }],
+				"Out": []
+			},
+			"SelectExcluded": {
+				"In": [{ "Name": "qSoftLock","DefaultValue": false, "Optional": true }],
+				"Out": []
+			},
+			"SelectAll": {
+				"In": [{ "Name": "qSoftLock","DefaultValue": false, "Optional": true }],
+				"Out": []
+			},
+			"Lock": {
+				"In": [],
+				"Out": []
+			},
+			"Unlock": {
+				"In": [],
+				"Out": []
+			},
+			"GetNxProperties": {
+				"In": [],
+				"Out": [{ "Name": "qProperties" }]
+			},
+			"SetNxProperties": {
+				"In": [{ "Name": "qProperties","DefaultValue": {"qOneAndOnlyOne": false} }],
+				"Out": []
+			},
+			"SetAndMode": {
+				"In": [{ "Name": "qAndMode","DefaultValue": false }],
+				"Out": []
+			},
+			"SelectAlternative": {
+				"In": [{ "Name": "qSoftLock","DefaultValue": false, "Optional": true }],
+				"Out": []
+			},
+			"LowLevelSelect": {
+				"In": [{ "Name": "qValues","DefaultValue": [0] }, { "Name": "qToggleMode","DefaultValue": false }, { "Name": "qSoftLock","DefaultValue": false, "Optional": true }],
+				"Out": []
+			},
+			"Clear": {
+				"In": [],
+				"Out": []
+			}
+		},
+		"Variable":{
+			"GetContent": {
+				"In": [],
+				"Out": [{ "Name": "qContent" }]
+			},
+			"GetRawContent": {
+				"In": [],
+				"Out": []
+			},
+			"SetContent": {
+				"In": [{ "Name": "qContent","DefaultValue": "" }, { "Name": "qUpdateMRU","DefaultValue": false }],
+				"Out": []
+			},
+			"ForceContent": {
+				"In": [{ "Name": "qs","DefaultValue": "" }, { "Name": "qd","DefaultValue": 0 }],
+				"Out": []
+			},
+			"GetNxProperties": {
+				"In": [],
+				"Out": [{ "Name": "qProperties" }]
+			},
+			"SetNxProperties": {
+				"In": [{ "Name": "qProperties","DefaultValue": {"qName": "", "qNumberPresentation": {"qType": 0, "qnDec": 0, "qUseThou": 0, "qFmt": "", "qDec": "", "qThou": ""}, "qIncludeInBookmark": false, "qUsePredefListedValues": false, "qPreDefinedList": [""]} }],
+				"Out": []
+			}
+		},
+		"GenericObject":{
+			"GetLayout": {
+				"In": [],
+				"Out": [{ "Name": "qLayout" }]
+			},
+			"GetListObjectData": {
+				"In": [{ "Name": "qPath","DefaultValue": "" }, { "Name": "qPages","DefaultValue": [{"qLeft": 0, "qTop": 0, "qWidth": 0, "qHeight": 0}] }],
+				"Out": [{ "Name": "qDataPages" }]
+			},
+			"GetHyperCubeData": {
+				"In": [{ "Name": "qPath","DefaultValue": "" }, { "Name": "qPages","DefaultValue": [{"qLeft": 0, "qTop": 0, "qWidth": 0, "qHeight": 0}] }],
+				"Out": [{ "Name": "qDataPages" }]
+			},
+			"GetHyperCubeReducedData": {
+				"In": [{ "Name": "qPath","DefaultValue": "" }, { "Name": "qPages","DefaultValue": [{"qLeft": 0, "qTop": 0, "qWidth": 0, "qHeight": 0}] }, { "Name": "qZoomFactor","DefaultValue": 0 }, { "Name": "qReductionMode","DefaultValue": 0 }],
+				"Out": [{ "Name": "qDataPages" }]
+			},
+			"GetHyperCubePivotData": {
+				"In": [{ "Name": "qPath","DefaultValue": "" }, { "Name": "qPages","DefaultValue": [{"qLeft": 0, "qTop": 0, "qWidth": 0, "qHeight": 0}] }],
+				"Out": [{ "Name": "qDataPages" }]
+			},
+			"GetHyperCubeStackData": {
+				"In": [{ "Name": "qPath","DefaultValue": "" }, { "Name": "qPages","DefaultValue": [{"qLeft": 0, "qTop": 0, "qWidth": 0, "qHeight": 0}] }, { "Name": "qMaxNbrCells","DefaultValue": 0, "Optional": true }],
+				"Out": [{ "Name": "qDataPages" }]
+			},
+			"GetHyperCubeContinuousData": {
+				"In": [{ "Name": "qPath","DefaultValue": "" }, { "Name": "qOptions","DefaultValue": {"qStart": 0, "qEnd": 0, "qNbrPoints": 0, "qMaxNbrTicks": 0, "qMaxNumberLines": 0} }, { "Name": "qReverseSort","DefaultValue": false, "Optional": true }],
+				"Out": [{ "Name": "qDataPages" }, { "Name": "qAxisData" }]
+			},
+			"GetHyperCubeBinnedData": {
+				"In": [{ "Name": "qPath","DefaultValue": "" }, { "Name": "qPages","DefaultValue": [{"qLeft": 0, "qTop": 0, "qWidth": 0, "qHeight": 0}] }, { "Name": "qViewport","DefaultValue": {"qWidth": 0, "qHeight": 0, "qZoomLevel": 0} }, { "Name": "qDataRanges","DefaultValue": [{"qLeft": 0, "qTop": 0, "qWidth": 0, "qHeight": 0}] }, { "Name": "qMaxNbrCells","DefaultValue": 0 }, { "Name": "qQueryLevel","DefaultValue": 0 }, { "Name": "qBinningMethod","DefaultValue": 0 }],
+				"Out": [{ "Name": "qDataPages" }]
+			},
+			"ApplyPatches": {
+				"In": [{ "Name": "qPatches","DefaultValue": [{"qOp": 0, "qPath": "", "qValue": ""}] }, { "Name": "qSoftPatch","DefaultValue": false, "Optional": true }],
+				"Out": []
+			},
+			"ClearSoftPatches": {
+				"In": [],
+				"Out": []
+			},
+			"SetProperties": {
+				"In": [{ "Name": "qProp","DefaultValue": {"qInfo": {"qId": "", "qType": ""}, "qExtendsId": "", "qMetaDef": {}} }],
+				"Out": []
+			},
+			"GetProperties": {
+				"In": [],
+				"Out": [{ "Name": "qProp" }]
+			},
+			"GetEffectiveProperties": {
+				"In": [],
+				"Out": [{ "Name": "qProp" }]
+			},
+			"SetFullPropertyTree": {
+				"In": [{ "Name": "qPropEntry","DefaultValue": {"qProperty": {"qInfo": {"qId": "", "qType": ""}, "qExtendsId": "", "qMetaDef": {}}, "qChildren": [], "qEmbeddedSnapshotRef": null} }],
+				"Out": []
+			},
+			"GetFullPropertyTree": {
+				"In": [],
+				"Out": [{ "Name": "qPropEntry" }]
+			},
+			"GetInfo": {
+				"In": [],
+				"Out": [{ "Name": "qInfo" }]
+			},
+			"ClearSelections": {
+				"In": [{ "Name": "qPath","DefaultValue": "" }, { "Name": "qColIndices","DefaultValue": [0], "Optional": true }],
+				"Out": []
+			},
+			"ExportData": {
+				"In": [{ "Name": "qFileType","DefaultValue": 0 }, { "Name": "qPath","DefaultValue": "", "Optional": true }, { "Name": "qFileName","DefaultValue": "", "Optional": true }, { "Name": "qExportState","DefaultValue": 0, "Optional": true }],
+				"Out": [{ "Name": "qUrl" }, { "Name": "qWarnings" }]
+			},
+			"SelectListObjectValues": {
+				"In": [{ "Name": "qPath","DefaultValue": "" }, { "Name": "qValues","DefaultValue": [0] }, { "Name": "qToggleMode","DefaultValue": false }, { "Name": "qSoftLock","DefaultValue": false, "Optional": true }],
+				"Out": [{ "Name": "qSuccess" }]
+			},
+			"SelectListObjectPossible": {
+				"In": [{ "Name": "qPath","DefaultValue": "" }, { "Name": "qSoftLock","DefaultValue": false, "Optional": true }],
+				"Out": [{ "Name": "qSuccess" }]
+			},
+			"SelectListObjectExcluded": {
+				"In": [{ "Name": "qPath","DefaultValue": "" }, { "Name": "qSoftLock","DefaultValue": false, "Optional": true }],
+				"Out": [{ "Name": "qSuccess" }]
+			},
+			"SelectListObjectAlternative": {
+				"In": [{ "Name": "qPath","DefaultValue": "" }, { "Name": "qSoftLock","DefaultValue": false, "Optional": true }],
+				"Out": [{ "Name": "qSuccess" }]
+			},
+			"SelectListObjectAll": {
+				"In": [{ "Name": "qPath","DefaultValue": "" }, { "Name": "qSoftLock","DefaultValue": false, "Optional": true }],
+				"Out": [{ "Name": "qSuccess" }]
+			},
+			"SelectListObjectContinuousRange": {
+				"In": [{ "Name": "qPath","DefaultValue": "" }, { "Name": "qRanges","DefaultValue": [{"qMin": 0, "qMax": 0, "qMinInclEq": false, "qMaxInclEq": false}] }, { "Name": "qSoftLock","DefaultValue": false, "Optional": true }],
+				"Out": [{ "Name": "qSuccess" }]
+			},
+			"SearchListObjectFor": {
+				"In": [{ "Name": "qPath","DefaultValue": "" }, { "Name": "qMatch","DefaultValue": "" }],
+				"Out": [{ "Name": "qSuccess" }]
+			},
+			"AbortListObjectSearch": {
+				"In": [{ "Name": "qPath","DefaultValue": "" }],
+				"Out": []
+			},
+			"AcceptListObjectSearch": {
+				"In": [{ "Name": "qPath","DefaultValue": "" }, { "Name": "qToggleMode","DefaultValue": false }, { "Name": "qSoftLock","DefaultValue": false, "Optional": true }],
+				"Out": []
+			},
+			"ExpandLeft": {
+				"In": [{ "Name": "qPath","DefaultValue": "" }, { "Name": "qRow","DefaultValue": 0 }, { "Name": "qCol","DefaultValue": 0 }, { "Name": "qAll","DefaultValue": false }],
+				"Out": []
+			},
+			"ExpandTop": {
+				"In": [{ "Name": "qPath","DefaultValue": "" }, { "Name": "qRow","DefaultValue": 0 }, { "Name": "qCol","DefaultValue": 0 }, { "Name": "qAll","DefaultValue": false }],
+				"Out": []
+			},
+			"CollapseLeft": {
+				"In": [{ "Name": "qPath","DefaultValue": "" }, { "Name": "qRow","DefaultValue": 0 }, { "Name": "qCol","DefaultValue": 0 }, { "Name": "qAll","DefaultValue": false }],
+				"Out": []
+			},
+			"CollapseTop": {
+				"In": [{ "Name": "qPath","DefaultValue": "" }, { "Name": "qRow","DefaultValue": 0 }, { "Name": "qCol","DefaultValue": 0 }, { "Name": "qAll","DefaultValue": false }],
+				"Out": []
+			},
+			"DrillUp": {
+				"In": [{ "Name": "qPath","DefaultValue": "" }, { "Name": "qDimNo","DefaultValue": 0 }, { "Name": "qNbrSteps","DefaultValue": 0 }],
+				"Out": []
+			},
+			"Lock": {
+				"In": [{ "Name": "qPath","DefaultValue": "" }, { "Name": "qColIndices","DefaultValue": [0], "Optional": true }],
+				"Out": []
+			},
+			"Unlock": {
+				"In": [{ "Name": "qPath","DefaultValue": "" }, { "Name": "qColIndices","DefaultValue": [0], "Optional": true }],
+				"Out": []
+			},
+			"SelectHyperCubeValues": {
+				"In": [{ "Name": "qPath","DefaultValue": "" }, { "Name": "qDimNo","DefaultValue": 0 }, { "Name": "qValues","DefaultValue": [0] }, { "Name": "qToggleMode","DefaultValue": false }],
+				"Out": [{ "Name": "qSuccess" }]
+			},
+			"SelectHyperCubeCells": {
+				"In": [{ "Name": "qPath","DefaultValue": "" }, { "Name": "qRowIndices","DefaultValue": [0] }, { "Name": "qColIndices","DefaultValue": [0] }, { "Name": "qSoftLock","DefaultValue": false, "Optional": true }, { "Name": "qDeselectOnlyOneSelected","DefaultValue": false, "Optional": true }],
+				"Out": [{ "Name": "qSuccess" }]
+			},
+			"SelectPivotCells": {
+				"In": [{ "Name": "qPath","DefaultValue": "" }, { "Name": "qSelections","DefaultValue": [{"qType": 0, "qCol": 0, "qRow": 0}] }, { "Name": "qSoftLock","DefaultValue": false, "Optional": true }, { "Name": "qDeselectOnlyOneSelected","DefaultValue": false, "Optional": true }],
+				"Out": [{ "Name": "qSuccess" }]
+			},
+			"RangeSelectHyperCubeValues": {
+				"In": [{ "Name": "qPath","DefaultValue": "" }, { "Name": "qRanges","DefaultValue": [{"qRange": {"qMin": 0, "qMax": 0, "qMinInclEq": false, "qMaxInclEq": false}, "qMeasureIx": 0}] }, { "Name": "qColumnsToSelect","DefaultValue": [0], "Optional": true }, { "Name": "qOrMode","DefaultValue": false, "Optional": true }, { "Name": "qDeselectOnlyOneSelected","DefaultValue": false, "Optional": true }],
+				"Out": [{ "Name": "qSuccess" }]
+			},
+			"MultiRangeSelectHyperCubeValues": {
+				"In": [{ "Name": "qPath","DefaultValue": "" }, { "Name": "qRanges","DefaultValue": [{"qRanges": [{"qRange": {"qMin": 0, "qMax": 0, "qMinInclEq": false, "qMaxInclEq": false}, "qMeasureIx": 0}], "qColumnsToSelect": [0]}] }, { "Name": "qOrMode","DefaultValue": false, "Optional": true }, { "Name": "qDeselectOnlyOneSelected","DefaultValue": false, "Optional": true }],
+				"Out": [{ "Name": "qSuccess" }]
+			},
+			"SelectHyperCubeContinuousRange": {
+				"In": [{ "Name": "qPath","DefaultValue": "" }, { "Name": "qRanges","DefaultValue": [{"qRange": {"qMin": 0, "qMax": 0, "qMinInclEq": false, "qMaxInclEq": false}, "qDimIx": 0}] }, { "Name": "qSoftLock","DefaultValue": false, "Optional": true }],
+				"Out": [{ "Name": "qSuccess" }]
+			},
+			"GetChild": {
+				"In": [{ "Name": "qId","DefaultValue": "" }],
+				"Out": []
+			},
+			"GetChildInfos": {
+				"In": [],
+				"Out": [{ "Name": "qInfos" }]
+			},
+			"CreateChild": {
+				"In": [{ "Name": "qProp","DefaultValue": {"qInfo": {"qId": "", "qType": ""}, "qExtendsId": "", "qMetaDef": {}} }, { "Name": "qPropForThis","DefaultValue": null, "Optional": true }],
+				"Out": [{ "Name": "qInfo" }]
+			},
+			"DestroyChild": {
+				"In": [{ "Name": "qId","DefaultValue": "" }, { "Name": "qPropForThis","DefaultValue": null, "Optional": true }],
+				"Out": [{ "Name": "qSuccess" }]
+			},
+			"DestroyAllChildren": {
+				"In": [{ "Name": "qPropForThis","DefaultValue": null, "Optional": true }],
+				"Out": []
+			},
+			"SetChildArrayOrder": {
+				"In": [{ "Name": "qIds","DefaultValue": [""] }],
+				"Out": []
+			},
+			"GetLinkedObjects": {
+				"In": [],
+				"Out": [{ "Name": "qItems" }]
+			},
+			"CopyFrom": {
+				"In": [{ "Name": "qFromId","DefaultValue": "" }],
+				"Out": []
+			},
+			"BeginSelections": {
+				"In": [{ "Name": "qPaths","DefaultValue": [""] }],
+				"Out": []
+			},
+			"EndSelections": {
+				"In": [{ "Name": "qAccept","DefaultValue": false }],
+				"Out": []
+			},
+			"ResetMadeSelections": {
+				"In": [],
+				"Out": []
+			},
+			"EmbedSnapshotObject": {
+				"In": [{ "Name": "qId","DefaultValue": "" }],
+				"Out": []
+			},
+			"GetSnapshotObject": {
+				"In": [],
+				"Out": []
+			},
+			"Publish": {
+				"In": [],
+				"Out": []
+			},
+			"UnPublish": {
+				"In": [],
+				"Out": []
+			}
+		},
+		"GenericDimension":{
+			"GetLayout": {
+				"In": [],
+				"Out": [{ "Name": "qLayout" }]
+			},
+			"ApplyPatches": {
+				"In": [{ "Name": "qPatches","DefaultValue": [{"qOp": 0, "qPath": "", "qValue": ""}] }],
+				"Out": []
+			},
+			"SetProperties": {
+				"In": [{ "Name": "qProp","DefaultValue": {"qInfo": {"qId": "", "qType": ""}, "qDim": {"qGrouping": 0, "qFieldDefs": [""], "qFieldLabels": [""], "qLabelExpression": ""}, "qMetaDef": {}} }],
+				"Out": []
+			},
+			"GetProperties": {
+				"In": [],
+				"Out": [{ "Name": "qProp" }]
+			},
+			"GetInfo": {
+				"In": [],
+				"Out": [{ "Name": "qInfo" }]
+			},
+			"GetDimension": {
+				"In": [],
+				"Out": [{ "Name": "qDim" }]
+			},
+			"GetLinkedObjects": {
+				"In": [],
+				"Out": [{ "Name": "qItems" }]
+			},
+			"Publish": {
+				"In": [],
+				"Out": []
+			},
+			"UnPublish": {
+				"In": [],
+				"Out": []
+			}
+		},
+		"GenericBookmark":{
+			"GetFieldValues": {
+				"In": [{ "Name": "qField","DefaultValue": "" }, { "Name": "qGetExcludedValues","DefaultValue": false }, { "Name": "qDataPage","DefaultValue": {"qStartIndex": 0, "qEndIndex": 0} }],
+				"Out": [{ "Name": "qFieldValues" }]
+			},
+			"GetLayout": {
+				"In": [],
+				"Out": [{ "Name": "qLayout" }]
+			},
+			"ApplyPatches": {
+				"In": [{ "Name": "qPatches","DefaultValue": [{"qOp": 0, "qPath": "", "qValue": ""}] }],
+				"Out": []
+			},
+			"SetProperties": {
+				"In": [{ "Name": "qProp","DefaultValue": {"qInfo": {"qId": "", "qType": ""}, "qMetaDef": {}} }],
+				"Out": []
+			},
+			"GetProperties": {
+				"In": [],
+				"Out": [{ "Name": "qProp" }]
+			},
+			"GetInfo": {
+				"In": [],
+				"Out": [{ "Name": "qInfo" }]
+			},
+			"Apply": {
+				"In": [],
+				"Out": [{ "Name": "qSuccess" }]
+			},
+			"Publish": {
+				"In": [],
+				"Out": []
+			},
+			"UnPublish": {
+				"In": [],
+				"Out": []
+			}
+		},
+		"GenericVariable":{
+			"GetLayout": {
+				"In": [],
+				"Out": [{ "Name": "qLayout" }]
+			},
+			"ApplyPatches": {
+				"In": [{ "Name": "qPatches","DefaultValue": [{"qOp": 0, "qPath": "", "qValue": ""}] }],
+				"Out": []
+			},
+			"SetProperties": {
+				"In": [{ "Name": "qProp","DefaultValue": {"qInfo": {"qId": "", "qType": ""}, "qMetaDef": {}, "qName": "", "qComment": "", "qNumberPresentation": {"qType": 0, "qnDec": 0, "qUseThou": 0, "qFmt": "", "qDec": "", "qThou": ""}, "qIncludeInBookmark": false, "qDefinition": ""} }],
+				"Out": []
+			},
+			"GetProperties": {
+				"In": [],
+				"Out": [{ "Name": "qProp" }]
+			},
+			"GetInfo": {
+				"In": [],
+				"Out": [{ "Name": "qInfo" }]
+			},
+			"SetStringValue": {
+				"In": [{ "Name": "qVal","DefaultValue": "" }],
+				"Out": []
+			},
+			"SetNumValue": {
+				"In": [{ "Name": "qVal","DefaultValue": 0 }],
+				"Out": []
+			},
+			"SetDualValue": {
+				"In": [{ "Name": "qText","DefaultValue": "" }, { "Name": "qNum","DefaultValue": 0 }],
+				"Out": []
+			}
+		},
+		"GenericMeasure":{
+			"GetLayout": {
+				"In": [],
+				"Out": [{ "Name": "qLayout" }]
+			},
+			"ApplyPatches": {
+				"In": [{ "Name": "qPatches","DefaultValue": [{"qOp": 0, "qPath": "", "qValue": ""}] }],
+				"Out": []
+			},
+			"SetProperties": {
+				"In": [{ "Name": "qProp","DefaultValue": {"qInfo": {"qId": "", "qType": ""}, "qMeasure": {"qLabel": "", "qDef": "", "qGrouping": 0, "qExpressions": [""], "qActiveExpression": 0, "qLabelExpression": ""}, "qMetaDef": {}} }],
+				"Out": []
+			},
+			"GetProperties": {
+				"In": [],
+				"Out": [{ "Name": "qProp" }]
+			},
+			"GetInfo": {
+				"In": [],
+				"Out": [{ "Name": "qInfo" }]
+			},
+			"GetMeasure": {
+				"In": [],
+				"Out": [{ "Name": "qMeasure" }]
+			},
+			"GetLinkedObjects": {
+				"In": [],
+				"Out": [{ "Name": "qItems" }]
+			},
+			"Publish": {
+				"In": [],
+				"Out": []
+			},
+			"UnPublish": {
+				"In": [],
+				"Out": []
+			}
+		},
+		"GenericDerivedFields":{
+			"SetProperties": {
+				"In": [{ "Name": "qProp","DefaultValue": {"qInfo": {"qId": "", "qType": ""}, "qDerivedDefinitionId": "", "qFieldName": [""], "qMetaDef": {}} }],
+				"Out": []
+			},
+			"GetProperties": {
+				"In": [],
+				"Out": [{ "Name": "qProp" }]
+			},
+			"GetInfo": {
+				"In": [],
+				"Out": [{ "Name": "qInfo" }]
+			},
+			"GetDerivedFieldData": {
+				"In": [],
+				"Out": [{ "Name": "qData" }]
+			},
+			"GetDerivedField": {
+				"In": [{ "Name": "qId","DefaultValue": "" }],
+				"Out": [{ "Name": "qFields" }]
+			},
+			"GetListData": {
+				"In": [],
+				"Out": [{ "Name": "qListData" }]
+			},
+			"GetDerivedFields": {
+				"In": [],
+				"Out": [{ "Name": "qFields" }]
+			},
+			"GetDerivedGroups": {
+				"In": [],
+				"Out": [{ "Name": "qGroups" }]
+			}
+		},
+		"Doc":{
+			"GetField": {
+				"In": [{ "Name": "qFieldName","DefaultValue": "" }, { "Name": "qStateName","DefaultValue": "", "Optional": true }],
+				"Out": []
+			},
+			"GetFieldDescription": {
+				"In": [{ "Name": "qFieldName","DefaultValue": "" }],
+				"Out": []
+			},
+			"GetVariable": {
+				"In": [{ "Name": "qName","DefaultValue": "" }],
+				"Out": []
+			},
+			"GetLooselyCoupledVector": {
+				"In": [],
+				"Out": [{ "Name": "qv" }]
+			},
+			"SetLooselyCoupledVector": {
+				"In": [{ "Name": "qv","DefaultValue": [0] }],
+				"Out": []
+			},
+			"Evaluate": {
+				"In": [{ "Name": "qExpression","DefaultValue": "" }],
+				"Out": []
+			},
+			"EvaluateEx": {
+				"In": [{ "Name": "qExpression","DefaultValue": "" }],
+				"Out": [{ "Name": "qValue" }]
+			},
+			"ClearAll": {
+				"In": [{ "Name": "qLockedAlso","DefaultValue": false, "Optional": true }, { "Name": "qStateName","DefaultValue": "", "Optional": true }],
+				"Out": []
+			},
+			"LockAll": {
+				"In": [{ "Name": "qStateName","DefaultValue": "", "Optional": true }],
+				"Out": []
+			},
+			"UnlockAll": {
+				"In": [{ "Name": "qStateName","DefaultValue": "", "Optional": true }],
+				"Out": []
+			},
+			"Back": {
+				"In": [],
+				"Out": []
+			},
+			"Forward": {
+				"In": [],
+				"Out": []
+			},
+			"CreateVariable": {
+				"In": [{ "Name": "qName","DefaultValue": "" }],
+				"Out": []
+			},
+			"RemoveVariable": {
+				"In": [{ "Name": "qName","DefaultValue": "" }],
+				"Out": []
+			},
+			"GetLocaleInfo": {
+				"In": [],
+				"Out": []
+			},
+			"GetTablesAndKeys": {
+				"In": [{ "Name": "qWindowSize","DefaultValue": {"qcx": 0, "qcy": 0} }, { "Name": "qNullSize","DefaultValue": {"qcx": 0, "qcy": 0} }, { "Name": "qCellHeight","DefaultValue": 0 }, { "Name": "qSyntheticMode","DefaultValue": false }, { "Name": "qIncludeSysVars","DefaultValue": false }],
+				"Out": [{ "Name": "qtr" }, { "Name": "qk" }]
+			},
+			"GetViewDlgSaveInfo": {
+				"In": [],
+				"Out": []
+			},
+			"SetViewDlgSaveInfo": {
+				"In": [{ "Name": "qInfo","DefaultValue": {"qPos": {"qLeft": 0, "qTop": 0, "qWidth": 0, "qHeight": 0}, "qCtlInfo": {"qInternalView": {"qTables": [{"qPos": {"qLeft": 0, "qTop": 0, "qWidth": 0, "qHeight": 0}, "qCaption": ""}], "qBroomPoints": [{"qPos": {"qx": 0, "qy": 0}, "qTable": "", "qFields": [""]}], "qConnectionPoints": [{"qPos": {"qx": 0, "qy": 0}, "qFields": [""]}], "qZoomFactor": 0}, "qSourceView": {"qTables": [{"qPos": {"qLeft": 0, "qTop": 0, "qWidth": 0, "qHeight": 0}, "qCaption": ""}], "qBroomPoints": [{"qPos": {"qx": 0, "qy": 0}, "qTable": "", "qFields": [""]}], "qConnectionPoints": [{"qPos": {"qx": 0, "qy": 0}, "qFields": [""]}], "qZoomFactor": 0}}, "qMode": 0} }],
+				"Out": []
+			},
+			"GetEmptyScript": {
+				"In": [{ "Name": "qLocalizedMainSection","DefaultValue": "", "Optional": true }],
+				"Out": []
+			},
+			"DoReload": {
+				"In": [{ "Name": "qMode","DefaultValue": 0, "Optional": true }, { "Name": "qPartial","DefaultValue": false, "Optional": true }, { "Name": "qDebug","DefaultValue": false, "Optional": true }],
+				"Out": []
+			},
+			"GetScriptBreakpoints": {
+				"In": [],
+				"Out": [{ "Name": "qBreakpoints" }]
+			},
+			"SetScriptBreakpoints": {
+				"In": [{ "Name": "qBreakpoints","DefaultValue": [{"qbufferName": "", "qlineIx": 0, "qEnabled": false}] }],
+				"Out": []
+			},
+			"GetScript": {
+				"In": [],
+				"Out": [{ "Name": "qScript" }]
+			},
+			"GetTextMacros": {
+				"In": [],
+				"Out": [{ "Name": "qMacros" }]
+			},
+			"SetFetchLimit": {
+				"In": [{ "Name": "qLimit","DefaultValue": 0 }],
+				"Out": []
+			},
+			"DoSave": {
+				"In": [{ "Name": "qFileName","DefaultValue": "", "Optional": true }],
+				"Out": []
+			},
+			"GetTableData": {
+				"In": [{ "Name": "qOffset","DefaultValue": 0 }, { "Name": "qRows","DefaultValue": 0 }, { "Name": "qSyntheticMode","DefaultValue": false }, { "Name": "qTableName","DefaultValue": "" }],
+				"Out": [{ "Name": "qData" }]
+			},
+			"GetAppLayout": {
+				"In": [],
+				"Out": [{ "Name": "qLayout" }]
+			},
+			"SetAppProperties": {
+				"In": [{ "Name": "qProp","DefaultValue": {"qTitle": "", "qLastReloadTime": "", "qMigrationHash": "", "qSavedInProductVersion": "", "qThumbnail": {"qUrl": ""}} }],
+				"Out": []
+			},
+			"GetAppProperties": {
+				"In": [],
+				"Out": [{ "Name": "qProp" }]
+			},
+			"GetLineage": {
+				"In": [],
+				"Out": [{ "Name": "qLineage" }]
+			},
+			"CreateSessionObject": {
+				"In": [{ "Name": "qProp","DefaultValue": {"qInfo": {"qId": "", "qType": ""}, "qExtendsId": "", "qMetaDef": {}} }],
+				"Out": []
+			},
+			"DestroySessionObject": {
+				"In": [{ "Name": "qId","DefaultValue": "" }],
+				"Out": [{ "Name": "qSuccess" }]
+			},
+			"CreateObject": {
+				"In": [{ "Name": "qProp","DefaultValue": {"qInfo": {"qId": "", "qType": ""}, "qExtendsId": "", "qMetaDef": {}} }],
+				"Out": [{ "Name": "qInfo" }]
+			},
+			"DestroyObject": {
+				"In": [{ "Name": "qId","DefaultValue": "" }],
+				"Out": [{ "Name": "qSuccess" }]
+			},
+			"GetObject": {
+				"In": [{ "Name": "qId","DefaultValue": "" }],
+				"Out": []
+			},
+			"GetObjects": {
+				"In": [{ "Name": "qOptions","DefaultValue": {"qTypes": [""], "qIncludeSessionObjects": false, "qData": {}} }],
+				"Out": [{ "Name": "qList" }]
+			},
+			"GetBookmarks": {
+				"In": [{ "Name": "qOptions","DefaultValue": {"qTypes": [""], "qData": {}} }],
+				"Out": [{ "Name": "qList" }]
+			},
+			"CloneObject": {
+				"In": [{ "Name": "qId","DefaultValue": "" }],
+				"Out": [{ "Name": "qCloneId" }]
+			},
+			"CreateDraft": {
+				"In": [{ "Name": "qId","DefaultValue": "" }],
+				"Out": [{ "Name": "qDraftId" }]
+			},
+			"CommitDraft": {
+				"In": [{ "Name": "qId","DefaultValue": "" }],
+				"Out": []
+			},
+			"DestroyDraft": {
+				"In": [{ "Name": "qId","DefaultValue": "" }, { "Name": "qSourceId","DefaultValue": "" }],
+				"Out": [{ "Name": "qSuccess" }]
+			},
+			"Undo": {
+				"In": [],
+				"Out": [{ "Name": "qSuccess" }]
+			},
+			"Redo": {
+				"In": [],
+				"Out": [{ "Name": "qSuccess" }]
+			},
+			"ClearUndoBuffer": {
+				"In": [],
+				"Out": []
+			},
+			"CreateDimension": {
+				"In": [{ "Name": "qProp","DefaultValue": {"qInfo": {"qId": "", "qType": ""}, "qDim": {"qGrouping": 0, "qFieldDefs": [""], "qFieldLabels": [""], "qLabelExpression": ""}, "qMetaDef": {}} }],
+				"Out": [{ "Name": "qInfo" }]
+			},
+			"DestroyDimension": {
+				"In": [{ "Name": "qId","DefaultValue": "" }],
+				"Out": [{ "Name": "qSuccess" }]
+			},
+			"GetDimension": {
+				"In": [{ "Name": "qId","DefaultValue": "" }],
+				"Out": []
+			},
+			"CloneDimension": {
+				"In": [{ "Name": "qId","DefaultValue": "" }],
+				"Out": [{ "Name": "qCloneId" }]
+			},
+			"CreateMeasure": {
+				"In": [{ "Name": "qProp","DefaultValue": {"qInfo": {"qId": "", "qType": ""}, "qMeasure": {"qLabel": "", "qDef": "", "qGrouping": 0, "qExpressions": [""], "qActiveExpression": 0, "qLabelExpression": ""}, "qMetaDef": {}} }],
+				"Out": [{ "Name": "qInfo" }]
+			},
+			"DestroyMeasure": {
+				"In": [{ "Name": "qId","DefaultValue": "" }],
+				"Out": [{ "Name": "qSuccess" }]
+			},
+			"GetMeasure": {
+				"In": [{ "Name": "qId","DefaultValue": "" }],
+				"Out": []
+			},
+			"CloneMeasure": {
+				"In": [{ "Name": "qId","DefaultValue": "" }],
+				"Out": [{ "Name": "qCloneId" }]
+			},
+			"CreateSessionVariable": {
+				"In": [{ "Name": "qProp","DefaultValue": {"qInfo": {"qId": "", "qType": ""}, "qMetaDef": {}, "qName": "", "qComment": "", "qNumberPresentation": {"qType": 0, "qnDec": 0, "qUseThou": 0, "qFmt": "", "qDec": "", "qThou": ""}, "qIncludeInBookmark": false, "qDefinition": ""} }],
+				"Out": []
+			},
+			"DestroySessionVariable": {
+				"In": [{ "Name": "qId","DefaultValue": "" }],
+				"Out": [{ "Name": "qSuccess" }]
+			},
+			"CreateVariableEx": {
+				"In": [{ "Name": "qProp","DefaultValue": {"qInfo": {"qId": "", "qType": ""}, "qMetaDef": {}, "qName": "", "qComment": "", "qNumberPresentation": {"qType": 0, "qnDec": 0, "qUseThou": 0, "qFmt": "", "qDec": "", "qThou": ""}, "qIncludeInBookmark": false, "qDefinition": ""} }],
+				"Out": [{ "Name": "qInfo" }]
+			},
+			"DestroyVariableById": {
+				"In": [{ "Name": "qId","DefaultValue": "" }],
+				"Out": [{ "Name": "qSuccess" }]
+			},
+			"DestroyVariableByName": {
+				"In": [{ "Name": "qName","DefaultValue": "" }],
+				"Out": [{ "Name": "qSuccess" }]
+			},
+			"GetVariableById": {
+				"In": [{ "Name": "qId","DefaultValue": "" }],
+				"Out": []
+			},
+			"GetVariableByName": {
+				"In": [{ "Name": "qName","DefaultValue": "" }],
+				"Out": []
+			},
+			"MigrateVariables": {
+				"In": [],
+				"Out": []
+			},
+			"MigrateDerivedFields": {
+				"In": [],
+				"Out": []
+			},
+			"CheckExpression": {
+				"In": [{ "Name": "qExpr","DefaultValue": "" }, { "Name": "qLabels","DefaultValue": [""], "Optional": true }],
+				"Out": [{ "Name": "qErrorMsg" }, { "Name": "qBadFieldNames" }, { "Name": "qDangerousFieldNames" }]
+			},
+			"CheckNumberOrExpression": {
+				"In": [{ "Name": "qExpr","DefaultValue": "" }],
+				"Out": [{ "Name": "qErrorMsg" }, { "Name": "qBadFieldNames" }]
+			},
+			"AddAlternateState": {
+				"In": [{ "Name": "qStateName","DefaultValue": "" }],
+				"Out": []
+			},
+			"RemoveAlternateState": {
+				"In": [{ "Name": "qStateName","DefaultValue": "" }],
+				"Out": []
+			},
+			"CreateBookmark": {
+				"In": [{ "Name": "qProp","DefaultValue": {"qInfo": {"qId": "", "qType": ""}, "qMetaDef": {}} }],
+				"Out": [{ "Name": "qInfo" }]
+			},
+			"DestroyBookmark": {
+				"In": [{ "Name": "qId","DefaultValue": "" }],
+				"Out": [{ "Name": "qSuccess" }]
+			},
+			"GetBookmark": {
+				"In": [{ "Name": "qId","DefaultValue": "" }],
+				"Out": []
+			},
+			"ApplyBookmark": {
+				"In": [{ "Name": "qId","DefaultValue": "" }],
+				"Out": [{ "Name": "qSuccess" }]
+			},
+			"CloneBookmark": {
+				"In": [{ "Name": "qId","DefaultValue": "" }],
+				"Out": [{ "Name": "qCloneId" }]
+			},
+			"AddFieldFromExpression": {
+				"In": [{ "Name": "qName","DefaultValue": "" }, { "Name": "qExpr","DefaultValue": "" }],
+				"Out": [{ "Name": "qSuccess" }]
+			},
+			"GetAllInfos": {
+				"In": [],
+				"Out": [{ "Name": "qInfos" }]
+			},
+			"Resume": {
+				"In": [],
+				"Out": []
+			},
+			"AbortModal": {
+				"In": [{ "Name": "qAccept","DefaultValue": false }],
+				"Out": []
+			},
+			"Publish": {
+				"In": [{ "Name": "qStreamId","DefaultValue": "" }, { "Name": "qName","DefaultValue": "", "Optional": true }],
+				"Out": []
+			},
+			"UnPublish": {
+				"In": [],
+				"Out": []
+			},
+			"GetMatchingFields": {
+				"In": [{ "Name": "qTags","DefaultValue": [""] }, { "Name": "qMatchingFieldMode","DefaultValue": 0, "Optional": true }],
+				"Out": [{ "Name": "qFieldNames" }]
+			},
+			"FindMatchingFields": {
+				"In": [{ "Name": "qFieldName","DefaultValue": "" }, { "Name": "qTags","DefaultValue": [""] }],
+				"Out": [{ "Name": "qFieldNames" }]
+			},
+			"Scramble": {
+				"In": [{ "Name": "qFieldName","DefaultValue": "" }],
+				"Out": []
+			},
+			"SaveObjects": {
+				"In": [],
+				"Out": []
+			},
+			"GetAssociationScores": {
+				"In": [{ "Name": "qTable1","DefaultValue": "" }, { "Name": "qTable2","DefaultValue": "" }],
+				"Out": [{ "Name": "qScore" }]
+			},
+			"GetMediaList": {
+				"In": [],
+				"Out": [{ "Name": "qList" }]
+			},
+			"GetContentLibraries": {
+				"In": [],
+				"Out": [{ "Name": "qList" }]
+			},
+			"GetLibraryContent": {
+				"In": [{ "Name": "qName","DefaultValue": "" }],
+				"Out": [{ "Name": "qList" }]
+			},
+			"DoReloadEx": {
+				"In": [{ "Name": "qParams","DefaultValue": {"qMode": 0, "qPartial": false, "qDebug": false}, "Optional": true }],
+				"Out": [{ "Name": "qResult" }]
+			},
+			"BackCount": {
+				"In": [],
+				"Out": []
+			},
+			"ForwardCount": {
+				"In": [],
+				"Out": []
+			},
+			"ExportReducedData": {
+				"In": [{ "Name": "qOptions","DefaultValue": {"qBookmarkId": "", "qExpires": 0}, "Optional": true }],
+				"Out": [{ "Name": "qDownloadInfo" }]
+			},
+			"SetScript": {
+				"In": [{ "Name": "qScript","DefaultValue": "" }],
+				"Out": []
+			},
+			"CheckScriptSyntax": {
+				"In": [],
+				"Out": [{ "Name": "qErrors" }]
+			},
+			"GetFavoriteVariables": {
+				"In": [],
+				"Out": [{ "Name": "qNames" }]
+			},
+			"SetFavoriteVariables": {
+				"In": [{ "Name": "qNames","DefaultValue": [""] }],
+				"Out": []
+			},
+			"GetIncludeFileContent": {
+				"In": [{ "Name": "qPath","DefaultValue": "" }],
+				"Out": [{ "Name": "qContent" }]
+			},
+			"CreateConnection": {
+				"In": [{ "Name": "qConnection","DefaultValue": {"qId": "", "qName": "", "qConnectionString": "", "qType": "", "qUserName": "", "qPassword": "", "qModifiedDate": "", "qMeta": {"qName": ""}, "qLogOn": 0} }],
+				"Out": [{ "Name": "qConnectionId" }]
+			},
+			"ModifyConnection": {
+				"In": [{ "Name": "qConnectionId","DefaultValue": "" }, { "Name": "qConnection","DefaultValue": {"qId": "", "qName": "", "qConnectionString": "", "qType": "", "qUserName": "", "qPassword": "", "qModifiedDate": "", "qMeta": {"qName": ""}, "qLogOn": 0} }, { "Name": "qOverrideCredentials","DefaultValue": false, "Optional": true }],
+				"Out": []
+			},
+			"DeleteConnection": {
+				"In": [{ "Name": "qConnectionId","DefaultValue": "" }],
+				"Out": []
+			},
+			"GetConnection": {
+				"In": [{ "Name": "qConnectionId","DefaultValue": "" }],
+				"Out": [{ "Name": "qConnection" }]
+			},
+			"GetConnections": {
+				"In": [],
+				"Out": [{ "Name": "qConnections" }]
+			},
+			"GetDatabaseInfo": {
+				"In": [{ "Name": "qConnectionId","DefaultValue": "" }],
+				"Out": [{ "Name": "qInfo" }]
+			},
+			"GetDatabases": {
+				"In": [{ "Name": "qConnectionId","DefaultValue": "" }],
+				"Out": [{ "Name": "qDatabases" }]
+			},
+			"GetDatabaseOwners": {
+				"In": [{ "Name": "qConnectionId","DefaultValue": "" }, { "Name": "qDatabase","DefaultValue": "", "Optional": true }],
+				"Out": [{ "Name": "qOwners" }]
+			},
+			"GetDatabaseTables": {
+				"In": [{ "Name": "qConnectionId","DefaultValue": "" }, { "Name": "qDatabase","DefaultValue": "", "Optional": true }, { "Name": "qOwner","DefaultValue": "", "Optional": true }],
+				"Out": [{ "Name": "qTables" }]
+			},
+			"GetDatabaseTableFields": {
+				"In": [{ "Name": "qConnectionId","DefaultValue": "" }, { "Name": "qDatabase","DefaultValue": "", "Optional": true }, { "Name": "qOwner","DefaultValue": "", "Optional": true }, { "Name": "qTable","DefaultValue": "" }],
+				"Out": [{ "Name": "qFields" }]
+			},
+			"GetDatabaseTablePreview": {
+				"In": [{ "Name": "qConnectionId","DefaultValue": "" }, { "Name": "qDatabase","DefaultValue": "", "Optional": true }, { "Name": "qOwner","DefaultValue": "", "Optional": true }, { "Name": "qTable","DefaultValue": "" }, { "Name": "qConditions","DefaultValue": {"qType": 0, "qWherePredicate": ""}, "Optional": true }],
+				"Out": [{ "Name": "qPreview" }, { "Name": "qRowCount" }]
+			},
+			"GetFolderItemsForConnection": {
+				"In": [{ "Name": "qConnectionId","DefaultValue": "" }, { "Name": "qRelativePath","DefaultValue": "", "Optional": true }],
+				"Out": [{ "Name": "qFolderItems" }]
+			},
+			"GuessFileType": {
+				"In": [{ "Name": "qConnectionId","DefaultValue": "" }, { "Name": "qRelativePath","DefaultValue": "", "Optional": true }],
+				"Out": [{ "Name": "qDataFormat" }]
+			},
+			"GetFileTables": {
+				"In": [{ "Name": "qConnectionId","DefaultValue": "" }, { "Name": "qRelativePath","DefaultValue": "", "Optional": true }, { "Name": "qDataFormat","DefaultValue": {"qType": 0, "qLabel": "", "qQuote": "", "qComment": "", "qDelimiter": {"qName": "", "qScriptCode": "", "qNumber": 0, "qIsMultiple": false}, "qCodePage": 0, "qHeaderSize": 0, "qRecordSize": 0, "qTabSize": 0, "qIgnoreEOF": false, "qFixedWidthDelimiters": ""} }],
+				"Out": [{ "Name": "qTables" }]
+			},
+			"GetFileTableFields": {
+				"In": [{ "Name": "qConnectionId","DefaultValue": "" }, { "Name": "qRelativePath","DefaultValue": "", "Optional": true }, { "Name": "qDataFormat","DefaultValue": {"qType": 0, "qLabel": "", "qQuote": "", "qComment": "", "qDelimiter": {"qName": "", "qScriptCode": "", "qNumber": 0, "qIsMultiple": false}, "qCodePage": 0, "qHeaderSize": 0, "qRecordSize": 0, "qTabSize": 0, "qIgnoreEOF": false, "qFixedWidthDelimiters": ""} }, { "Name": "qTable","DefaultValue": "" }],
+				"Out": [{ "Name": "qFields" }, { "Name": "qFormatSpec" }]
+			},
+			"GetFileTablePreview": {
+				"In": [{ "Name": "qConnectionId","DefaultValue": "" }, { "Name": "qRelativePath","DefaultValue": "", "Optional": true }, { "Name": "qDataFormat","DefaultValue": {"qType": 0, "qLabel": "", "qQuote": "", "qComment": "", "qDelimiter": {"qName": "", "qScriptCode": "", "qNumber": 0, "qIsMultiple": false}, "qCodePage": 0, "qHeaderSize": 0, "qRecordSize": 0, "qTabSize": 0, "qIgnoreEOF": false, "qFixedWidthDelimiters": ""} }, { "Name": "qTable","DefaultValue": "" }],
+				"Out": [{ "Name": "qPreview" }, { "Name": "qFormatSpec" }]
+			},
+			"GetFileTablesEx": {
+				"In": [{ "Name": "qConnectionId","DefaultValue": "" }, { "Name": "qRelativePath","DefaultValue": "", "Optional": true }, { "Name": "qDataFormat","DefaultValue": {"qType": 0, "qLabel": "", "qQuote": "", "qComment": "", "qDelimiter": {"qName": "", "qScriptCode": "", "qNumber": 0, "qIsMultiple": false}, "qCodePage": 0, "qHeaderSize": 0, "qRecordSize": 0, "qTabSize": 0, "qIgnoreEOF": false, "qFixedWidthDelimiters": ""} }],
+				"Out": [{ "Name": "qTables" }]
+			},
+			"SendGenericCommandToCustomConnector": {
+				"In": [{ "Name": "qProvider","DefaultValue": "" }, { "Name": "qCommand","DefaultValue": "" }, { "Name": "qMethod","DefaultValue": "" }, { "Name": "qParameters","DefaultValue": [""] }, { "Name": "qAppendConnection","DefaultValue": "" }],
+				"Out": [{ "Name": "qResult" }]
+			},
+			"SearchSuggest": {
+				"In": [{ "Name": "qOptions","DefaultValue": {"qSearchFields": [""], "qContext": 0, "qCharEncoding": 0, "qAttributes": [""]} }, { "Name": "qTerms","DefaultValue": [""] }],
+				"Out": [{ "Name": "qResult" }]
+			},
+			"SearchAssociations": {
+				"In": [{ "Name": "qOptions","DefaultValue": {"qSearchFields": [""], "qContext": 0, "qCharEncoding": 0, "qAttributes": [""]} }, { "Name": "qTerms","DefaultValue": [""] }, { "Name": "qPage","DefaultValue": {"qOffset": 0, "qCount": 0, "qMaxNbrFieldMatches": 0, "qGroupOptions": [{"qGroupType": 0, "qOffset": 0, "qCount": 0}], "qGroupItemOptions": [{"qGroupItemType": 0, "qOffset": 0, "qCount": 0}]} }],
+				"Out": [{ "Name": "qResults" }]
+			},
+			"SelectAssociations": {
+				"In": [{ "Name": "qOptions","DefaultValue": {"qSearchFields": [""], "qContext": 0, "qCharEncoding": 0, "qAttributes": [""]} }, { "Name": "qTerms","DefaultValue": [""] }, { "Name": "qMatchIx","DefaultValue": 0 }, { "Name": "qSoftLock","DefaultValue": null, "Optional": true }],
+				"Out": []
+			},
+			"SearchResults": {
+				"In": [{ "Name": "qOptions","DefaultValue": {"qSearchFields": [""], "qContext": 0, "qCharEncoding": 0, "qAttributes": [""]} }, { "Name": "qTerms","DefaultValue": [""] }, { "Name": "qPage","DefaultValue": {"qOffset": 0, "qCount": 0, "qMaxNbrFieldMatches": 0, "qGroupOptions": [{"qGroupType": 0, "qOffset": 0, "qCount": 0}], "qGroupItemOptions": [{"qGroupItemType": 0, "qOffset": 0, "qCount": 0}]} }],
+				"Out": [{ "Name": "qResult" }]
+			},
+			"SearchObjects": {
+				"In": [{ "Name": "qOptions","DefaultValue": {"qAttributes": [""], "qCharEncoding": 0} }, { "Name": "qTerms","DefaultValue": [""] }, { "Name": "qPage","DefaultValue": {"qOffset": 0, "qCount": 0, "qMaxNbrFieldMatches": 0, "qGroupOptions": [{"qGroupType": 0, "qOffset": 0, "qCount": 0}], "qGroupItemOptions": [{"qGroupItemType": 0, "qOffset": 0, "qCount": 0}]} }],
+				"Out": [{ "Name": "qResult" }]
+			}
+		},
+		"Global":{
+			"AbortRequest": {
+				"In": [{ "Name": "qRequestId","DefaultValue": 0 }],
+				"Out": []
+			},
+			"AbortAll": {
+				"In": [],
+				"Out": []
+			},
+			"GetProgress": {
+				"In": [{ "Name": "qRequestId","DefaultValue": 0 }],
+				"Out": [{ "Name": "qProgressData" }]
+			},
+			"QvVersion": {
+				"In": [],
+				"Out": []
+			},
+			"OSVersion": {
+				"In": [],
+				"Out": []
+			},
+			"OSName": {
+				"In": [],
+				"Out": []
+			},
+			"QTProduct": {
+				"In": [],
+				"Out": []
+			},
+			"GetDocList": {
+				"In": [],
+				"Out": [{ "Name": "qDocList" }]
+			},
+			"GetInteract": {
+				"In": [{ "Name": "qRequestId","DefaultValue": 0 }],
+				"Out": [{ "Name": "qDef" }]
+			},
+			"InteractDone": {
+				"In": [{ "Name": "qRequestId","DefaultValue": 0 }, { "Name": "qDef","DefaultValue": {"qType": 0, "qTitle": "", "qMsg": "", "qButtons": 0, "qLine": "", "qOldLineNr": 0, "qNewLineNr": 0, "qPath": "", "qHidden": false, "qResult": 0, "qInput": ""} }],
+				"Out": []
+			},
+			"GetAuthenticatedUser": {
+				"In": [],
+				"Out": []
+			},
+			"CreateDocEx": {
+				"In": [{ "Name": "qDocName","DefaultValue": "" }, { "Name": "qUserName","DefaultValue": "", "Optional": true }, { "Name": "qPassword","DefaultValue": "", "Optional": true }, { "Name": "qSerial","DefaultValue": "", "Optional": true }, { "Name": "qLocalizedScriptMainSection","DefaultValue": "", "Optional": true }],
+				"Out": [{ "Name": "qDocId" }]
+			},
+			"GetActiveDoc": {
+				"In": [],
+				"Out": []
+			},
+			"AllowCreateApp": {
+				"In": [],
+				"Out": []
+			},
+			"CreateApp": {
+				"In": [{ "Name": "qAppName","DefaultValue": "" }, { "Name": "qLocalizedScriptMainSection","DefaultValue": "", "Optional": true }],
+				"Out": [{ "Name": "qSuccess" }, { "Name": "qAppId" }]
+			},
+			"DeleteApp": {
+				"In": [{ "Name": "qAppId","DefaultValue": "" }],
+				"Out": [{ "Name": "qSuccess" }]
+			},
+			"IsDesktopMode": {
+				"In": [],
+				"Out": []
+			},
+			"GetConfiguration": {
+				"In": [],
+				"Out": [{ "Name": "qConfig" }]
+			},
+			"CancelRequest": {
+				"In": [{ "Name": "qRequestId","DefaultValue": 0 }],
+				"Out": []
+			},
+			"ShutdownProcess": {
+				"In": [],
+				"Out": []
+			},
+			"ReloadExtensionList": {
+				"In": [],
+				"Out": []
+			},
+			"ReplaceAppFromID": {
+				"In": [{ "Name": "qTargetAppId","DefaultValue": "" }, { "Name": "qSrcAppID","DefaultValue": "" }, { "Name": "qIds","DefaultValue": [""] }],
+				"Out": [{ "Name": "qSuccess" }]
+			},
+			"CopyApp": {
+				"In": [{ "Name": "qTargetAppId","DefaultValue": "" }, { "Name": "qSrcAppId","DefaultValue": "" }, { "Name": "qIds","DefaultValue": [""] }],
+				"Out": [{ "Name": "qSuccess" }]
+			},
+			"ImportApp": {
+				"In": [{ "Name": "qAppId","DefaultValue": "" }, { "Name": "qSrcPath","DefaultValue": "" }, { "Name": "qIds","DefaultValue": [""] }],
+				"Out": [{ "Name": "qSuccess" }]
+			},
+			"ImportAppEx": {
+				"In": [{ "Name": "qAppId","DefaultValue": "" }, { "Name": "qSrcPath","DefaultValue": "" }, { "Name": "qIds","DefaultValue": [""] }, { "Name": "qExcludeConnections","DefaultValue": false }],
+				"Out": []
+			},
+			"ExportApp": {
+				"In": [{ "Name": "qTargetPath","DefaultValue": "" }, { "Name": "qSrcAppId","DefaultValue": "" }, { "Name": "qIds","DefaultValue": [""] }],
+				"Out": [{ "Name": "qSuccess" }]
+			},
+			"PublishApp": {
+				"In": [{ "Name": "qAppId","DefaultValue": "" }, { "Name": "qName","DefaultValue": "" }, { "Name": "qStreamId","DefaultValue": "" }],
+				"Out": []
+			},
+			"IsPersonalMode": {
+				"In": [],
+				"Out": []
+			},
+			"GetUniqueID": {
+				"In": [],
+				"Out": [{ "Name": "qUniqueID" }]
+			},
+			"OpenDoc": {
+				"In": [{ "Name": "qDocName","DefaultValue": "" }, { "Name": "qUserName","DefaultValue": "", "Optional": true }, { "Name": "qPassword","DefaultValue": "", "Optional": true }, { "Name": "qSerial","DefaultValue": "", "Optional": true }, { "Name": "qNoData","DefaultValue": false, "Optional": true }],
+				"Out": []
+			},
+			"CreateSessionApp": {
+				"In": [],
+				"Out": [{ "Name": "qSessionAppId" }]
+			},
+			"CreateSessionAppFromApp": {
+				"In": [{ "Name": "qSrcAppId","DefaultValue": "" }],
+				"Out": [{ "Name": "qSessionAppId" }]
+			},
+			"ProductVersion": {
+				"In": [],
+				"Out": []
+			},
+			"GetAppEntry": {
+				"In": [{ "Name": "qAppID","DefaultValue": "" }],
+				"Out": [{ "Name": "qEntry" }]
+			},
+			"ConfigureReload": {
+				"In": [{ "Name": "qCancelOnScriptError","DefaultValue": false }, { "Name": "qUseErrorData","DefaultValue": false }, { "Name": "qInteractOnError","DefaultValue": false }],
+				"Out": []
+			},
+			"CancelReload": {
+				"In": [],
+				"Out": []
+			},
+			"GetBNF": {
+				"In": [{ "Name": "qBnfType","DefaultValue": 0 }],
+				"Out": [{ "Name": "qBnfDefs" }]
+			},
+			"GetFunctions": {
+				"In": [{ "Name": "qGroup","DefaultValue": 0, "Optional": true }],
+				"Out": [{ "Name": "qFunctions" }]
+			},
+			"GetOdbcDsns": {
+				"In": [],
+				"Out": [{ "Name": "qOdbcDsns" }]
+			},
+			"GetOleDbProviders": {
+				"In": [],
+				"Out": [{ "Name": "qOleDbProviders" }]
+			},
+			"GetDatabasesFromConnectionString": {
+				"In": [{ "Name": "qConnection","DefaultValue": {"qId": "", "qName": "", "qConnectionString": "", "qType": "", "qUserName": "", "qPassword": "", "qModifiedDate": "", "qMeta": {"qName": ""}, "qLogOn": 0} }],
+				"Out": [{ "Name": "qDatabases" }]
+			},
+			"IsValidConnectionString": {
+				"In": [{ "Name": "qConnection","DefaultValue": {"qId": "", "qName": "", "qConnectionString": "", "qType": "", "qUserName": "", "qPassword": "", "qModifiedDate": "", "qMeta": {"qName": ""}, "qLogOn": 0} }],
+				"Out": []
+			},
+			"GetDefaultAppFolder": {
+				"In": [],
+				"Out": [{ "Name": "qPath" }]
+			},
+			"GetMyDocumentsFolder": {
+				"In": [],
+				"Out": [{ "Name": "qFolder" }]
+			},
+			"GetLogicalDriveStrings": {
+				"In": [],
+				"Out": [{ "Name": "qDrives" }]
+			},
+			"GetFolderItemsForPath": {
+				"In": [{ "Name": "qPath","DefaultValue": "" }],
+				"Out": [{ "Name": "qFolderItems" }]
+			},
+			"GetSupportedCodePages": {
+				"In": [],
+				"Out": [{ "Name": "qCodePages" }]
+			},
+			"GetCustomConnectors": {
+				"In": [{ "Name": "qReloadList","DefaultValue": false, "Optional": true }],
+				"Out": [{ "Name": "qConnectors" }]
+			},
+			"GetStreamList": {
+				"In": [],
+				"Out": [{ "Name": "qStreamList" }]
+			},
+			"UploadToContentService": {
+				"In": [{ "Name": "qDirectory","DefaultValue": "" }, { "Name": "qAppId","DefaultValue": "" }, { "Name": "qQrsObjects","DefaultValue": [{"qEngineObjectID": "", "qItemID": ""}] }],
+				"Out": [{ "Name": "qUploadedObjects" }]
+			},
+			"EngineVersion": {
+				"In": [],
+				"Out": [{ "Name": "qVersion" }]
+			},
+			"GetBaseBNF": {
+				"In": [{ "Name": "qBnfType","DefaultValue": 0 }],
+				"Out": [{ "Name": "qBnfDefs" }, { "Name": "qBnfHash" }]
+			},
+			"GetBaseBNFHash": {
+				"In": [{ "Name": "qBnfType","DefaultValue": 0 }],
+				"Out": [{ "Name": "qBnfHash" }]
+			}
+		}
+	},
+	"enums": {
+		"LocalizedMessageCode": {
+			"LOCMSG_SCRIPTEDITOR_EMPTY_MESSAGE": 0,
+			"LOCMSG_SCRIPTEDITOR_PROGRESS_SAVING_STARTED": 1,
+			"LOCMSG_SCRIPTEDITOR_PROGRESS_BYTES_LEFT": 2,
+			"LOCMSG_SCRIPTEDITOR_PROGRESS_STORING_TABLES": 3,
+			"LOCMSG_SCRIPTEDITOR_PROGRESS_QVD_ROWS_SO_FAR": 4,
+			"LOCMSG_SCRIPTEDITOR_PROGRESS_CONNECTED": 5,
+			"LOCMSG_SCRIPTEDITOR_PROGRESS_CONNECTING_TO": 6,
+			"LOCMSG_SCRIPTEDITOR_PROGRESS_CONNECT_FAILED": 7,
+			"LOCMSG_SCRIPTEDITOR_PROGRESS_QVD_ROWISH": 8,
+			"LOCMSG_SCRIPTEDITOR_PROGRESS_QVD_COLUMNAR": 9,
+			"LOCMSG_SCRIPTEDITOR_ERROR": 10,
+			"LOCMSG_SCRIPTEDITOR_DONE": 11,
+			"LOCMSG_SCRIPTEDITOR_LOAD_EXTERNAL_DATA": 12,
+			"LOCMSG_SCRIPTEDITOR_PROGRESS_OLD_QVD_ISLOADING": 13,
+			"LOCMSG_SCRIPTEDITOR_PROGRESS_QVC_LOADING": 14,
+			"LOCMSG_SCRIPTEDITOR_PROGRESS_QVD_BUFFERED": 15,
+			"LOCMSG_SCRIPTEDITOR_PROGRESS_QVC_PREPARING": 16,
+			"LOCMSG_SCRIPTEDITOR_PROGRESS_QVC_APPENDING": 17,
+			"LOCMSG_SCRIPTEDITOR_REMOVE_SYNTHETIC": 18,
+			"LOCMSG_SCRIPTEDITOR_PENDING_LINKEDTABLE_FETCHING": 19,
+			"LOCMSG_SCRIPTEDITOR_RELOAD": 20,
+			"LOCMSG_SCRIPTEDITOR_LINES_FETCHED": 21,
+			"LOCMSG_SCRIPTEDITOR_SEARCHINDEX_START": 22,
+			"LOCMSG_SCRIPTEDITOR_SEARCHINDEX_FIELD": 23,
+			"LOCMSG_SCRIPTEDITOR_SEARCHINDEX_SUCCESS": 24,
+			"LOCMSG_SCRIPTEDITOR_SEARCHINDEX_FAILURE": 25,
+			"LOCMSG_SCRIPTEDITOR_SEARCHINDEX_STARTABORT": 26,
+			"LOCMSG_SCRIPTEDITOR_SEARCHINDEX_ENDABORT": 27,
+			"LOCMSG_SCRIPTEDITOR_SEARCHINDEX_TIMEOUT": 28,
+			"LOCMSG_SCRIPTEDITOR_SEARCHINDEX_OUTOFMEMORY": 29
+		},
+		"LocalizedErrorCode": {
+			"LOCERR_INTERNAL_ERROR": -128,
+			"LOCERR_GENERIC_UNKNOWN": -1,
+			"LOCERR_GENERIC_OK": 0,
+			"LOCERR_GENERIC_NOT_SET": 1,
+			"LOCERR_GENERIC_NOT_FOUND": 2,
+			"LOCERR_GENERIC_ALREADY_EXISTS": 3,
+			"LOCERR_GENERIC_INVALID_PATH": 4,
+			"LOCERR_GENERIC_ACCESS_DENIED": 5,
+			"LOCERR_GENERIC_OUT_OF_MEMORY": 6,
+			"LOCERR_GENERIC_NOT_INITIALIZED": 7,
+			"LOCERR_GENERIC_INVALID_PARAMETERS": 8,
+			"LOCERR_GENERIC_EMPTY_PARAMETERS": 9,
+			"LOCERR_GENERIC_INTERNAL_ERROR": 10,
+			"LOCERR_GENERIC_CORRUPT_DATA": 11,
+			"LOCERR_GENERIC_MEMORY_INCONSISTENCY": 12,
+			"LOCERR_GENERIC_INVISIBLE_OWNER_ABORT": 13,
+			"LOCERR_GENERIC_PROHIBIT_VALIDATE": 14,
+			"LOCERR_GENERIC_ABORTED": 15,
+			"LOCERR_GENERIC_CONNECTION_LOST": 16,
+			"LOCERR_GENERIC_UNSUPPORTED_IN_PRODUCT_VERSION": 17,
+			"LOCERR_GENERIC_REST_CONNECTION_FAILURE": 18,
+			"LOCERR_HTTP_400": 400,
+			"LOCERR_HTTP_401": 401,
+			"LOCERR_HTTP_402": 402,
+			"LOCERR_HTTP_403": 403,
+			"LOCERR_HTTP_404": 404,
+			"LOCERR_HTTP_405": 405,
+			"LOCERR_HTTP_406": 406,
+			"LOCERR_HTTP_407": 407,
+			"LOCERR_HTTP_408": 408,
+			"LOCERR_HTTP_409": 409,
+			"LOCERR_HTTP_410": 410,
+			"LOCERR_HTTP_411": 411,
+			"LOCERR_HTTP_412": 412,
+			"LOCERR_HTTP_413": 413,
+			"LOCERR_HTTP_414": 414,
+			"LOCERR_HTTP_415": 415,
+			"LOCERR_HTTP_416": 416,
+			"LOCERR_HTTP_417": 417,
+			"LOCERR_HTTP_500": 500,
+			"LOCERR_HTTP_501": 501,
+			"LOCERR_HTTP_502": 502,
+			"LOCERR_HTTP_503": 503,
+			"LOCERR_HTTP_504": 504,
+			"LOCERR_HTTP_505": 505,
+			"LOCERR_HTTP_509": 509,
+			"LOCERR_HTTP_COULD_NOT_RESOLVE_HOST": 700,
+			"LOCERR_APP_ALREADY_EXISTS": 1000,
+			"LOCERR_APP_INVALID_NAME": 1001,
+			"LOCERR_APP_ALREADY_OPEN": 1002,
+			"LOCERR_APP_NOT_FOUND": 1003,
+			"LOCERR_APP_IMPORT_FAILED": 1004,
+			"LOCERR_APP_SAVE_FAILED": 1005,
+			"LOCERR_APP_CREATE_FAILED": 1006,
+			"LOCERR_APP_INVALID": 1007,
+			"LOCERR_APP_CONNECT_FAILED": 1008,
+			"LOCERR_APP_ALREADY_OPEN_IN_DIFFERENT_MODE": 1009,
+			"LOCERR_APP_MIGRATION_COULD_NOT_CONTACT_MIGRATION_SERVICE": 1010,
+			"LOCERR_APP_MIGRATION_COULD_NOT_START_MIGRATION": 1011,
+			"LOCERR_APP_MIGRATION_FAILURE": 1012,
+			"LOCERR_APP_SCRIPT_MISSING": 1013,
+			"LOCERR_CONNECTION_ALREADY_EXISTS": 2000,
+			"LOCERR_CONNECTION_NOT_FOUND": 2001,
+			"LOCERR_CONNECTION_FAILED_TO_LOAD": 2002,
+			"LOCERR_CONNECTION_FAILED_TO_IMPORT": 2003,
+			"LOCERR_CONNECTION_NAME_IS_INVALID": 2004,
+			"LOCERR_CONNECTOR_NO_FILE_STREAMING_SUPPORT": 2300,
+			"LOCERR_FILE_ACCESS_DENIED": 3000,
+			"LOCERR_FILE_NAME_INVALID": 3001,
+			"LOCERR_FILE_CORRUPT": 3002,
+			"LOCERR_FILE_NOT_FOUND": 3003,
+			"LOCERR_FILE_FORMAT_UNSUPPORTED": 3004,
+			"LOCERR_FILE_OPENED_IN_UNSUPPORTED_MODE": 3005,
+			"LOCERR_FILE_TABLE_NOT_FOUND": 3006,
+			"LOCERR_USER_ACCESS_DENIED": 4000,
+			"LOCERR_USER_IMPERSONATION_FAILED": 4001,
+			"LOCERR_SERVER_OUT_OF_SESSION_AND_USER_CALS": 5000,
+			"LOCERR_SERVER_OUT_OF_SESSION_CALS": 5001,
+			"LOCERR_SERVER_OUT_OF_USAGE_CALS": 5002,
+			"LOCERR_SERVER_OUT_OF_CALS": 5003,
+			"LOCERR_SERVER_OUT_OF_NAMED_CALS": 5004,
+			"LOCERR_SERVER_OFF_DUTY": 5005,
+			"LOCERR_SERVER_BUSY": 5006,
+			"LOCERR_SERVER_LICENSE_EXPIRED": 5007,
+			"LOCERR_SERVER_AJAX_DISABLED": 5008,
+			"LOCERR_HC_INVALID_OBJECT": 6000,
+			"LOCERR_HC_RESULT_TOO_LARGE": 6001,
+			"LOCERR_HC_INVALID_OBJECT_STATE": 6002,
+			"LOCERR_HC_MODAL_OBJECT_ERROR": 6003,
+			"LOCERR_CALC_INVALID_DEF": 7000,
+			"LOCERR_CALC_NOT_IN_LIB": 7001,
+			"LOCERR_CALC_HEAP_ERROR": 7002,
+			"LOCERR_CALC_TOO_LARGE": 7003,
+			"LOCERR_CALC_TIMEOUT": 7004,
+			"LOCERR_CALC_EVAL_CONDITION_FAILED": 7005,
+			"LOCERR_CALC_MIXED_LINKED_AGGREGATION": 7006,
+			"LOCERR_CALC_MISSING_LINKED": 7007,
+			"LOCERR_CALC_INVALID_COL_SORT": 7008,
+			"LOCERR_CALC_PAGES_TOO_LARGE": 7009,
+			"LOCERR_CALC_SEMANTIC_FIELD_NOT_ALLOWED": 7010,
+			"LOCERR_CALC_VALIDATION_STATE_INVALID": 7011,
+			"LOCERR_CALC_PIVOT_DIMENSIONS_ALREADY_EXISTS": 7012,
+			"LOCERR_CALC_MISSING_LINKED_FIELD": 7013,
+			"LOCERR_CALC_NOT_CALCULATED": 7014,
+			"LOCERR_LAYOUT_EXTENDS_INVALID_ID": 8000,
+			"LOCERR_LAYOUT_LINKED_OBJECT_NOT_FOUND": 8001,
+			"LOCERR_LAYOUT_LINKED_OBJECT_INVALID": 8002,
+			"LOCERR_PERSISTENCE_WRITE_FAILED": 9000,
+			"LOCERR_PERSISTENCE_READ_FAILED": 9001,
+			"LOCERR_PERSISTENCE_DELETE_FAILED": 9002,
+			"LOCERR_PERSISTENCE_NOT_FOUND": 9003,
+			"LOCERR_PERSISTENCE_UNSUPPORTED_VERSION": 9004,
+			"LOCERR_PERSISTENCE_MIGRATION_FAILED_READ_ONLY": 9005,
+			"LOCERR_PERSISTENCE_MIGRATION_CANCELLED": 9006,
+			"LOCERR_PERSISTENCE_MIGRATION_BACKUP_FAILED": 9007,
+			"LOCERR_PERSISTENCE_DISK_FULL": 9008,
+			"LOCERR_PERSISTENCE_NOT_SUPPORTED_FOR_SESSION_APP": 9009,
+			"LOCERR_PERSISTENCE_SYNC_SET_CHUNK_INVALID_PARAMETERS": 9510,
+			"LOCERR_PERSISTENCE_SYNC_GET_CHUNK_INVALID_PARAMETERS": 9511,
+			"LOCERR_SCRIPT_DATASOURCE_ACCESS_DENIED": 10000,
+			"LOCERR_RELOAD_IN_PROGRESS": 11000,
+			"LOCERR_RELOAD_TABLE_X_NOT_FOUND": 11001,
+			"LOCERR_RELOAD_UNKNOWN_STATEMENT": 11002,
+			"LOCERR_RELOAD_EXPECTED_SOMETHING_FOUND_UNKNOWN": 11003,
+			"LOCERR_RELOAD_EXPECTED_NOTHING_FOUND_UNKNOWN": 11004,
+			"LOCERR_RELOAD_EXPECTED_ONE_OF_1_TOKENS_FOUND_UNKNOWN": 11005,
+			"LOCERR_RELOAD_EXPECTED_ONE_OF_2_TOKENS_FOUND_UNKNOWN": 11006,
+			"LOCERR_RELOAD_EXPECTED_ONE_OF_3_TOKENS_FOUND_UNKNOWN": 11007,
+			"LOCERR_RELOAD_EXPECTED_ONE_OF_4_TOKENS_FOUND_UNKNOWN": 11008,
+			"LOCERR_RELOAD_EXPECTED_ONE_OF_5_TOKENS_FOUND_UNKNOWN": 11009,
+			"LOCERR_RELOAD_EXPECTED_ONE_OF_6_TOKENS_FOUND_UNKNOWN": 11010,
+			"LOCERR_RELOAD_EXPECTED_ONE_OF_7_TOKENS_FOUND_UNKNOWN": 11011,
+			"LOCERR_RELOAD_EXPECTED_ONE_OF_8_OR_MORE_TOKENS_FOUND_UNKNOWN": 11012,
+			"LOCERR_RELOAD_FIELD_X_NOT_FOUND": 11013,
+			"LOCERR_RELOAD_MAPPING_TABLE_X_NOT_FOUND": 11014,
+			"LOCERR_RELOAD_LIB_CONNECTION_X_NOT_FOUND": 11015,
+			"LOCERR_RELOAD_NAME_ALREADY_TAKEN": 11016,
+			"LOCERR_RELOAD_WRONG_FILE_FORMAT_DIF": 11017,
+			"LOCERR_RELOAD_WRONG_FILE_FORMAT_BIFF": 11018,
+			"LOCERR_RELOAD_WRONG_FILE_FORMAT_ENCRYPTED": 11019,
+			"LOCERR_RELOAD_OPEN_FILE_ERROR": 11020,
+			"LOCERR_RELOAD_AUTO_GENERATE_COUNT": 11021,
+			"LOCERR_RELOAD_PE_ILLEGAL_PREFIX_COMB": 11022,
+			"LOCERR_RELOAD_MATCHING_CONTROL_STATEMENT_ERROR": 11023,
+			"LOCERR_RELOAD_MATCHING_LIBPATH_X_NOT_FOUND": 11024,
+			"LOCERR_RELOAD_MATCHING_LIBPATH_X_INVALID": 11025,
+			"LOCERR_RELOAD_MATCHING_LIBPATH_X_OUTSIDE": 11026,
+			"LOCERR_RELOAD_NO_QUALIFIED_PATH_FOR_FILE": 11027,
+			"LOCERR_RELOAD_MODE_STATEMENT_ONLY_FOR_LIB_PATHS": 11028,
+			"LOCERR_RELOAD_INCONSISTENT_USE_OF_SEMANTIC_FIELDS": 11029,
+			"LOCERR_RELOAD_NO_OPEN_DATABASE": 11030,
+			"LOCERR_RELOAD_AGGREGATION_REQUIRED_BY_GROUP_BY": 11031,
+			"LOCERR_RELOAD_CONNECT_MUST_USE_LIB_PREFIX_IN_THIS_MODE": 11032,
+			"LOCERR_RELOAD_ODBC_CONNECT_FAILED": 11033,
+			"LOCERR_RELOAD_OLEDB_CONNECT_FAILED": 11034,
+			"LOCERR_RELOAD_CUSTOM_CONNECT_FAILED": 11035,
+			"LOCERR_RELOAD_ODBC_READ_FAILED": 11036,
+			"LOCERR_RELOAD_OLEDB_READ_FAILED": 11037,
+			"LOCERR_RELOAD_CUSTOM_READ_FAILED": 11038,
+			"LOCERR_RELOAD_BINARY_LOAD_PROHIBITED": 11039,
+			"LOCERR_RELOAD_CONNECTOR_START_FAILED": 11040,
+			"LOCERR_RELOAD_CONNECTOR_NOT_RESPONDING": 11041,
+			"LOCERR_RELOAD_CONNECTOR_REPLY_ERROR": 11042,
+			"LOCERR_RELOAD_CONNECTOR_CONNECT_ERROR": 11043,
+			"LOCERR_RELOAD_CONNECTOR_NOT_FOUND_ERROR": 11044,
+			"LOCERR_PERSONAL_NEW_VERSION_AVAILABLE": 12000,
+			"LOCERR_PERSONAL_VERSION_EXPIRED": 12001,
+			"LOCERR_PERSONAL_SECTION_ACCESS_DETECTED": 12002,
+			"LOCERR_PERSONAL_APP_DELETION_FAILED": 12003,
+			"LOCERR_USER_AUTHENTICATION_FAILURE": 12004,
+			"LOCERR_EXPORT_OUT_OF_MEMORY": 13000,
+			"LOCERR_EXPORT_NO_DATA": 13001,
+			"LOCERR_SYNC_INVALID_OFFSET": 14000,
+			"LOCERR_SEARCH_TIMEOUT": 15000,
+			"LOCERR_DIRECT_DISCOVERY_LINKED_EXPRESSION_FAIL": 16000,
+			"LOCERR_DIRECT_DISCOVERY_ROWCOUNT_OVERFLOW": 16001,
+			"LOCERR_DIRECT_DISCOVERY_EMPTY_RESULT": 16002,
+			"LOCERR_DIRECT_DISCOVERY_DB_CONNECTION_FAILED": 16003,
+			"LOCERR_DIRECT_DISCOVERY_MEASURE_NOT_ALLOWED": 16004,
+			"LOCERR_DIRECT_DISCOVERY_DETAIL_NOT_ALLOWED": 16005,
+			"LOCERR_DIRECT_DISCOVERY_NOT_SYNTH_CIRCULAR_ALLOWED": 16006,
+			"LOCERR_DIRECT_DISCOVERY_ONLY_ONE_DD_TABLE_ALLOWED": 16007,
+			"LOCERR_DIRECT_DISCOVERY_DB_AUTHORIZATION_FAILED": 16008,
+			"LOCERR_SMART_LOAD_TABLE_NOT_FOUND": 17000,
+			"LOCERR_SMART_LOAD_TABLE_DUPLICATED": 17001,
+			"LOCERR_VARIABLE_NO_NAME": 18000,
+			"LOCERR_VARIABLE_DUPLICATE_NAME": 18001,
+			"LOCERR_VARIABLE_INCONSISTENCY": 18002,
+			"LOCERR_MEDIA_LIBRARY_LIST_FAILED": 19000,
+			"LOCERR_MEDIA_LIBRARY_CONTENT_FAILED": 19001,
+			"LOCERR_MEDIA_BUNDLING_FAILED": 19002,
+			"LOCERR_MEDIA_UNBUNDLING_FAILED": 19003,
+			"LOCERR_MEDIA_LIBRARY_NOT_FOUND": 19004,
+			"LOCERR_FEATURE_DISABLED": 20000,
+			"LOCERR_JSON_RPC_INVALID_REQUEST": -32600,
+			"LOCERR_JSON_RPC_METHOD_NOT_FOUND": -32601,
+			"LOCERR_JSON_RPC_INVALID_PARAMETERS": -32602,
+			"LOCERR_JSON_RPC_INTERNAL_ERROR": -32603,
+			"LOCERR_JSON_RPC_PARSE_ERROR": -32700,
+			"LOCERR_MQ_SOCKET_CONNECT_FAILURE": 33000,
+			"LOCERR_MQ_SOCKET_OPEN_FAILURE": 33001,
+			"LOCERR_MQ_PROTOCOL_NO_RESPONE": 33002,
+			"LOCERR_MQ_PROTOCOL_LIBRARY_EXCEPTION": 33003,
+			"LOCERR_MQ_PROTOCOL_CONNECTION_CLOSED": 33004,
+			"LOCERR_MQ_PROTOCOL_CHANNEL_CLOSED": 33005,
+			"LOCERR_MQ_PROTOCOL_UNKNOWN_ERROR": 33006,
+			"LOCERR_MQ_PROTOCOL_INVALID_STATUS": 33007,
+			"LOCERR_EXTENGINE_GRPC_STATUS_OK": 22000,
+			"LOCERR_EXTENGINE_GRPC_STATUS_CANCELLED": 22001,
+			"LOCERR_EXTENGINE_GRPC_STATUS_UNKNOWN": 22002,
+			"LOCERR_EXTENGINE_GRPC_STATUS_INVALID_ARGUMENT": 22003,
+			"LOCERR_EXTENGINE_GRPC_STATUS_DEADLINE_EXCEEDED": 22004,
+			"LOCERR_EXTENGINE_GRPC_STATUS_NOT_FOUND": 22005,
+			"LOCERR_EXTENGINE_GRPC_STATUS_ALREADY_EXISTS": 22006,
+			"LOCERR_EXTENGINE_GRPC_STATUS_PERMISSION_DENIED": 22007,
+			"LOCERR_EXTENGINE_GRPC_STATUS_UNAUTHENTICATED": 220016,
+			"LOCERR_EXTENGINE_GRPC_STATUS_RESOURCE_EXHAUSTED": 22008,
+			"LOCERR_EXTENGINE_GRPC_STATUS_FAILED_PRECONDITION": 22009,
+			"LOCERR_EXTENGINE_GRPC_STATUS_ABORTED": 22010,
+			"LOCERR_EXTENGINE_GRPC_STATUS_OUT_OF_RANGE": 22011,
+			"LOCERR_EXTENGINE_GRPC_STATUS_UNIMPLEMENTED": 22012,
+			"LOCERR_EXTENGINE_GRPC_STATUS_INTERNAL": 22013,
+			"LOCERR_EXTENGINE_GRPC_STATUS_UNAVAILABLE": 22014,
+			"LOCERR_EXTENGINE_GRPC_STATUS_DATA_LOSS": 22015
+		},
+		"LocalizedWarningCode": {
+			"LOCWARN_PERSONAL_RELOAD_REQUIRED": 0,
+			"LOCWARN_PERSONAL_VERSION_EXPIRES_SOON": 1,
+			"LOCWARN_EXPORT_DATA_TRUNCATED": 1000,
+			"LOCWARN_COULD_NOT_OPEN_ALL_OBJECTS": 2000
+		},
+		"GrpType": {
+			"GRP_NX_NONE": 0,
+			"GRP_NX_HIEARCHY": 1,
+			"GRP_NX_COLLECTION": 2
+		},
+		"ExportFileType": {
+			"EXPORT_CSV_C": 0,
+			"EXPORT_CSV_T": 1,
+			"EXPORT_OOXML": 2
+		},
+		"ExportState": {
+			"EXPORT_POSSIBLE": 0,
+			"EXPORT_ALL": 1
+		},
+		"DimCellType": {
+			"NX_DIM_CELL_VALUE": 0,
+			"NX_DIM_CELL_EMPTY": 1,
+			"NX_DIM_CELL_NORMAL": 2,
+			"NX_DIM_CELL_TOTAL": 3,
+			"NX_DIM_CELL_OTHER": 4,
+			"NX_DIM_CELL_AGGR": 5,
+			"NX_DIM_CELL_PSEUDO": 6,
+			"NX_DIM_CELL_ROOT": 7,
+			"NX_DIM_CELL_NULL": 8
+		},
+		"StackElemType": {
+			"NX_STACK_CELL_NORMAL": 0,
+			"NX_STACK_CELL_TOTAL": 1,
+			"NX_STACK_CELL_OTHER": 2,
+			"NX_STACK_CELL_SUM": 3,
+			"NX_STACK_CELL_VALUE": 4,
+			"NX_STACK_CELL_PSEUDO": 5
+		},
+		"SortIndicatorType": {
+			"NX_SORT_INDICATE_NONE": 0,
+			"NX_SORT_INDICATE_ASC": 1,
+			"NX_SORT_INDICATE_DESC": 2
+		},
+		"DimensionType": {
+			"NX_DIMENSION_TYPE_DISCRETE": 0,
+			"NX_DIMENSION_TYPE_NUMERIC": 1,
+			"NX_DIMENSION_TYPE_TIME": 2
+		},
+		"FieldSelectionMode": {
+			"SELECTION_MODE_NORMAL": 0,
+			"SELECTION_MODE_AND": 1,
+			"SELECTION_MODE_NOT": 2
+		},
+		"FrequencyMode": {
+			"NX_FREQUENCY_NONE": 0,
+			"NX_FREQUENCY_VALUE": 1,
+			"NX_FREQUENCY_PERCENT": 2,
+			"NX_FREQUENCY_RELATIVE": 3
+		},
+		"DataReductionMode": {
+			"DATA_REDUCTION_NONE": 0,
+			"DATA_REDUCTION_ONEDIM": 1,
+			"DATA_REDUCTION_SCATTERED": 2,
+			"DATA_REDUCTION_CLUSTERED": 3,
+			"DATA_REDUCTION_STACKED": 4
+		},
+		"HypercubeMode": {
+			"DATA_MODE_STRAIGHT": 0,
+			"DATA_MODE_PIVOT": 1,
+			"DATA_MODE_PIVOT_STACK": 2
+		},
+		"PatchOperationType": {
+			"Add": 0,
+			"Remove": 1,
+			"Replace": 2
+		},
+		"SelectionCellType": {
+			"NX_CELL_DATA": 0,
+			"NX_CELL_TOP": 1,
+			"NX_CELL_LEFT": 2
+		},
+		"MatchingFieldMode": {
+			"MATCHINGFIELDMODE_MATCH_ALL": 0,
+			"MATCHINGFIELDMODE_MATCH_ONE": 1
+		},
+		"SessionState": {
+			"SESSION_CREATED": 0,
+			"SESSION_ATTACHED": 1
+		},
+		"QrsChangeType": {
+			"QRS_CHANGE_UNDEFINED": 0,
+			"QRS_CHANGE_ADD": 1,
+			"QRS_CHANGE_UPDATE": 2,
+			"QRS_CHANGE_DELETE": 3
+		},
+		"ExtEngineDataType": {
+			"NX_EXT_DATATYPE_STRING": 0,
+			"NX_EXT_DATATYPE_DOUBLE": 1,
+			"NX_EXT_DATATYPE_BOTH": 2
+		},
+		"ExtEngineFunctionType": {
+			"NX_EXT_FUNCTIONTYPE_SCALAR": 0,
+			"NX_EXT_FUNCTIONTYPE_AGGR": 1,
+			"NX_EXT_FUNCTIONTYPE_TENSOR": 2
+		},
+		"ExtEngineMsgType": {
+			"NX_EXT_MSGTYPE_FUNCTION_CALL": 1,
+			"NX_EXT_MSGTYPE_SCRIPT_CALL": 2,
+			"NX_EXT_MSGTYPE_RETURN_VALUE": 3,
+			"NX_EXT_MSGTYPE_RETURN_MULTIPLE": 4,
+			"NX_EXT_MSGTYPE_RETURN_ERROR": 5
+		}
+	}
+}
+
+},{}],62:[function(require,module,exports){
+/**
+ * enigma.js v2.1.1
+ * Copyright (c) 2017 QlikTech International AB
+ * This library is licensed under MIT - See the LICENSE file for full details
+ */
+
+(function (global, factory) {
+	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+	typeof define === 'function' && define.amd ? define(factory) :
+	(global.senseUtilities = factory());
+}(this, (function () { 'use strict';
+
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+// If obj.hasOwnProperty has been overridden, then calling
+// obj.hasOwnProperty(prop) will break.
+// See: https://github.com/joyent/node/issues/1707
+function hasOwnProperty(obj, prop) {
+  return Object.prototype.hasOwnProperty.call(obj, prop);
+}
+var isArray = Array.isArray || function (xs) {
+  return Object.prototype.toString.call(xs) === '[object Array]';
+};
+function stringifyPrimitive(v) {
+  switch (typeof v) {
+    case 'string':
+      return v;
+
+    case 'boolean':
+      return v ? 'true' : 'false';
+
+    case 'number':
+      return isFinite(v) ? v : '';
+
+    default:
+      return '';
+  }
+}
+
+function stringify (obj, sep, eq, name) {
+  sep = sep || '&';
+  eq = eq || '=';
+  if (obj === null) {
+    obj = undefined;
+  }
+
+  if (typeof obj === 'object') {
+    return map(objectKeys(obj), function(k) {
+      var ks = encodeURIComponent(stringifyPrimitive(k)) + eq;
+      if (isArray(obj[k])) {
+        return map(obj[k], function(v) {
+          return ks + encodeURIComponent(stringifyPrimitive(v));
+        }).join(sep);
+      } else {
+        return ks + encodeURIComponent(stringifyPrimitive(obj[k]));
+      }
+    }).join(sep);
+
+  }
+
+  if (!name) return '';
+  return encodeURIComponent(stringifyPrimitive(name)) + eq +
+         encodeURIComponent(stringifyPrimitive(obj));
+}
+
+function map (xs, f) {
+  if (xs.map) return xs.map(f);
+  var res = [];
+  for (var i = 0; i < xs.length; i++) {
+    res.push(f(xs[i], i));
+  }
+  return res;
+}
+
+var objectKeys = Object.keys || function (obj) {
+  var res = [];
+  for (var key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) res.push(key);
+  }
+  return res;
+};
+
+function parse(qs, sep, eq, options) {
+  sep = sep || '&';
+  eq = eq || '=';
+  var obj = {};
+
+  if (typeof qs !== 'string' || qs.length === 0) {
+    return obj;
+  }
+
+  var regexp = /\+/g;
+  qs = qs.split(sep);
+
+  var maxKeys = 1000;
+  if (options && typeof options.maxKeys === 'number') {
+    maxKeys = options.maxKeys;
+  }
+
+  var len = qs.length;
+  // maxKeys <= 0 means that we should not limit keys count
+  if (maxKeys > 0 && len > maxKeys) {
+    len = maxKeys;
+  }
+
+  for (var i = 0; i < len; ++i) {
+    var x = qs[i].replace(regexp, '%20'),
+        idx = x.indexOf(eq),
+        kstr, vstr, k, v;
+
+    if (idx >= 0) {
+      kstr = x.substr(0, idx);
+      vstr = x.substr(idx + 1);
+    } else {
+      kstr = x;
+      vstr = '';
+    }
+
+    k = decodeURIComponent(kstr);
+    v = decodeURIComponent(vstr);
+
+    if (!hasOwnProperty(obj, k)) {
+      obj[k] = v;
+    } else if (isArray(obj[k])) {
+      obj[k].push(v);
+    } else {
+      obj[k] = [obj[k], v];
+    }
+  }
+
+  return obj;
+}
+var QueryString = {
+  encode: stringify,
+  stringify: stringify,
+  decode: parse,
+  parse: parse
+};
+
+var asyncGenerator = function () {
+  function AwaitValue(value) {
+    this.value = value;
+  }
+
+  function AsyncGenerator(gen) {
+    var front, back;
+
+    function send(key, arg) {
+      return new Promise(function (resolve, reject) {
+        var request = {
+          key: key,
+          arg: arg,
+          resolve: resolve,
+          reject: reject,
+          next: null
+        };
+
+        if (back) {
+          back = back.next = request;
+        } else {
+          front = back = request;
+          resume(key, arg);
+        }
+      });
+    }
+
+    function resume(key, arg) {
+      try {
+        var result = gen[key](arg);
+        var value = result.value;
+
+        if (value instanceof AwaitValue) {
+          Promise.resolve(value.value).then(function (arg) {
+            resume("next", arg);
+          }, function (arg) {
+            resume("throw", arg);
+          });
+        } else {
+          settle(result.done ? "return" : "normal", result.value);
+        }
+      } catch (err) {
+        settle("throw", err);
+      }
+    }
+
+    function settle(type, value) {
+      switch (type) {
+        case "return":
+          front.resolve({
+            value: value,
+            done: true
+          });
+          break;
+
+        case "throw":
+          front.reject(value);
+          break;
+
+        default:
+          front.resolve({
+            value: value,
+            done: false
+          });
+          break;
+      }
+
+      front = front.next;
+
+      if (front) {
+        resume(front.key, front.arg);
+      } else {
+        back = null;
+      }
+    }
+
+    this._invoke = send;
+
+    if (typeof gen.return !== "function") {
+      this.return = undefined;
+    }
+  }
+
+  if (typeof Symbol === "function" && Symbol.asyncIterator) {
+    AsyncGenerator.prototype[Symbol.asyncIterator] = function () {
+      return this;
+    };
+  }
+
+  AsyncGenerator.prototype.next = function (arg) {
+    return this._invoke("next", arg);
+  };
+
+  AsyncGenerator.prototype.throw = function (arg) {
+    return this._invoke("throw", arg);
+  };
+
+  AsyncGenerator.prototype.return = function (arg) {
+    return this._invoke("return", arg);
+  };
+
+  return {
+    wrap: function (fn) {
+      return function () {
+        return new AsyncGenerator(fn.apply(this, arguments));
+      };
+    },
+    await: function (value) {
+      return new AwaitValue(value);
+    }
+  };
+}();
+
+
+
+
+
+var classCallCheck = function (instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+};
+
+var createClass = function () {
+  function defineProperties(target, props) {
+    for (var i = 0; i < props.length; i++) {
+      var descriptor = props[i];
+      descriptor.enumerable = descriptor.enumerable || false;
+      descriptor.configurable = true;
+      if ("value" in descriptor) descriptor.writable = true;
+      Object.defineProperty(target, descriptor.key, descriptor);
+    }
+  }
+
+  return function (Constructor, protoProps, staticProps) {
+    if (protoProps) defineProperties(Constructor.prototype, protoProps);
+    if (staticProps) defineProperties(Constructor, staticProps);
+    return Constructor;
+  };
+}();
+
+/**
+* The Qlik Sense configuration object.
+* @typedef {Object} SenseConfiguration
+* @property {String} [appId] The app id. If omitted, only the global object is returned.
+*                            Otherwise both global and app object are returned.
+* @property {Boolean} [noData=false] Whether to open the app without data.
+* @property {Boolean} [secure=true] Set to false if an unsecure WebSocket should be used.
+* @property {String} [host] Host address.
+* @property {Number} [port] Port to connect to.
+* @property {String} [prefix="/"] The absolute base path to use when connecting.
+*                             Used for proxy prefixes.
+* @property {String} [subpath=""] The subpath.
+* @property {String} [route=""] Used to instruct Proxy to route to the correct receiver.
+* @property {String} [identity=""] Identity to use.
+* @property {Object} [urlParams={}] Used to add parameters to the WebSocket URL.
+* @property {Number} [ttl] A value in seconds that QIX Engine should keep the session
+*                             alive after socket disconnect (only works if QIX Engine supports it).
+*/
+
+function replaceLeadingAndTrailingSlashes(str) {
+  return str.replace(/(^[/]+)|([/]+$)/g, '');
+}
+
+var SenseUtilities = function () {
+  function SenseUtilities() {
+    classCallCheck(this, SenseUtilities);
+  }
+
+  createClass(SenseUtilities, null, [{
+    key: 'configureDefaults',
+
+    /**
+    * Ensures that the configuration has defaults set.
+    *
+    * @private
+    * @param {SenseConfiguration} senseConfig The configuration to ensure defaults on.
+    */
+    value: function configureDefaults(senseConfig) {
+      if (!senseConfig.host) {
+        senseConfig.host = 'localhost';
+      }
+
+      if (typeof senseConfig.secure === 'undefined') {
+        senseConfig.secure = true;
+      }
+
+      if (!senseConfig.appId && !senseConfig.route) {
+        senseConfig.route = 'app/engineData';
+      }
+
+      if (typeof senseConfig.noData === 'undefined') {
+        senseConfig.noData = false;
+      }
+    }
+
+    /**
+    * Function used to build an URL.
+    * @param {SenseUrlConfiguration} urlConfig - The URL configuration object.
+    * @returns {String} Returns the URL.
+    */
+
+  }, {
+    key: 'buildUrl',
+    value: function buildUrl(urlConfig) {
+      SenseUtilities.configureDefaults(urlConfig);
+
+      var secure = urlConfig.secure,
+          host = urlConfig.host,
+          port = urlConfig.port,
+          prefix = urlConfig.prefix,
+          subpath = urlConfig.subpath,
+          route = urlConfig.route,
+          identity = urlConfig.identity,
+          urlParams = urlConfig.urlParams,
+          ttl = urlConfig.ttl,
+          appId = urlConfig.appId;
+
+
+      var url = '';
+
+      url += (secure ? 'wss' : 'ws') + '://';
+      url += host || 'localhost';
+
+      if (port) {
+        url += ':' + port;
+      }
+
+      if (prefix) {
+        url += '/' + replaceLeadingAndTrailingSlashes(prefix);
+      }
+
+      if (subpath) {
+        url += '/' + replaceLeadingAndTrailingSlashes(subpath);
+      }
+
+      if (route) {
+        url += '/' + replaceLeadingAndTrailingSlashes(route);
+      } else if (appId && appId !== '') {
+        url += '/app/' + encodeURIComponent(appId);
+      }
+
+      if (identity) {
+        url += '/identity/' + encodeURIComponent(identity);
+      }
+
+      if (ttl) {
+        url += '/ttl/' + ttl;
+      }
+
+      if (urlParams) {
+        url += '?' + QueryString.stringify(urlParams);
+      }
+
+      return url;
+    }
+  }]);
+  return SenseUtilities;
+}();
+
+return SenseUtilities;
+
+})));
+
+
+},{}],63:[function(require,module,exports){
 //! moment.js
 //! version : 2.18.1
 //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
@@ -19022,12 +23807,12 @@ return hooks;
 
 })));
 
-},{}],61:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 'use strict';
 
 module.exports = require('./lib')
 
-},{"./lib":66}],62:[function(require,module,exports){
+},{"./lib":69}],65:[function(require,module,exports){
 'use strict';
 
 var asap = require('asap/raw');
@@ -19242,7 +24027,7 @@ function doResolve(fn, promise) {
   }
 }
 
-},{"asap/raw":3}],63:[function(require,module,exports){
+},{"asap/raw":3}],66:[function(require,module,exports){
 'use strict';
 
 var Promise = require('./core.js');
@@ -19257,7 +24042,7 @@ Promise.prototype.done = function (onFulfilled, onRejected) {
   });
 };
 
-},{"./core.js":62}],64:[function(require,module,exports){
+},{"./core.js":65}],67:[function(require,module,exports){
 'use strict';
 
 //This file contains the ES6 extensions to the core Promises/A+ API
@@ -19366,7 +24151,7 @@ Promise.prototype['catch'] = function (onRejected) {
   return this.then(null, onRejected);
 };
 
-},{"./core.js":62}],65:[function(require,module,exports){
+},{"./core.js":65}],68:[function(require,module,exports){
 'use strict';
 
 var Promise = require('./core.js');
@@ -19384,7 +24169,7 @@ Promise.prototype['finally'] = function (f) {
   });
 };
 
-},{"./core.js":62}],66:[function(require,module,exports){
+},{"./core.js":65}],69:[function(require,module,exports){
 'use strict';
 
 module.exports = require('./core.js');
@@ -19394,7 +24179,7 @@ require('./es6-extensions.js');
 require('./node-extensions.js');
 require('./synchronous.js');
 
-},{"./core.js":62,"./done.js":63,"./es6-extensions.js":64,"./finally.js":65,"./node-extensions.js":67,"./synchronous.js":68}],67:[function(require,module,exports){
+},{"./core.js":65,"./done.js":66,"./es6-extensions.js":67,"./finally.js":68,"./node-extensions.js":70,"./synchronous.js":71}],70:[function(require,module,exports){
 'use strict';
 
 // This file contains then/promise specific extensions that are only useful
@@ -19526,7 +24311,7 @@ Promise.prototype.nodeify = function (callback, ctx) {
   });
 };
 
-},{"./core.js":62,"asap":2}],68:[function(require,module,exports){
+},{"./core.js":65,"asap":2}],71:[function(require,module,exports){
 'use strict';
 
 var Promise = require('./core.js');
@@ -19590,7 +24375,7 @@ Promise.disableSynchronous = function() {
   Promise.prototype.getState = undefined;
 };
 
-},{"./core.js":62}],69:[function(require,module,exports){
+},{"./core.js":65}],72:[function(require,module,exports){
 
 var qrcode = require('./lib/qrcode.js');
 
@@ -19611,7 +24396,7 @@ module.exports = {
     }
 };
 
-},{"./lib/qrcode.js":70}],70:[function(require,module,exports){
+},{"./lib/qrcode.js":73}],73:[function(require,module,exports){
 // The original source of this file is: http://d-project.googlecode.com/svn/trunk/misc/qrcode/js/qrcode.js
 
 //---------------------------------------------------------------------
@@ -21292,7 +26077,7 @@ var qrcode = function() {
 }();
 
 module.exports = qrcode;
-},{}],71:[function(require,module,exports){
+},{}],74:[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter;
 var util = require('util');
 
@@ -21866,7 +26651,7 @@ Doc.prototype.searchAssociations = function(Options, Terms, Page) {
     });
 };
 module.exports = Doc;
-},{"events":81,"util":85}],72:[function(require,module,exports){
+},{"events":84,"util":88}],75:[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter;
 var util = require('util');
 
@@ -21959,7 +26744,7 @@ Field.prototype.setNxProperties = function(Properties) {
     return this.connection.ask(this.handle, 'SetNxProperties', arguments);
 };
 module.exports = Field;
-},{"events":81,"util":85}],73:[function(require,module,exports){
+},{"events":84,"util":88}],76:[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter;
 var util = require('util');
 
@@ -22003,7 +26788,7 @@ GenericBookmark.prototype.unPublish = function() {
     return this.connection.ask(this.handle, 'UnPublish', arguments);
 };
 module.exports = GenericBookmark;
-},{"events":81,"util":85}],74:[function(require,module,exports){
+},{"events":84,"util":88}],77:[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter;
 var util = require('util');
 
@@ -22052,7 +26837,7 @@ GenericDimension.prototype.unPublish = function() {
     return this.connection.ask(this.handle, 'UnPublish', arguments);
 };
 module.exports = GenericDimension;
-},{"events":81,"util":85}],75:[function(require,module,exports){
+},{"events":84,"util":88}],78:[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter;
 var util = require('util');
 
@@ -22101,7 +26886,7 @@ GenericMeasure.prototype.unPublish = function() {
     return this.connection.ask(this.handle, 'UnPublish', arguments);
 };
 module.exports = GenericMeasure;
-},{"events":81,"util":85}],76:[function(require,module,exports){
+},{"events":84,"util":88}],79:[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter;
 var util = require('util');
 
@@ -22352,7 +27137,7 @@ GenericObject.prototype.selectHyperCubeContinuousRange = function(qPath, qRanges
     });
 };
 module.exports = GenericObject;
-},{"events":81,"util":85}],77:[function(require,module,exports){
+},{"events":84,"util":88}],80:[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter;
 var util = require('util');
 
@@ -22422,7 +27207,7 @@ GenericVariable.prototype.setNxProperties = function() {
     return new Error('This method was deprecated in 2.1. Replaced with GetProperties');
 };
 module.exports = GenericVariable;
-},{"events":81,"util":85}],78:[function(require,module,exports){
+},{"events":84,"util":88}],81:[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter;
 var util = require('util');
 
@@ -22668,7 +27453,7 @@ Global.prototype.getStreamList = function() {
 };
 
 module.exports = Global;
-},{"events":81,"util":85}],79:[function(require,module,exports){
+},{"events":84,"util":88}],82:[function(require,module,exports){
 (function (process,global){
 var doc = require('./lib/doc');
 var field = require('./lib/field');
@@ -23009,9 +27794,9 @@ Connection.prototype.close = function () {
 };
 module.exports = qsocks;
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./lib/doc":71,"./lib/field":72,"./lib/genericBookmark":73,"./lib/genericDimension":74,"./lib/genericMeasure":75,"./lib/genericObject":76,"./lib/genericVariable":77,"./lib/global":78,"_process":82,"promise":61,"ws":80}],80:[function(require,module,exports){
+},{"./lib/doc":74,"./lib/field":75,"./lib/genericBookmark":76,"./lib/genericDimension":77,"./lib/genericMeasure":78,"./lib/genericObject":79,"./lib/genericVariable":80,"./lib/global":81,"_process":85,"promise":64,"ws":83}],83:[function(require,module,exports){
 
-},{}],81:[function(require,module,exports){
+},{}],84:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -23315,7 +28100,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],82:[function(require,module,exports){
+},{}],85:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -23501,7 +28286,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],83:[function(require,module,exports){
+},{}],86:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -23526,14 +28311,14 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],84:[function(require,module,exports){
+},{}],87:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],85:[function(require,module,exports){
+},{}],88:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -24123,4 +28908,4 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":84,"_process":82,"inherits":83}]},{},[1]);
+},{"./support/isBuffer":87,"_process":85,"inherits":86}]},{},[1]);
