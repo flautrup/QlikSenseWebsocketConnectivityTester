@@ -1,69 +1,3 @@
-<script src="https://rawgit.com/davidshimjs/qrcodejs/master/qrcode.min.js"></script>
-<!-- Latest compiled and minified CSS -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-
-<!-- Optional theme -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
-
-<!-- Latest compiled and minified JavaScript -->
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
-
-<body>
-  <div>
-    <div>
-      <div style="float: left; margin: 20px 20px 20px 20px;">
-        <h1>Qlik Sense Websocket Connectivity Tester</h1>
-      </div>
-      <div id="qrcode" style="float: right; margin: 20px 20px 20px 20px;"></div>
-      <script type="text/javascript">
-        var qrcode = new QRCode("qrcode", {
-          text: window.location.href.toString(),
-          width: 128,
-          height: 128,
-          colorDark: "#000000",
-          colorLight: "#ffffff",
-          correctLevel: QRCode.CorrectLevel.H
-        });
-      </script>
-    </div>
-  </div>
-  <div style="clear: both">
-    <div id="AuthenticatedDiv" class="alert alert-danger" role="alert">
-      <span id="AuthenticatedIcon" class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>
-      <span id="Authenticated">Authentication</span>
-    </div>
-    <div id="ConnectedWSSDiv" class="alert alert-danger" role="alert">
-      <span id="ConnectedWSSIcon" class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>
-      <span id="ConnectedWSS">Connect secure websocket</span>
-    </div>
-    <div id="ProductVersionWSSDiv" class="alert alert-danger" role="alert">
-      <span id="ProductVersionWSSIcon" class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>
-      <span id="ProductVersionWSS">Product version collected through secure websocket</span>
-    </div>
-    <div id="DocListWSSDiv" class="alert alert-danger" role="alert">
-      <span id="DocListWSSIcon" class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>
-      <span id="DocListWSS">Application list through secure websocket</span>
-    </div>
-    <div id="ConnectedWSDiv" class="alert alert-danger" role="alert">
-      <span id="ConnectedWSIcon" class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>
-      <span id="ConnectedWS">Connect websocket</span>
-    </div>
-    <div id="ProductVersionWSDiv" class="alert alert-danger" role="alert">
-      <span id="ProductVersionWSIcon" class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>
-      <span id="ProductVersionWS">Product version collected through websocket</span>
-    </div>
-    <div id="DocListWSDiv" class="alert alert-danger" role="alert">
-      <span id="DocListWSIcon" class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>
-      <span id="DocListWS">Application list through websocket</span>
-    </div>
-    <div id="ResponsetimeChart" style="width: 98%">
-      <canvas id="Chart" style="width:100%; height:300px"></canvas>
-    </div>
-  </div>
-</body>
-
-<script>
-// Cut and paste of the bundle.js
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 (function (global){
 const qsocks = require('qsocks');
@@ -28975,5 +28909,3 @@ function hasOwnProperty(obj, prop) {
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./support/isBuffer":87,"_process":85,"inherits":86}]},{},[1]);
-
-</script>
