@@ -1,3 +1,6 @@
+//Use browserify app.js -o bundle.js to build bundle and 
+// cut and paste into HTML file.
+
 const qsocks = require('qsocks');
 const Chart = require('chart.js');
 const QRCode = require('qrcode-js');
