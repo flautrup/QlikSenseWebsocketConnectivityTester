@@ -1,5 +1,8 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 (function (global){
+//Use browserify app.js -o bundle.js to build bundle and 
+// cut and paste into HTML file.
+
 const qsocks = require('qsocks');
 const Chart = require('chart.js');
 const QRCode = require('qrcode-js');
@@ -269,7 +272,7 @@ if (isSecure) {
     chartReposeTime(configWS);
 }
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"chart.js":4,"enigma.js":60,"enigma.js/schemas/12.20.0.json":61,"enigma.js/sense-utilities":62,"qrcode-js":72,"qsocks":82}],2:[function(require,module,exports){
+},{"chart.js":4,"enigma.js":61,"enigma.js/schemas/12.20.0.json":62,"enigma.js/sense-utilities":63,"qrcode-js":73,"qsocks":83}],2:[function(require,module,exports){
 "use strict";
 
 // rawAsap provides everything we need except exception management.
@@ -579,13 +582,14 @@ Chart.defaults = require('./core/core.defaults');
 Chart.Element = require('./core/core.element');
 Chart.elements = require('./elements/index');
 Chart.Interaction = require('./core/core.interaction');
+Chart.layouts = require('./core/core.layouts');
 Chart.platform = require('./platforms/platform');
+Chart.plugins = require('./core/core.plugins');
+Chart.Ticks = require('./core/core.ticks');
 
-require('./core/core.plugin')(Chart);
 require('./core/core.animation')(Chart);
 require('./core/core.controller')(Chart);
 require('./core/core.datasetController')(Chart);
-require('./core/core.layoutService')(Chart);
 require('./core/core.scaleService')(Chart);
 require('./core/core.scale')(Chart);
 require('./core/core.tooltip')(Chart);
@@ -616,15 +620,12 @@ require('./charts/Chart.Radar')(Chart);
 require('./charts/Chart.Scatter')(Chart);
 
 // Loading built-it plugins
-var plugins = [];
-
-plugins.push(
-	require('./plugins/plugin.filler')(Chart),
-	require('./plugins/plugin.legend')(Chart),
-	require('./plugins/plugin.title')(Chart)
-);
-
-Chart.plugins.register(plugins);
+var plugins = require('./plugins');
+for (var k in plugins) {
+	if (plugins.hasOwnProperty(k)) {
+		Chart.plugins.register(plugins[k]);
+	}
+}
 
 Chart.platform.initialize();
 
@@ -636,6 +637,43 @@ if (typeof window !== 'undefined') {
 // DEPRECATIONS
 
 /**
+ * Provided for backward compatibility, not available anymore
+ * @namespace Chart.Legend
+ * @deprecated since version 2.1.5
+ * @todo remove at version 3
+ * @private
+ */
+Chart.Legend = plugins.legend._element;
+
+/**
+ * Provided for backward compatibility, not available anymore
+ * @namespace Chart.Title
+ * @deprecated since version 2.1.5
+ * @todo remove at version 3
+ * @private
+ */
+Chart.Title = plugins.title._element;
+
+/**
+ * Provided for backward compatibility, use Chart.plugins instead
+ * @namespace Chart.pluginService
+ * @deprecated since version 2.1.5
+ * @todo remove at version 3
+ * @private
+ */
+Chart.pluginService = Chart.plugins;
+
+/**
+ * Provided for backward compatibility, inheriting from Chart.PlugingBase has no
+ * effect, instead simply create/register plugins via plain JavaScript objects.
+ * @interface Chart.PluginBase
+ * @deprecated since version 2.5.0
+ * @todo remove at version 3
+ * @private
+ */
+Chart.PluginBase = Chart.Element.extend({});
+
+/**
  * Provided for backward compatibility, use Chart.helpers.canvas instead.
  * @namespace Chart.canvasHelpers
  * @deprecated since version 2.6.0
@@ -644,7 +682,16 @@ if (typeof window !== 'undefined') {
  */
 Chart.canvasHelpers = Chart.helpers.canvas;
 
-},{"./charts/Chart.Bar":5,"./charts/Chart.Bubble":6,"./charts/Chart.Doughnut":7,"./charts/Chart.Line":8,"./charts/Chart.PolarArea":9,"./charts/Chart.Radar":10,"./charts/Chart.Scatter":11,"./controllers/controller.bar":12,"./controllers/controller.bubble":13,"./controllers/controller.doughnut":14,"./controllers/controller.line":15,"./controllers/controller.polarArea":16,"./controllers/controller.radar":17,"./controllers/controller.scatter":18,"./core/core":26,"./core/core.animation":19,"./core/core.controller":20,"./core/core.datasetController":21,"./core/core.defaults":22,"./core/core.element":23,"./core/core.helpers":24,"./core/core.interaction":25,"./core/core.layoutService":27,"./core/core.plugin":28,"./core/core.scale":29,"./core/core.scaleService":30,"./core/core.tooltip":32,"./elements/index":37,"./helpers/index":42,"./platforms/platform":45,"./plugins/plugin.filler":46,"./plugins/plugin.legend":47,"./plugins/plugin.title":48,"./scales/scale.category":49,"./scales/scale.linear":50,"./scales/scale.linearbase":51,"./scales/scale.logarithmic":52,"./scales/scale.radialLinear":53,"./scales/scale.time":54}],5:[function(require,module,exports){
+/**
+ * Provided for backward compatibility, use Chart.layouts instead.
+ * @namespace Chart.layoutService
+ * @deprecated since version 2.8.0
+ * @todo remove at version 3
+ * @private
+ */
+Chart.layoutService = Chart.layouts;
+
+},{"./charts/Chart.Bar":5,"./charts/Chart.Bubble":6,"./charts/Chart.Doughnut":7,"./charts/Chart.Line":8,"./charts/Chart.PolarArea":9,"./charts/Chart.Radar":10,"./charts/Chart.Scatter":11,"./controllers/controller.bar":12,"./controllers/controller.bubble":13,"./controllers/controller.doughnut":14,"./controllers/controller.line":15,"./controllers/controller.polarArea":16,"./controllers/controller.radar":17,"./controllers/controller.scatter":18,"./core/core":26,"./core/core.animation":19,"./core/core.controller":20,"./core/core.datasetController":21,"./core/core.defaults":22,"./core/core.element":23,"./core/core.helpers":24,"./core/core.interaction":25,"./core/core.layouts":27,"./core/core.plugins":28,"./core/core.scale":29,"./core/core.scaleService":30,"./core/core.ticks":31,"./core/core.tooltip":32,"./elements/index":37,"./helpers/index":42,"./platforms/platform":45,"./plugins":46,"./scales/scale.category":50,"./scales/scale.linear":51,"./scales/scale.linearbase":52,"./scales/scale.logarithmic":53,"./scales/scale.radialLinear":54,"./scales/scale.time":55}],5:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -829,6 +876,93 @@ defaults._set('horizontalBar', {
 	}
 });
 
+/**
+ * Computes the "optimal" sample size to maintain bars equally sized while preventing overlap.
+ * @private
+ */
+function computeMinSampleSize(scale, pixels) {
+	var min = scale.isHorizontal() ? scale.width : scale.height;
+	var ticks = scale.getTicks();
+	var prev, curr, i, ilen;
+
+	for (i = 1, ilen = pixels.length; i < ilen; ++i) {
+		min = Math.min(min, pixels[i] - pixels[i - 1]);
+	}
+
+	for (i = 0, ilen = ticks.length; i < ilen; ++i) {
+		curr = scale.getPixelForTick(i);
+		min = i > 0 ? Math.min(min, curr - prev) : min;
+		prev = curr;
+	}
+
+	return min;
+}
+
+/**
+ * Computes an "ideal" category based on the absolute bar thickness or, if undefined or null,
+ * uses the smallest interval (see computeMinSampleSize) that prevents bar overlapping. This
+ * mode currently always generates bars equally sized (until we introduce scriptable options?).
+ * @private
+ */
+function computeFitCategoryTraits(index, ruler, options) {
+	var thickness = options.barThickness;
+	var count = ruler.stackCount;
+	var curr = ruler.pixels[index];
+	var size, ratio;
+
+	if (helpers.isNullOrUndef(thickness)) {
+		size = ruler.min * options.categoryPercentage;
+		ratio = options.barPercentage;
+	} else {
+		// When bar thickness is enforced, category and bar percentages are ignored.
+		// Note(SB): we could add support for relative bar thickness (e.g. barThickness: '50%')
+		// and deprecate barPercentage since this value is ignored when thickness is absolute.
+		size = thickness * count;
+		ratio = 1;
+	}
+
+	return {
+		chunk: size / count,
+		ratio: ratio,
+		start: curr - (size / 2)
+	};
+}
+
+/**
+ * Computes an "optimal" category that globally arranges bars side by side (no gap when
+ * percentage options are 1), based on the previous and following categories. This mode
+ * generates bars with different widths when data are not evenly spaced.
+ * @private
+ */
+function computeFlexCategoryTraits(index, ruler, options) {
+	var pixels = ruler.pixels;
+	var curr = pixels[index];
+	var prev = index > 0 ? pixels[index - 1] : null;
+	var next = index < pixels.length - 1 ? pixels[index + 1] : null;
+	var percent = options.categoryPercentage;
+	var start, size;
+
+	if (prev === null) {
+		// first data: its size is double based on the next point or,
+		// if it's also the last data, we use the scale end extremity.
+		prev = curr - (next === null ? ruler.end - curr : next - curr);
+	}
+
+	if (next === null) {
+		// last data: its size is also double based on the previous point.
+		next = curr + curr - prev;
+	}
+
+	start = curr - ((curr - prev) / 2) * percent;
+	size = ((next - prev) / 2) * percent;
+
+	return {
+		chunk: size / ruler.stackCount,
+		ratio: options.barPercentage,
+		start: start
+	};
+}
+
 module.exports = function(Chart) {
 
 	Chart.controllers.bar = Chart.DatasetController.extend({
@@ -935,10 +1069,12 @@ module.exports = function(Chart) {
 		},
 
 		/**
-		 * Returns the effective number of stacks based on groups and bar visibility.
+		 * Returns the stacks based on groups and bar visibility.
+		 * @param {Number} [last] - The dataset index
+		 * @returns {Array} The stack list
 		 * @private
 		 */
-		getStackCount: function(last) {
+		_getStacks: function(last) {
 			var me = this;
 			var chart = me.chart;
 			var scale = me.getIndexScale();
@@ -957,15 +1093,33 @@ module.exports = function(Chart) {
 				}
 			}
 
-			return stacks.length;
+			return stacks;
+		},
+
+		/**
+		 * Returns the effective number of stacks based on groups and bar visibility.
+		 * @private
+		 */
+		getStackCount: function() {
+			return this._getStacks().length;
 		},
 
 		/**
 		 * Returns the stack index for the given dataset based on groups and bar visibility.
+		 * @param {Number} [datasetIndex] - The dataset index
+		 * @param {String} [name] - The stack name to find
+		 * @returns {Number} The stack index
 		 * @private
 		 */
-		getStackIndex: function(datasetIndex) {
-			return this.getStackCount(datasetIndex) - 1;
+		getStackIndex: function(datasetIndex, name) {
+			var stacks = this._getStacks(datasetIndex);
+			var index = (name !== undefined)
+				? stacks.indexOf(name)
+				: -1; // indexOf returns -1 if element is not present
+
+			return (index === -1)
+				? stacks.length - 1
+				: index;
 		},
 
 		/**
@@ -976,17 +1130,22 @@ module.exports = function(Chart) {
 			var scale = me.getIndexScale();
 			var stackCount = me.getStackCount();
 			var datasetIndex = me.index;
-			var pixels = [];
 			var isHorizontal = scale.isHorizontal();
 			var start = isHorizontal ? scale.left : scale.top;
 			var end = start + (isHorizontal ? scale.width : scale.height);
-			var i, ilen;
+			var pixels = [];
+			var i, ilen, min;
 
 			for (i = 0, ilen = me.getMeta().data.length; i < ilen; ++i) {
 				pixels.push(scale.getPixelForValue(null, i, datasetIndex));
 			}
 
+			min = helpers.isNullOrUndef(scale.options.barThickness)
+				? computeMinSampleSize(scale, pixels)
+				: -1;
+
 			return {
+				min: min,
 				pixels: pixels,
 				start: start,
 				end: end,
@@ -1046,50 +1205,21 @@ module.exports = function(Chart) {
 		calculateBarIndexPixels: function(datasetIndex, index, ruler) {
 			var me = this;
 			var options = ruler.scale.options;
-			var stackIndex = me.getStackIndex(datasetIndex);
-			var pixels = ruler.pixels;
-			var base = pixels[index];
-			var length = pixels.length;
-			var start = ruler.start;
-			var end = ruler.end;
-			var leftSampleSize, rightSampleSize, leftCategorySize, rightCategorySize, fullBarSize, size;
+			var range = options.barThickness === 'flex'
+				? computeFlexCategoryTraits(index, ruler, options)
+				: computeFitCategoryTraits(index, ruler, options);
 
-			if (length === 1) {
-				leftSampleSize = base > start ? base - start : end - base;
-				rightSampleSize = base < end ? end - base : base - start;
-			} else {
-				if (index > 0) {
-					leftSampleSize = (base - pixels[index - 1]) / 2;
-					if (index === length - 1) {
-						rightSampleSize = leftSampleSize;
-					}
-				}
-				if (index < length - 1) {
-					rightSampleSize = (pixels[index + 1] - base) / 2;
-					if (index === 0) {
-						leftSampleSize = rightSampleSize;
-					}
-				}
-			}
-
-			leftCategorySize = leftSampleSize * options.categoryPercentage;
-			rightCategorySize = rightSampleSize * options.categoryPercentage;
-			fullBarSize = (leftCategorySize + rightCategorySize) / ruler.stackCount;
-			size = fullBarSize * options.barPercentage;
-
-			size = Math.min(
-				helpers.valueOrDefault(options.barThickness, size),
-				helpers.valueOrDefault(options.maxBarThickness, Infinity));
-
-			base -= leftCategorySize;
-			base += fullBarSize * stackIndex;
-			base += (fullBarSize - size) / 2;
+			var stackIndex = me.getStackIndex(datasetIndex, me.getMeta().stack);
+			var center = range.start + (range.chunk * stackIndex) + (range.chunk / 2);
+			var size = Math.min(
+				helpers.valueOrDefault(options.maxBarThickness, Infinity),
+				range.chunk * range.ratio);
 
 			return {
-				size: size,
-				base: base,
-				head: base + size,
-				center: base + size / 2
+				base: center - size / 2,
+				head: center + size / 2,
+				center: center,
+				size: size
 			};
 		},
 
@@ -1612,7 +1742,7 @@ module.exports = function(Chart) {
 		calculateCircumference: function(value) {
 			var total = this.getMeta().total;
 			if (total > 0 && !isNaN(value)) {
-				return (Math.PI * 2.0) * (value / total);
+				return (Math.PI * 2.0) * (Math.abs(value) / total);
 			}
 			return 0;
 		},
@@ -2590,10 +2720,11 @@ module.exports = function(Chart) {
 var defaults = require('./core.defaults');
 var helpers = require('../helpers/index');
 var Interaction = require('./core.interaction');
+var layouts = require('./core.layouts');
 var platform = require('../platforms/platform');
+var plugins = require('./core.plugins');
 
 module.exports = function(Chart) {
-	var plugins = Chart.plugins;
 
 	// Create a dictionary of chart types, to allow for extension of existing types
 	Chart.types = {};
@@ -2632,17 +2763,21 @@ module.exports = function(Chart) {
 	function updateConfig(chart) {
 		var newOptions = chart.options;
 
-		// Update Scale(s) with options
-		if (newOptions.scale) {
-			chart.scale.options = newOptions.scale;
-		} else if (newOptions.scales) {
-			newOptions.scales.xAxes.concat(newOptions.scales.yAxes).forEach(function(scaleOptions) {
-				chart.scales[scaleOptions.id].options = scaleOptions;
-			});
-		}
+		helpers.each(chart.scales, function(scale) {
+			layouts.removeBox(chart, scale);
+		});
 
+		newOptions = helpers.configMerge(
+			Chart.defaults.global,
+			Chart.defaults[chart.config.type],
+			newOptions);
+
+		chart.options = chart.config.options = newOptions;
+		chart.ensureScalesHaveIDs();
+		chart.buildOrUpdateScales();
 		// Tooltip
 		chart.tooltip._options = newOptions.tooltips;
+		chart.tooltip.initialize();
 	}
 
 	function positionIsHorizontal(position) {
@@ -2730,7 +2865,7 @@ module.exports = function(Chart) {
 
 			// Make sure scales have IDs and are built before we build any controllers.
 			me.ensureScalesHaveIDs();
-			me.buildScales();
+			me.buildOrUpdateScales();
 			me.initToolTip();
 
 			// After init plugin notification
@@ -2810,11 +2945,15 @@ module.exports = function(Chart) {
 		/**
 		 * Builds a map of scale ID to scale object for future lookup.
 		 */
-		buildScales: function() {
+		buildOrUpdateScales: function() {
 			var me = this;
 			var options = me.options;
-			var scales = me.scales = {};
+			var scales = me.scales || {};
 			var items = [];
+			var updated = Object.keys(scales).reduce(function(obj, id) {
+				obj[id] = false;
+				return obj;
+			}, {});
 
 			if (options.scales) {
 				items = items.concat(
@@ -2838,24 +2977,35 @@ module.exports = function(Chart) {
 
 			helpers.each(items, function(item) {
 				var scaleOptions = item.options;
+				var id = scaleOptions.id;
 				var scaleType = helpers.valueOrDefault(scaleOptions.type, item.dtype);
-				var scaleClass = Chart.scaleService.getScaleConstructor(scaleType);
-				if (!scaleClass) {
-					return;
-				}
 
 				if (positionIsHorizontal(scaleOptions.position) !== positionIsHorizontal(item.dposition)) {
 					scaleOptions.position = item.dposition;
 				}
 
-				var scale = new scaleClass({
-					id: scaleOptions.id,
-					options: scaleOptions,
-					ctx: me.ctx,
-					chart: me
-				});
+				updated[id] = true;
+				var scale = null;
+				if (id in scales && scales[id].type === scaleType) {
+					scale = scales[id];
+					scale.options = scaleOptions;
+					scale.ctx = me.ctx;
+					scale.chart = me;
+				} else {
+					var scaleClass = Chart.scaleService.getScaleConstructor(scaleType);
+					if (!scaleClass) {
+						return;
+					}
+					scale = new scaleClass({
+						id: id,
+						type: scaleType,
+						options: scaleOptions,
+						ctx: me.ctx,
+						chart: me
+					});
+					scales[scale.id] = scale;
+				}
 
-				scales[scale.id] = scale;
 				scale.mergeTicksOptions();
 
 				// TODO(SB): I think we should be able to remove this custom case (options.scale)
@@ -2865,6 +3015,14 @@ module.exports = function(Chart) {
 					me.scale = scale;
 				}
 			});
+			// clear up discarded scales
+			helpers.each(updated, function(hasUpdated, id) {
+				if (!hasUpdated) {
+					delete scales[id];
+				}
+			});
+
+			me.scales = scales;
 
 			Chart.scaleService.addScalesToLayout(this);
 		},
@@ -2888,6 +3046,7 @@ module.exports = function(Chart) {
 
 				if (meta.controller) {
 					meta.controller.updateIndex(datasetIndex);
+					meta.controller.linkScales();
 				} else {
 					var ControllerClass = Chart.controllers[meta.type];
 					if (ControllerClass === undefined) {
@@ -2934,6 +3093,10 @@ module.exports = function(Chart) {
 
 			updateConfig(me);
 
+			// plugins options references might have change, let's invalidate the cache
+			// https://github.com/chartjs/Chart.js/issues/5111#issuecomment-355934167
+			plugins._invalidate(me);
+
 			if (plugins.notify(me, 'beforeUpdate') === false) {
 				return;
 			}
@@ -2952,11 +3115,21 @@ module.exports = function(Chart) {
 			me.updateLayout();
 
 			// Can only reset the new controllers after the scales have been updated
-			helpers.each(newControllers, function(controller) {
-				controller.reset();
-			});
+			if (me.options.animation && me.options.animation.duration) {
+				helpers.each(newControllers, function(controller) {
+					controller.reset();
+				});
+			}
 
 			me.updateDatasets();
+
+			// Need to reset tooltip in case it is displayed with elements that are removed
+			// after update.
+			me.tooltip.initialize();
+
+			// Last active contains items that were previously in the tooltip.
+			// When we reset the tooltip, we need to clear it
+			me.lastActive = [];
 
 			// Do this before render so that any plugins that need final scale updates can use it
 			plugins.notify(me, 'afterUpdate');
@@ -2984,7 +3157,7 @@ module.exports = function(Chart) {
 				return;
 			}
 
-			Chart.layoutService.update(this, this.width, this.height);
+			layouts.update(this, this.width, this.height);
 
 			/**
 			 * Provided for backward compatibility, use `afterLayout` instead.
@@ -3115,9 +3288,7 @@ module.exports = function(Chart) {
 			}
 
 			me.drawDatasets(easingValue);
-
-			// Finally draw the tooltip
-			me.tooltip.draw();
+			me._drawTooltip(easingValue);
 
 			plugins.notify(me, 'afterDraw', [easingValue]);
 		},
@@ -3180,6 +3351,28 @@ module.exports = function(Chart) {
 			meta.controller.draw(easingValue);
 
 			plugins.notify(me, 'afterDatasetDraw', [args]);
+		},
+
+		/**
+		 * Draws tooltip unless a plugin returns `false` to the `beforeTooltipDraw`
+		 * hook, in which case, plugins will not be called on `afterTooltipDraw`.
+		 * @private
+		 */
+		_drawTooltip: function(easingValue) {
+			var me = this;
+			var tooltip = me.tooltip;
+			var args = {
+				tooltip: tooltip,
+				easingValue: easingValue
+			};
+
+			if (plugins.notify(me, 'beforeTooltipDraw', [args]) === false) {
+				return;
+			}
+
+			tooltip.draw();
+
+			plugins.notify(me, 'afterTooltipDraw', [args]);
 		},
 
 		// Get the single element that was clicked on
@@ -3378,7 +3571,15 @@ module.exports = function(Chart) {
 			me._bufferedRequest = null;
 
 			var changed = me.handleEvent(e);
-			changed |= tooltip && tooltip.handleEvent(e);
+			// for smooth tooltip animations issue #4989
+			// the tooltip should be the source of change
+			// Animation check workaround:
+			// tooltip._start will be null when tooltip isn't animating
+			if (tooltip) {
+				changed = tooltip._start
+					? tooltip.handleEvent(e)
+					: changed | tooltip.handleEvent(e);
+			}
 
 			plugins.notify(me, 'afterEvent', [e]);
 
@@ -3462,7 +3663,7 @@ module.exports = function(Chart) {
 	Chart.Controller = Chart;
 };
 
-},{"../helpers/index":42,"../platforms/platform":45,"./core.defaults":22,"./core.interaction":25}],21:[function(require,module,exports){
+},{"../helpers/index":42,"../platforms/platform":45,"./core.defaults":22,"./core.interaction":25,"./core.layouts":27,"./core.plugins":28}],21:[function(require,module,exports){
 'use strict';
 
 var helpers = require('../helpers/index');
@@ -3576,10 +3777,10 @@ module.exports = function(Chart) {
 			var meta = me.getMeta();
 			var dataset = me.getDataset();
 
-			if (meta.xAxisID === null) {
+			if (meta.xAxisID === null || !(meta.xAxisID in me.chart.scales)) {
 				meta.xAxisID = dataset.xAxisID || me.chart.options.scales.xAxes[0].id;
 			}
-			if (meta.yAxisID === null) {
+			if (meta.yAxisID === null || !(meta.yAxisID in me.chart.scales)) {
 				meta.yAxisID = dataset.yAxisID || me.chart.options.scales.yAxes[0].id;
 			}
 		},
@@ -3925,7 +4126,7 @@ Element.extend = helpers.inherits;
 
 module.exports = Element;
 
-},{"../helpers/index":42,"chartjs-color":56}],24:[function(require,module,exports){
+},{"../helpers/index":42,"chartjs-color":57}],24:[function(require,module,exports){
 /* global window: false */
 /* global document: false */
 'use strict';
@@ -3937,16 +4138,6 @@ var helpers = require('../helpers/index');
 module.exports = function(Chart) {
 
 	// -- Basic js utility methods
-
-	helpers.extend = function(base) {
-		var setFn = function(value, key) {
-			base[key] = value;
-		};
-		for (var i = 1, ilen = arguments.length; i < ilen; i++) {
-			helpers.each(arguments[i], setFn);
-		}
-		return base;
-	};
 
 	helpers.configMerge = function(/* objects ... */) {
 		return helpers.merge(helpers.clone(arguments[0]), [].slice.call(arguments, 1), {
@@ -4053,29 +4244,7 @@ module.exports = function(Chart) {
 			}
 		}
 	};
-	helpers.inherits = function(extensions) {
-		// Basic javascript inheritance based on the model created in Backbone.js
-		var me = this;
-		var ChartElement = (extensions && extensions.hasOwnProperty('constructor')) ? extensions.constructor : function() {
-			return me.apply(this, arguments);
-		};
 
-		var Surrogate = function() {
-			this.constructor = ChartElement;
-		};
-		Surrogate.prototype = me.prototype;
-		ChartElement.prototype = new Surrogate();
-
-		ChartElement.extend = helpers.inherits;
-
-		if (extensions) {
-			helpers.extend(ChartElement.prototype, extensions);
-		}
-
-		ChartElement.__super__ = me.prototype;
-
-		return ChartElement;
-	};
 	// -- Math methods
 	helpers.isNumber = function(n) {
 		return !isNaN(parseFloat(n)) && isFinite(n);
@@ -4119,7 +4288,13 @@ module.exports = function(Chart) {
 			return Math.log10(x);
 		} :
 		function(x) {
-			return Math.log(x) / Math.LN10;
+			var exponent = Math.log(x) * Math.LOG10E; // Math.LOG10E = 1 / Math.LN10.
+			// Check for whole powers of 10,
+			// which due to floating point rounding error should be corrected.
+			var powerOf10 = Math.round(exponent);
+			var isPowerOf10 = x === Math.pow(10, powerOf10);
+
+			return isPowerOf10 ? powerOf10 : exponent;
 		};
 	helpers.toRadians = function(degrees) {
 		return degrees * (Math.PI / 180);
@@ -4472,8 +4647,10 @@ module.exports = function(Chart) {
 		// If no style has been set on the canvas, the render size is used as display size,
 		// making the chart visually bigger, so let's enforce it to the "correct" values.
 		// See https://github.com/chartjs/Chart.js/issues/3575
-		canvas.style.height = height + 'px';
-		canvas.style.width = width + 'px';
+		if (!canvas.style.height && !canvas.style.width) {
+			canvas.style.height = height + 'px';
+			canvas.style.width = width + 'px';
+		}
 	};
 	// -- Canvas methods
 	helpers.fontString = function(pixelSize, fontStyle, fontFamily) {
@@ -4562,7 +4739,7 @@ module.exports = function(Chart) {
 	};
 };
 
-},{"../helpers/index":42,"./core.defaults":22,"chartjs-color":56}],25:[function(require,module,exports){
+},{"../helpers/index":42,"./core.defaults":22,"chartjs-color":57}],25:[function(require,module,exports){
 'use strict';
 
 var helpers = require('../helpers/index');
@@ -4780,7 +4957,7 @@ module.exports = {
 		 * @private
 		 */
 		'x-axis': function(chart, e) {
-			return indexMode(chart, e, {intersect: true});
+			return indexMode(chart, e, {intersect: false});
 		},
 
 		/**
@@ -4950,802 +5127,807 @@ module.exports = function() {
 
 var helpers = require('../helpers/index');
 
-module.exports = function(Chart) {
+function filterByPosition(array, position) {
+	return helpers.where(array, function(v) {
+		return v.position === position;
+	});
+}
 
-	function filterByPosition(array, position) {
-		return helpers.where(array, function(v) {
-			return v.position === position;
-		});
-	}
+function sortByWeight(array, reverse) {
+	array.forEach(function(v, i) {
+		v._tmpIndex_ = i;
+		return v;
+	});
+	array.sort(function(a, b) {
+		var v0 = reverse ? b : a;
+		var v1 = reverse ? a : b;
+		return v0.weight === v1.weight ?
+			v0._tmpIndex_ - v1._tmpIndex_ :
+			v0.weight - v1.weight;
+	});
+	array.forEach(function(v) {
+		delete v._tmpIndex_;
+	});
+}
 
-	function sortByWeight(array, reverse) {
-		array.forEach(function(v, i) {
-			v._tmpIndex_ = i;
-			return v;
-		});
-		array.sort(function(a, b) {
-			var v0 = reverse ? b : a;
-			var v1 = reverse ? a : b;
-			return v0.weight === v1.weight ?
-				v0._tmpIndex_ - v1._tmpIndex_ :
-				v0.weight - v1.weight;
-		});
-		array.forEach(function(v) {
-			delete v._tmpIndex_;
-		});
-	}
+/**
+ * @interface ILayoutItem
+ * @prop {String} position - The position of the item in the chart layout. Possible values are
+ * 'left', 'top', 'right', 'bottom', and 'chartArea'
+ * @prop {Number} weight - The weight used to sort the item. Higher weights are further away from the chart area
+ * @prop {Boolean} fullWidth - if true, and the item is horizontal, then push vertical boxes down
+ * @prop {Function} isHorizontal - returns true if the layout item is horizontal (ie. top or bottom)
+ * @prop {Function} update - Takes two parameters: width and height. Returns size of item
+ * @prop {Function} getPadding -  Returns an object with padding on the edges
+ * @prop {Number} width - Width of item. Must be valid after update()
+ * @prop {Number} height - Height of item. Must be valid after update()
+ * @prop {Number} left - Left edge of the item. Set by layout system and cannot be used in update
+ * @prop {Number} top - Top edge of the item. Set by layout system and cannot be used in update
+ * @prop {Number} right - Right edge of the item. Set by layout system and cannot be used in update
+ * @prop {Number} bottom - Bottom edge of the item. Set by layout system and cannot be used in update
+ */
+
+// The layout service is very self explanatory.  It's responsible for the layout within a chart.
+// Scales, Legends and Plugins all rely on the layout service and can easily register to be placed anywhere they need
+// It is this service's responsibility of carrying out that layout.
+module.exports = {
+	defaults: {},
 
 	/**
-	 * @interface ILayoutItem
-	 * @prop {String} position - The position of the item in the chart layout. Possible values are
-	 * 'left', 'top', 'right', 'bottom', and 'chartArea'
-	 * @prop {Number} weight - The weight used to sort the item. Higher weights are further away from the chart area
-	 * @prop {Boolean} fullWidth - if true, and the item is horizontal, then push vertical boxes down
-	 * @prop {Function} isHorizontal - returns true if the layout item is horizontal (ie. top or bottom)
-	 * @prop {Function} update - Takes two parameters: width and height. Returns size of item
-	 * @prop {Function} getPadding -  Returns an object with padding on the edges
-	 * @prop {Number} width - Width of item. Must be valid after update()
-	 * @prop {Number} height - Height of item. Must be valid after update()
-	 * @prop {Number} left - Left edge of the item. Set by layout system and cannot be used in update
-	 * @prop {Number} top - Top edge of the item. Set by layout system and cannot be used in update
-	 * @prop {Number} right - Right edge of the item. Set by layout system and cannot be used in update
-	 * @prop {Number} bottom - Bottom edge of the item. Set by layout system and cannot be used in update
+	 * Register a box to a chart.
+	 * A box is simply a reference to an object that requires layout. eg. Scales, Legend, Title.
+	 * @param {Chart} chart - the chart to use
+	 * @param {ILayoutItem} item - the item to add to be layed out
 	 */
+	addBox: function(chart, item) {
+		if (!chart.boxes) {
+			chart.boxes = [];
+		}
 
-	// The layout service is very self explanatory.  It's responsible for the layout within a chart.
-	// Scales, Legends and Plugins all rely on the layout service and can easily register to be placed anywhere they need
-	// It is this service's responsibility of carrying out that layout.
-	Chart.layoutService = {
-		defaults: {},
+		// initialize item with default values
+		item.fullWidth = item.fullWidth || false;
+		item.position = item.position || 'top';
+		item.weight = item.weight || 0;
 
-		/**
-		 * Register a box to a chart.
-		 * A box is simply a reference to an object that requires layout. eg. Scales, Legend, Title.
-		 * @param {Chart} chart - the chart to use
-		 * @param {ILayoutItem} item - the item to add to be layed out
-		 */
-		addBox: function(chart, item) {
-			if (!chart.boxes) {
-				chart.boxes = [];
+		chart.boxes.push(item);
+	},
+
+	/**
+	 * Remove a layoutItem from a chart
+	 * @param {Chart} chart - the chart to remove the box from
+	 * @param {Object} layoutItem - the item to remove from the layout
+	 */
+	removeBox: function(chart, layoutItem) {
+		var index = chart.boxes ? chart.boxes.indexOf(layoutItem) : -1;
+		if (index !== -1) {
+			chart.boxes.splice(index, 1);
+		}
+	},
+
+	/**
+	 * Sets (or updates) options on the given `item`.
+	 * @param {Chart} chart - the chart in which the item lives (or will be added to)
+	 * @param {Object} item - the item to configure with the given options
+	 * @param {Object} options - the new item options.
+	 */
+	configure: function(chart, item, options) {
+		var props = ['fullWidth', 'position', 'weight'];
+		var ilen = props.length;
+		var i = 0;
+		var prop;
+
+		for (; i < ilen; ++i) {
+			prop = props[i];
+			if (options.hasOwnProperty(prop)) {
+				item[prop] = options[prop];
+			}
+		}
+	},
+
+	/**
+	 * Fits boxes of the given chart into the given size by having each box measure itself
+	 * then running a fitting algorithm
+	 * @param {Chart} chart - the chart
+	 * @param {Number} width - the width to fit into
+	 * @param {Number} height - the height to fit into
+	 */
+	update: function(chart, width, height) {
+		if (!chart) {
+			return;
+		}
+
+		var layoutOptions = chart.options.layout || {};
+		var padding = helpers.options.toPadding(layoutOptions.padding);
+		var leftPadding = padding.left;
+		var rightPadding = padding.right;
+		var topPadding = padding.top;
+		var bottomPadding = padding.bottom;
+
+		var leftBoxes = filterByPosition(chart.boxes, 'left');
+		var rightBoxes = filterByPosition(chart.boxes, 'right');
+		var topBoxes = filterByPosition(chart.boxes, 'top');
+		var bottomBoxes = filterByPosition(chart.boxes, 'bottom');
+		var chartAreaBoxes = filterByPosition(chart.boxes, 'chartArea');
+
+		// Sort boxes by weight. A higher weight is further away from the chart area
+		sortByWeight(leftBoxes, true);
+		sortByWeight(rightBoxes, false);
+		sortByWeight(topBoxes, true);
+		sortByWeight(bottomBoxes, false);
+
+		// Essentially we now have any number of boxes on each of the 4 sides.
+		// Our canvas looks like the following.
+		// The areas L1 and L2 are the left axes. R1 is the right axis, T1 is the top axis and
+		// B1 is the bottom axis
+		// There are also 4 quadrant-like locations (left to right instead of clockwise) reserved for chart overlays
+		// These locations are single-box locations only, when trying to register a chartArea location that is already taken,
+		// an error will be thrown.
+		//
+		// |----------------------------------------------------|
+		// |                  T1 (Full Width)                   |
+		// |----------------------------------------------------|
+		// |    |    |                 T2                  |    |
+		// |    |----|-------------------------------------|----|
+		// |    |    | C1 |                           | C2 |    |
+		// |    |    |----|                           |----|    |
+		// |    |    |                                     |    |
+		// | L1 | L2 |           ChartArea (C0)            | R1 |
+		// |    |    |                                     |    |
+		// |    |    |----|                           |----|    |
+		// |    |    | C3 |                           | C4 |    |
+		// |    |----|-------------------------------------|----|
+		// |    |    |                 B1                  |    |
+		// |----------------------------------------------------|
+		// |                  B2 (Full Width)                   |
+		// |----------------------------------------------------|
+		//
+		// What we do to find the best sizing, we do the following
+		// 1. Determine the minimum size of the chart area.
+		// 2. Split the remaining width equally between each vertical axis
+		// 3. Split the remaining height equally between each horizontal axis
+		// 4. Give each layout the maximum size it can be. The layout will return it's minimum size
+		// 5. Adjust the sizes of each axis based on it's minimum reported size.
+		// 6. Refit each axis
+		// 7. Position each axis in the final location
+		// 8. Tell the chart the final location of the chart area
+		// 9. Tell any axes that overlay the chart area the positions of the chart area
+
+		// Step 1
+		var chartWidth = width - leftPadding - rightPadding;
+		var chartHeight = height - topPadding - bottomPadding;
+		var chartAreaWidth = chartWidth / 2; // min 50%
+		var chartAreaHeight = chartHeight / 2; // min 50%
+
+		// Step 2
+		var verticalBoxWidth = (width - chartAreaWidth) / (leftBoxes.length + rightBoxes.length);
+
+		// Step 3
+		var horizontalBoxHeight = (height - chartAreaHeight) / (topBoxes.length + bottomBoxes.length);
+
+		// Step 4
+		var maxChartAreaWidth = chartWidth;
+		var maxChartAreaHeight = chartHeight;
+		var minBoxSizes = [];
+
+		function getMinimumBoxSize(box) {
+			var minSize;
+			var isHorizontal = box.isHorizontal();
+
+			if (isHorizontal) {
+				minSize = box.update(box.fullWidth ? chartWidth : maxChartAreaWidth, horizontalBoxHeight);
+				maxChartAreaHeight -= minSize.height;
+			} else {
+				minSize = box.update(verticalBoxWidth, maxChartAreaHeight);
+				maxChartAreaWidth -= minSize.width;
 			}
 
-			// initialize item with default values
-			item.fullWidth = item.fullWidth || false;
-			item.position = item.position || 'top';
-			item.weight = item.weight || 0;
-
-			chart.boxes.push(item);
-		},
-
-		/**
-		 * Remove a layoutItem from a chart
-		 * @param {Chart} chart - the chart to remove the box from
-		 * @param {Object} layoutItem - the item to remove from the layout
-		 */
-		removeBox: function(chart, layoutItem) {
-			var index = chart.boxes ? chart.boxes.indexOf(layoutItem) : -1;
-			if (index !== -1) {
-				chart.boxes.splice(index, 1);
-			}
-		},
-
-		/**
-		 * Sets (or updates) options on the given `item`.
-		 * @param {Chart} chart - the chart in which the item lives (or will be added to)
-		 * @param {Object} item - the item to configure with the given options
-		 * @param {Object} options - the new item options.
-		 */
-		configure: function(chart, item, options) {
-			var props = ['fullWidth', 'position', 'weight'];
-			var ilen = props.length;
-			var i = 0;
-			var prop;
-
-			for (; i < ilen; ++i) {
-				prop = props[i];
-				if (options.hasOwnProperty(prop)) {
-					item[prop] = options[prop];
-				}
-			}
-		},
-
-		/**
-		 * Fits boxes of the given chart into the given size by having each box measure itself
-		 * then running a fitting algorithm
-		 * @param {Chart} chart - the chart
-		 * @param {Number} width - the width to fit into
-		 * @param {Number} height - the height to fit into
-		 */
-		update: function(chart, width, height) {
-			if (!chart) {
-				return;
-			}
-
-			var layoutOptions = chart.options.layout || {};
-			var padding = helpers.options.toPadding(layoutOptions.padding);
-			var leftPadding = padding.left;
-			var rightPadding = padding.right;
-			var topPadding = padding.top;
-			var bottomPadding = padding.bottom;
-
-			var leftBoxes = filterByPosition(chart.boxes, 'left');
-			var rightBoxes = filterByPosition(chart.boxes, 'right');
-			var topBoxes = filterByPosition(chart.boxes, 'top');
-			var bottomBoxes = filterByPosition(chart.boxes, 'bottom');
-			var chartAreaBoxes = filterByPosition(chart.boxes, 'chartArea');
-
-			// Sort boxes by weight. A higher weight is further away from the chart area
-			sortByWeight(leftBoxes, true);
-			sortByWeight(rightBoxes, false);
-			sortByWeight(topBoxes, true);
-			sortByWeight(bottomBoxes, false);
-
-			// Essentially we now have any number of boxes on each of the 4 sides.
-			// Our canvas looks like the following.
-			// The areas L1 and L2 are the left axes. R1 is the right axis, T1 is the top axis and
-			// B1 is the bottom axis
-			// There are also 4 quadrant-like locations (left to right instead of clockwise) reserved for chart overlays
-			// These locations are single-box locations only, when trying to register a chartArea location that is already taken,
-			// an error will be thrown.
-			//
-			// |----------------------------------------------------|
-			// |                  T1 (Full Width)                   |
-			// |----------------------------------------------------|
-			// |    |    |                 T2                  |    |
-			// |    |----|-------------------------------------|----|
-			// |    |    | C1 |                           | C2 |    |
-			// |    |    |----|                           |----|    |
-			// |    |    |                                     |    |
-			// | L1 | L2 |           ChartArea (C0)            | R1 |
-			// |    |    |                                     |    |
-			// |    |    |----|                           |----|    |
-			// |    |    | C3 |                           | C4 |    |
-			// |    |----|-------------------------------------|----|
-			// |    |    |                 B1                  |    |
-			// |----------------------------------------------------|
-			// |                  B2 (Full Width)                   |
-			// |----------------------------------------------------|
-			//
-			// What we do to find the best sizing, we do the following
-			// 1. Determine the minimum size of the chart area.
-			// 2. Split the remaining width equally between each vertical axis
-			// 3. Split the remaining height equally between each horizontal axis
-			// 4. Give each layout the maximum size it can be. The layout will return it's minimum size
-			// 5. Adjust the sizes of each axis based on it's minimum reported size.
-			// 6. Refit each axis
-			// 7. Position each axis in the final location
-			// 8. Tell the chart the final location of the chart area
-			// 9. Tell any axes that overlay the chart area the positions of the chart area
-
-			// Step 1
-			var chartWidth = width - leftPadding - rightPadding;
-			var chartHeight = height - topPadding - bottomPadding;
-			var chartAreaWidth = chartWidth / 2; // min 50%
-			var chartAreaHeight = chartHeight / 2; // min 50%
-
-			// Step 2
-			var verticalBoxWidth = (width - chartAreaWidth) / (leftBoxes.length + rightBoxes.length);
-
-			// Step 3
-			var horizontalBoxHeight = (height - chartAreaHeight) / (topBoxes.length + bottomBoxes.length);
-
-			// Step 4
-			var maxChartAreaWidth = chartWidth;
-			var maxChartAreaHeight = chartHeight;
-			var minBoxSizes = [];
-
-			function getMinimumBoxSize(box) {
-				var minSize;
-				var isHorizontal = box.isHorizontal();
-
-				if (isHorizontal) {
-					minSize = box.update(box.fullWidth ? chartWidth : maxChartAreaWidth, horizontalBoxHeight);
-					maxChartAreaHeight -= minSize.height;
-				} else {
-					minSize = box.update(verticalBoxWidth, chartAreaHeight);
-					maxChartAreaWidth -= minSize.width;
-				}
-
-				minBoxSizes.push({
-					horizontal: isHorizontal,
-					minSize: minSize,
-					box: box,
-				});
-			}
-
-			helpers.each(leftBoxes.concat(rightBoxes, topBoxes, bottomBoxes), getMinimumBoxSize);
-
-			// If a horizontal box has padding, we move the left boxes over to avoid ugly charts (see issue #2478)
-			var maxHorizontalLeftPadding = 0;
-			var maxHorizontalRightPadding = 0;
-			var maxVerticalTopPadding = 0;
-			var maxVerticalBottomPadding = 0;
-
-			helpers.each(topBoxes.concat(bottomBoxes), function(horizontalBox) {
-				if (horizontalBox.getPadding) {
-					var boxPadding = horizontalBox.getPadding();
-					maxHorizontalLeftPadding = Math.max(maxHorizontalLeftPadding, boxPadding.left);
-					maxHorizontalRightPadding = Math.max(maxHorizontalRightPadding, boxPadding.right);
-				}
-			});
-
-			helpers.each(leftBoxes.concat(rightBoxes), function(verticalBox) {
-				if (verticalBox.getPadding) {
-					var boxPadding = verticalBox.getPadding();
-					maxVerticalTopPadding = Math.max(maxVerticalTopPadding, boxPadding.top);
-					maxVerticalBottomPadding = Math.max(maxVerticalBottomPadding, boxPadding.bottom);
-				}
-			});
-
-			// At this point, maxChartAreaHeight and maxChartAreaWidth are the size the chart area could
-			// be if the axes are drawn at their minimum sizes.
-			// Steps 5 & 6
-			var totalLeftBoxesWidth = leftPadding;
-			var totalRightBoxesWidth = rightPadding;
-			var totalTopBoxesHeight = topPadding;
-			var totalBottomBoxesHeight = bottomPadding;
-
-			// Function to fit a box
-			function fitBox(box) {
-				var minBoxSize = helpers.findNextWhere(minBoxSizes, function(minBox) {
-					return minBox.box === box;
-				});
-
-				if (minBoxSize) {
-					if (box.isHorizontal()) {
-						var scaleMargin = {
-							left: Math.max(totalLeftBoxesWidth, maxHorizontalLeftPadding),
-							right: Math.max(totalRightBoxesWidth, maxHorizontalRightPadding),
-							top: 0,
-							bottom: 0
-						};
-
-						// Don't use min size here because of label rotation. When the labels are rotated, their rotation highly depends
-						// on the margin. Sometimes they need to increase in size slightly
-						box.update(box.fullWidth ? chartWidth : maxChartAreaWidth, chartHeight / 2, scaleMargin);
-					} else {
-						box.update(minBoxSize.minSize.width, maxChartAreaHeight);
-					}
-				}
-			}
-
-			// Update, and calculate the left and right margins for the horizontal boxes
-			helpers.each(leftBoxes.concat(rightBoxes), fitBox);
-
-			helpers.each(leftBoxes, function(box) {
-				totalLeftBoxesWidth += box.width;
-			});
-
-			helpers.each(rightBoxes, function(box) {
-				totalRightBoxesWidth += box.width;
-			});
-
-			// Set the Left and Right margins for the horizontal boxes
-			helpers.each(topBoxes.concat(bottomBoxes), fitBox);
-
-			// Figure out how much margin is on the top and bottom of the vertical boxes
-			helpers.each(topBoxes, function(box) {
-				totalTopBoxesHeight += box.height;
-			});
-
-			helpers.each(bottomBoxes, function(box) {
-				totalBottomBoxesHeight += box.height;
-			});
-
-			function finalFitVerticalBox(box) {
-				var minBoxSize = helpers.findNextWhere(minBoxSizes, function(minSize) {
-					return minSize.box === box;
-				});
-
-				var scaleMargin = {
-					left: 0,
-					right: 0,
-					top: totalTopBoxesHeight,
-					bottom: totalBottomBoxesHeight
-				};
-
-				if (minBoxSize) {
-					box.update(minBoxSize.minSize.width, maxChartAreaHeight, scaleMargin);
-				}
-			}
-
-			// Let the left layout know the final margin
-			helpers.each(leftBoxes.concat(rightBoxes), finalFitVerticalBox);
-
-			// Recalculate because the size of each layout might have changed slightly due to the margins (label rotation for instance)
-			totalLeftBoxesWidth = leftPadding;
-			totalRightBoxesWidth = rightPadding;
-			totalTopBoxesHeight = topPadding;
-			totalBottomBoxesHeight = bottomPadding;
-
-			helpers.each(leftBoxes, function(box) {
-				totalLeftBoxesWidth += box.width;
-			});
-
-			helpers.each(rightBoxes, function(box) {
-				totalRightBoxesWidth += box.width;
-			});
-
-			helpers.each(topBoxes, function(box) {
-				totalTopBoxesHeight += box.height;
-			});
-			helpers.each(bottomBoxes, function(box) {
-				totalBottomBoxesHeight += box.height;
-			});
-
-			// We may be adding some padding to account for rotated x axis labels
-			var leftPaddingAddition = Math.max(maxHorizontalLeftPadding - totalLeftBoxesWidth, 0);
-			totalLeftBoxesWidth += leftPaddingAddition;
-			totalRightBoxesWidth += Math.max(maxHorizontalRightPadding - totalRightBoxesWidth, 0);
-
-			var topPaddingAddition = Math.max(maxVerticalTopPadding - totalTopBoxesHeight, 0);
-			totalTopBoxesHeight += topPaddingAddition;
-			totalBottomBoxesHeight += Math.max(maxVerticalBottomPadding - totalBottomBoxesHeight, 0);
-
-			// Figure out if our chart area changed. This would occur if the dataset layout label rotation
-			// changed due to the application of the margins in step 6. Since we can only get bigger, this is safe to do
-			// without calling `fit` again
-			var newMaxChartAreaHeight = height - totalTopBoxesHeight - totalBottomBoxesHeight;
-			var newMaxChartAreaWidth = width - totalLeftBoxesWidth - totalRightBoxesWidth;
-
-			if (newMaxChartAreaWidth !== maxChartAreaWidth || newMaxChartAreaHeight !== maxChartAreaHeight) {
-				helpers.each(leftBoxes, function(box) {
-					box.height = newMaxChartAreaHeight;
-				});
-
-				helpers.each(rightBoxes, function(box) {
-					box.height = newMaxChartAreaHeight;
-				});
-
-				helpers.each(topBoxes, function(box) {
-					if (!box.fullWidth) {
-						box.width = newMaxChartAreaWidth;
-					}
-				});
-
-				helpers.each(bottomBoxes, function(box) {
-					if (!box.fullWidth) {
-						box.width = newMaxChartAreaWidth;
-					}
-				});
-
-				maxChartAreaHeight = newMaxChartAreaHeight;
-				maxChartAreaWidth = newMaxChartAreaWidth;
-			}
-
-			// Step 7 - Position the boxes
-			var left = leftPadding + leftPaddingAddition;
-			var top = topPadding + topPaddingAddition;
-
-			function placeBox(box) {
-				if (box.isHorizontal()) {
-					box.left = box.fullWidth ? leftPadding : totalLeftBoxesWidth;
-					box.right = box.fullWidth ? width - rightPadding : totalLeftBoxesWidth + maxChartAreaWidth;
-					box.top = top;
-					box.bottom = top + box.height;
-
-					// Move to next point
-					top = box.bottom;
-
-				} else {
-
-					box.left = left;
-					box.right = left + box.width;
-					box.top = totalTopBoxesHeight;
-					box.bottom = totalTopBoxesHeight + maxChartAreaHeight;
-
-					// Move to next point
-					left = box.right;
-				}
-			}
-
-			helpers.each(leftBoxes.concat(topBoxes), placeBox);
-
-			// Account for chart width and height
-			left += maxChartAreaWidth;
-			top += maxChartAreaHeight;
-
-			helpers.each(rightBoxes, placeBox);
-			helpers.each(bottomBoxes, placeBox);
-
-			// Step 8
-			chart.chartArea = {
-				left: totalLeftBoxesWidth,
-				top: totalTopBoxesHeight,
-				right: totalLeftBoxesWidth + maxChartAreaWidth,
-				bottom: totalTopBoxesHeight + maxChartAreaHeight
-			};
-
-			// Step 9
-			helpers.each(chartAreaBoxes, function(box) {
-				box.left = chart.chartArea.left;
-				box.top = chart.chartArea.top;
-				box.right = chart.chartArea.right;
-				box.bottom = chart.chartArea.bottom;
-
-				box.update(maxChartAreaWidth, maxChartAreaHeight);
+			minBoxSizes.push({
+				horizontal: isHorizontal,
+				minSize: minSize,
+				box: box,
 			});
 		}
-	};
+
+		helpers.each(leftBoxes.concat(rightBoxes, topBoxes, bottomBoxes), getMinimumBoxSize);
+
+		// If a horizontal box has padding, we move the left boxes over to avoid ugly charts (see issue #2478)
+		var maxHorizontalLeftPadding = 0;
+		var maxHorizontalRightPadding = 0;
+		var maxVerticalTopPadding = 0;
+		var maxVerticalBottomPadding = 0;
+
+		helpers.each(topBoxes.concat(bottomBoxes), function(horizontalBox) {
+			if (horizontalBox.getPadding) {
+				var boxPadding = horizontalBox.getPadding();
+				maxHorizontalLeftPadding = Math.max(maxHorizontalLeftPadding, boxPadding.left);
+				maxHorizontalRightPadding = Math.max(maxHorizontalRightPadding, boxPadding.right);
+			}
+		});
+
+		helpers.each(leftBoxes.concat(rightBoxes), function(verticalBox) {
+			if (verticalBox.getPadding) {
+				var boxPadding = verticalBox.getPadding();
+				maxVerticalTopPadding = Math.max(maxVerticalTopPadding, boxPadding.top);
+				maxVerticalBottomPadding = Math.max(maxVerticalBottomPadding, boxPadding.bottom);
+			}
+		});
+
+		// At this point, maxChartAreaHeight and maxChartAreaWidth are the size the chart area could
+		// be if the axes are drawn at their minimum sizes.
+		// Steps 5 & 6
+		var totalLeftBoxesWidth = leftPadding;
+		var totalRightBoxesWidth = rightPadding;
+		var totalTopBoxesHeight = topPadding;
+		var totalBottomBoxesHeight = bottomPadding;
+
+		// Function to fit a box
+		function fitBox(box) {
+			var minBoxSize = helpers.findNextWhere(minBoxSizes, function(minBox) {
+				return minBox.box === box;
+			});
+
+			if (minBoxSize) {
+				if (box.isHorizontal()) {
+					var scaleMargin = {
+						left: Math.max(totalLeftBoxesWidth, maxHorizontalLeftPadding),
+						right: Math.max(totalRightBoxesWidth, maxHorizontalRightPadding),
+						top: 0,
+						bottom: 0
+					};
+
+					// Don't use min size here because of label rotation. When the labels are rotated, their rotation highly depends
+					// on the margin. Sometimes they need to increase in size slightly
+					box.update(box.fullWidth ? chartWidth : maxChartAreaWidth, chartHeight / 2, scaleMargin);
+				} else {
+					box.update(minBoxSize.minSize.width, maxChartAreaHeight);
+				}
+			}
+		}
+
+		// Update, and calculate the left and right margins for the horizontal boxes
+		helpers.each(leftBoxes.concat(rightBoxes), fitBox);
+
+		helpers.each(leftBoxes, function(box) {
+			totalLeftBoxesWidth += box.width;
+		});
+
+		helpers.each(rightBoxes, function(box) {
+			totalRightBoxesWidth += box.width;
+		});
+
+		// Set the Left and Right margins for the horizontal boxes
+		helpers.each(topBoxes.concat(bottomBoxes), fitBox);
+
+		// Figure out how much margin is on the top and bottom of the vertical boxes
+		helpers.each(topBoxes, function(box) {
+			totalTopBoxesHeight += box.height;
+		});
+
+		helpers.each(bottomBoxes, function(box) {
+			totalBottomBoxesHeight += box.height;
+		});
+
+		function finalFitVerticalBox(box) {
+			var minBoxSize = helpers.findNextWhere(minBoxSizes, function(minSize) {
+				return minSize.box === box;
+			});
+
+			var scaleMargin = {
+				left: 0,
+				right: 0,
+				top: totalTopBoxesHeight,
+				bottom: totalBottomBoxesHeight
+			};
+
+			if (minBoxSize) {
+				box.update(minBoxSize.minSize.width, maxChartAreaHeight, scaleMargin);
+			}
+		}
+
+		// Let the left layout know the final margin
+		helpers.each(leftBoxes.concat(rightBoxes), finalFitVerticalBox);
+
+		// Recalculate because the size of each layout might have changed slightly due to the margins (label rotation for instance)
+		totalLeftBoxesWidth = leftPadding;
+		totalRightBoxesWidth = rightPadding;
+		totalTopBoxesHeight = topPadding;
+		totalBottomBoxesHeight = bottomPadding;
+
+		helpers.each(leftBoxes, function(box) {
+			totalLeftBoxesWidth += box.width;
+		});
+
+		helpers.each(rightBoxes, function(box) {
+			totalRightBoxesWidth += box.width;
+		});
+
+		helpers.each(topBoxes, function(box) {
+			totalTopBoxesHeight += box.height;
+		});
+		helpers.each(bottomBoxes, function(box) {
+			totalBottomBoxesHeight += box.height;
+		});
+
+		// We may be adding some padding to account for rotated x axis labels
+		var leftPaddingAddition = Math.max(maxHorizontalLeftPadding - totalLeftBoxesWidth, 0);
+		totalLeftBoxesWidth += leftPaddingAddition;
+		totalRightBoxesWidth += Math.max(maxHorizontalRightPadding - totalRightBoxesWidth, 0);
+
+		var topPaddingAddition = Math.max(maxVerticalTopPadding - totalTopBoxesHeight, 0);
+		totalTopBoxesHeight += topPaddingAddition;
+		totalBottomBoxesHeight += Math.max(maxVerticalBottomPadding - totalBottomBoxesHeight, 0);
+
+		// Figure out if our chart area changed. This would occur if the dataset layout label rotation
+		// changed due to the application of the margins in step 6. Since we can only get bigger, this is safe to do
+		// without calling `fit` again
+		var newMaxChartAreaHeight = height - totalTopBoxesHeight - totalBottomBoxesHeight;
+		var newMaxChartAreaWidth = width - totalLeftBoxesWidth - totalRightBoxesWidth;
+
+		if (newMaxChartAreaWidth !== maxChartAreaWidth || newMaxChartAreaHeight !== maxChartAreaHeight) {
+			helpers.each(leftBoxes, function(box) {
+				box.height = newMaxChartAreaHeight;
+			});
+
+			helpers.each(rightBoxes, function(box) {
+				box.height = newMaxChartAreaHeight;
+			});
+
+			helpers.each(topBoxes, function(box) {
+				if (!box.fullWidth) {
+					box.width = newMaxChartAreaWidth;
+				}
+			});
+
+			helpers.each(bottomBoxes, function(box) {
+				if (!box.fullWidth) {
+					box.width = newMaxChartAreaWidth;
+				}
+			});
+
+			maxChartAreaHeight = newMaxChartAreaHeight;
+			maxChartAreaWidth = newMaxChartAreaWidth;
+		}
+
+		// Step 7 - Position the boxes
+		var left = leftPadding + leftPaddingAddition;
+		var top = topPadding + topPaddingAddition;
+
+		function placeBox(box) {
+			if (box.isHorizontal()) {
+				box.left = box.fullWidth ? leftPadding : totalLeftBoxesWidth;
+				box.right = box.fullWidth ? width - rightPadding : totalLeftBoxesWidth + maxChartAreaWidth;
+				box.top = top;
+				box.bottom = top + box.height;
+
+				// Move to next point
+				top = box.bottom;
+
+			} else {
+
+				box.left = left;
+				box.right = left + box.width;
+				box.top = totalTopBoxesHeight;
+				box.bottom = totalTopBoxesHeight + maxChartAreaHeight;
+
+				// Move to next point
+				left = box.right;
+			}
+		}
+
+		helpers.each(leftBoxes.concat(topBoxes), placeBox);
+
+		// Account for chart width and height
+		left += maxChartAreaWidth;
+		top += maxChartAreaHeight;
+
+		helpers.each(rightBoxes, placeBox);
+		helpers.each(bottomBoxes, placeBox);
+
+		// Step 8
+		chart.chartArea = {
+			left: totalLeftBoxesWidth,
+			top: totalTopBoxesHeight,
+			right: totalLeftBoxesWidth + maxChartAreaWidth,
+			bottom: totalTopBoxesHeight + maxChartAreaHeight
+		};
+
+		// Step 9
+		helpers.each(chartAreaBoxes, function(box) {
+			box.left = chart.chartArea.left;
+			box.top = chart.chartArea.top;
+			box.right = chart.chartArea.right;
+			box.bottom = chart.chartArea.bottom;
+
+			box.update(maxChartAreaWidth, maxChartAreaHeight);
+		});
+	}
 };
 
 },{"../helpers/index":42}],28:[function(require,module,exports){
 'use strict';
 
 var defaults = require('./core.defaults');
-var Element = require('./core.element');
 var helpers = require('../helpers/index');
 
 defaults._set('global', {
 	plugins: {}
 });
 
-module.exports = function(Chart) {
+/**
+ * The plugin service singleton
+ * @namespace Chart.plugins
+ * @since 2.1.0
+ */
+module.exports = {
+	/**
+	 * Globally registered plugins.
+	 * @private
+	 */
+	_plugins: [],
 
 	/**
-	 * The plugin service singleton
-	 * @namespace Chart.plugins
-	 * @since 2.1.0
+	 * This identifier is used to invalidate the descriptors cache attached to each chart
+	 * when a global plugin is registered or unregistered. In this case, the cache ID is
+	 * incremented and descriptors are regenerated during following API calls.
+	 * @private
 	 */
-	Chart.plugins = {
-		/**
-		 * Globally registered plugins.
-		 * @private
-		 */
-		_plugins: [],
+	_cacheId: 0,
 
-		/**
-		 * This identifier is used to invalidate the descriptors cache attached to each chart
-		 * when a global plugin is registered or unregistered. In this case, the cache ID is
-		 * incremented and descriptors are regenerated during following API calls.
-		 * @private
-		 */
-		_cacheId: 0,
+	/**
+	 * Registers the given plugin(s) if not already registered.
+	 * @param {Array|Object} plugins plugin instance(s).
+	 */
+	register: function(plugins) {
+		var p = this._plugins;
+		([]).concat(plugins).forEach(function(plugin) {
+			if (p.indexOf(plugin) === -1) {
+				p.push(plugin);
+			}
+		});
 
-		/**
-		 * Registers the given plugin(s) if not already registered.
-		 * @param {Array|Object} plugins plugin instance(s).
-		 */
-		register: function(plugins) {
-			var p = this._plugins;
-			([]).concat(plugins).forEach(function(plugin) {
-				if (p.indexOf(plugin) === -1) {
-					p.push(plugin);
-				}
-			});
+		this._cacheId++;
+	},
 
-			this._cacheId++;
-		},
+	/**
+	 * Unregisters the given plugin(s) only if registered.
+	 * @param {Array|Object} plugins plugin instance(s).
+	 */
+	unregister: function(plugins) {
+		var p = this._plugins;
+		([]).concat(plugins).forEach(function(plugin) {
+			var idx = p.indexOf(plugin);
+			if (idx !== -1) {
+				p.splice(idx, 1);
+			}
+		});
 
-		/**
-		 * Unregisters the given plugin(s) only if registered.
-		 * @param {Array|Object} plugins plugin instance(s).
-		 */
-		unregister: function(plugins) {
-			var p = this._plugins;
-			([]).concat(plugins).forEach(function(plugin) {
-				var idx = p.indexOf(plugin);
-				if (idx !== -1) {
-					p.splice(idx, 1);
-				}
-			});
+		this._cacheId++;
+	},
 
-			this._cacheId++;
-		},
+	/**
+	 * Remove all registered plugins.
+	 * @since 2.1.5
+	 */
+	clear: function() {
+		this._plugins = [];
+		this._cacheId++;
+	},
 
-		/**
-		 * Remove all registered plugins.
-		 * @since 2.1.5
-		 */
-		clear: function() {
-			this._plugins = [];
-			this._cacheId++;
-		},
+	/**
+	 * Returns the number of registered plugins?
+	 * @returns {Number}
+	 * @since 2.1.5
+	 */
+	count: function() {
+		return this._plugins.length;
+	},
 
-		/**
-		 * Returns the number of registered plugins?
-		 * @returns {Number}
-		 * @since 2.1.5
-		 */
-		count: function() {
-			return this._plugins.length;
-		},
+	/**
+	 * Returns all registered plugin instances.
+	 * @returns {Array} array of plugin objects.
+	 * @since 2.1.5
+	 */
+	getAll: function() {
+		return this._plugins;
+	},
 
-		/**
-		 * Returns all registered plugin instances.
-		 * @returns {Array} array of plugin objects.
-		 * @since 2.1.5
-		 */
-		getAll: function() {
-			return this._plugins;
-		},
+	/**
+	 * Calls enabled plugins for `chart` on the specified hook and with the given args.
+	 * This method immediately returns as soon as a plugin explicitly returns false. The
+	 * returned value can be used, for instance, to interrupt the current action.
+	 * @param {Object} chart - The chart instance for which plugins should be called.
+	 * @param {String} hook - The name of the plugin method to call (e.g. 'beforeUpdate').
+	 * @param {Array} [args] - Extra arguments to apply to the hook call.
+	 * @returns {Boolean} false if any of the plugins return false, else returns true.
+	 */
+	notify: function(chart, hook, args) {
+		var descriptors = this.descriptors(chart);
+		var ilen = descriptors.length;
+		var i, descriptor, plugin, params, method;
 
-		/**
-		 * Calls enabled plugins for `chart` on the specified hook and with the given args.
-		 * This method immediately returns as soon as a plugin explicitly returns false. The
-		 * returned value can be used, for instance, to interrupt the current action.
-		 * @param {Object} chart - The chart instance for which plugins should be called.
-		 * @param {String} hook - The name of the plugin method to call (e.g. 'beforeUpdate').
-		 * @param {Array} [args] - Extra arguments to apply to the hook call.
-		 * @returns {Boolean} false if any of the plugins return false, else returns true.
-		 */
-		notify: function(chart, hook, args) {
-			var descriptors = this.descriptors(chart);
-			var ilen = descriptors.length;
-			var i, descriptor, plugin, params, method;
-
-			for (i = 0; i < ilen; ++i) {
-				descriptor = descriptors[i];
-				plugin = descriptor.plugin;
-				method = plugin[hook];
-				if (typeof method === 'function') {
-					params = [chart].concat(args || []);
-					params.push(descriptor.options);
-					if (method.apply(plugin, params) === false) {
-						return false;
-					}
+		for (i = 0; i < ilen; ++i) {
+			descriptor = descriptors[i];
+			plugin = descriptor.plugin;
+			method = plugin[hook];
+			if (typeof method === 'function') {
+				params = [chart].concat(args || []);
+				params.push(descriptor.options);
+				if (method.apply(plugin, params) === false) {
+					return false;
 				}
 			}
-
-			return true;
-		},
-
-		/**
-		 * Returns descriptors of enabled plugins for the given chart.
-		 * @returns {Array} [{ plugin, options }]
-		 * @private
-		 */
-		descriptors: function(chart) {
-			var cache = chart._plugins || (chart._plugins = {});
-			if (cache.id === this._cacheId) {
-				return cache.descriptors;
-			}
-
-			var plugins = [];
-			var descriptors = [];
-			var config = (chart && chart.config) || {};
-			var options = (config.options && config.options.plugins) || {};
-
-			this._plugins.concat(config.plugins || []).forEach(function(plugin) {
-				var idx = plugins.indexOf(plugin);
-				if (idx !== -1) {
-					return;
-				}
-
-				var id = plugin.id;
-				var opts = options[id];
-				if (opts === false) {
-					return;
-				}
-
-				if (opts === true) {
-					opts = helpers.clone(defaults.global.plugins[id]);
-				}
-
-				plugins.push(plugin);
-				descriptors.push({
-					plugin: plugin,
-					options: opts || {}
-				});
-			});
-
-			cache.descriptors = descriptors;
-			cache.id = this._cacheId;
-			return descriptors;
 		}
-	};
+
+		return true;
+	},
 
 	/**
-	 * Plugin extension hooks.
-	 * @interface IPlugin
-	 * @since 2.1.0
-	 */
-	/**
-	 * @method IPlugin#beforeInit
-	 * @desc Called before initializing `chart`.
-	 * @param {Chart.Controller} chart - The chart instance.
-	 * @param {Object} options - The plugin options.
-	 */
-	/**
-	 * @method IPlugin#afterInit
-	 * @desc Called after `chart` has been initialized and before the first update.
-	 * @param {Chart.Controller} chart - The chart instance.
-	 * @param {Object} options - The plugin options.
-	 */
-	/**
-	 * @method IPlugin#beforeUpdate
-	 * @desc Called before updating `chart`. If any plugin returns `false`, the update
-	 * is cancelled (and thus subsequent render(s)) until another `update` is triggered.
-	 * @param {Chart.Controller} chart - The chart instance.
-	 * @param {Object} options - The plugin options.
-	 * @returns {Boolean} `false` to cancel the chart update.
-	 */
-	/**
-	 * @method IPlugin#afterUpdate
-	 * @desc Called after `chart` has been updated and before rendering. Note that this
-	 * hook will not be called if the chart update has been previously cancelled.
-	 * @param {Chart.Controller} chart - The chart instance.
-	 * @param {Object} options - The plugin options.
-	 */
-	/**
-	 * @method IPlugin#beforeDatasetsUpdate
- 	 * @desc Called before updating the `chart` datasets. If any plugin returns `false`,
-	 * the datasets update is cancelled until another `update` is triggered.
-	 * @param {Chart.Controller} chart - The chart instance.
-	 * @param {Object} options - The plugin options.
-	 * @returns {Boolean} false to cancel the datasets update.
-	 * @since version 2.1.5
-	 */
-	/**
-	 * @method IPlugin#afterDatasetsUpdate
-	 * @desc Called after the `chart` datasets have been updated. Note that this hook
-	 * will not be called if the datasets update has been previously cancelled.
-	 * @param {Chart.Controller} chart - The chart instance.
-	 * @param {Object} options - The plugin options.
-	 * @since version 2.1.5
-	 */
-	/**
-	 * @method IPlugin#beforeDatasetUpdate
- 	 * @desc Called before updating the `chart` dataset at the given `args.index`. If any plugin
-	 * returns `false`, the datasets update is cancelled until another `update` is triggered.
-	 * @param {Chart} chart - The chart instance.
-	 * @param {Object} args - The call arguments.
-	 * @param {Number} args.index - The dataset index.
-	 * @param {Object} args.meta - The dataset metadata.
-	 * @param {Object} options - The plugin options.
-	 * @returns {Boolean} `false` to cancel the chart datasets drawing.
-	 */
-	/**
-	 * @method IPlugin#afterDatasetUpdate
- 	 * @desc Called after the `chart` datasets at the given `args.index` has been updated. Note
-	 * that this hook will not be called if the datasets update has been previously cancelled.
-	 * @param {Chart} chart - The chart instance.
-	 * @param {Object} args - The call arguments.
-	 * @param {Number} args.index - The dataset index.
-	 * @param {Object} args.meta - The dataset metadata.
-	 * @param {Object} options - The plugin options.
-	 */
-	/**
-	 * @method IPlugin#beforeLayout
-	 * @desc Called before laying out `chart`. If any plugin returns `false`,
-	 * the layout update is cancelled until another `update` is triggered.
-	 * @param {Chart.Controller} chart - The chart instance.
-	 * @param {Object} options - The plugin options.
-	 * @returns {Boolean} `false` to cancel the chart layout.
-	 */
-	/**
-	 * @method IPlugin#afterLayout
-	 * @desc Called after the `chart` has been layed out. Note that this hook will not
-	 * be called if the layout update has been previously cancelled.
-	 * @param {Chart.Controller} chart - The chart instance.
-	 * @param {Object} options - The plugin options.
-	 */
-	/**
-	 * @method IPlugin#beforeRender
-	 * @desc Called before rendering `chart`. If any plugin returns `false`,
-	 * the rendering is cancelled until another `render` is triggered.
-	 * @param {Chart.Controller} chart - The chart instance.
-	 * @param {Object} options - The plugin options.
-	 * @returns {Boolean} `false` to cancel the chart rendering.
-	 */
-	/**
-	 * @method IPlugin#afterRender
-	 * @desc Called after the `chart` has been fully rendered (and animation completed). Note
-	 * that this hook will not be called if the rendering has been previously cancelled.
-	 * @param {Chart.Controller} chart - The chart instance.
-	 * @param {Object} options - The plugin options.
-	 */
-	/**
-	 * @method IPlugin#beforeDraw
-	 * @desc Called before drawing `chart` at every animation frame specified by the given
-	 * easing value. If any plugin returns `false`, the frame drawing is cancelled until
-	 * another `render` is triggered.
-	 * @param {Chart.Controller} chart - The chart instance.
-	 * @param {Number} easingValue - The current animation value, between 0.0 and 1.0.
-	 * @param {Object} options - The plugin options.
-	 * @returns {Boolean} `false` to cancel the chart drawing.
-	 */
-	/**
-	 * @method IPlugin#afterDraw
-	 * @desc Called after the `chart` has been drawn for the specific easing value. Note
-	 * that this hook will not be called if the drawing has been previously cancelled.
-	 * @param {Chart.Controller} chart - The chart instance.
-	 * @param {Number} easingValue - The current animation value, between 0.0 and 1.0.
-	 * @param {Object} options - The plugin options.
-	 */
-	/**
-	 * @method IPlugin#beforeDatasetsDraw
- 	 * @desc Called before drawing the `chart` datasets. If any plugin returns `false`,
-	 * the datasets drawing is cancelled until another `render` is triggered.
-	 * @param {Chart.Controller} chart - The chart instance.
-	 * @param {Number} easingValue - The current animation value, between 0.0 and 1.0.
-	 * @param {Object} options - The plugin options.
-	 * @returns {Boolean} `false` to cancel the chart datasets drawing.
-	 */
-	/**
-	 * @method IPlugin#afterDatasetsDraw
-	 * @desc Called after the `chart` datasets have been drawn. Note that this hook
-	 * will not be called if the datasets drawing has been previously cancelled.
-	 * @param {Chart.Controller} chart - The chart instance.
-	 * @param {Number} easingValue - The current animation value, between 0.0 and 1.0.
-	 * @param {Object} options - The plugin options.
-	 */
-	/**
-	 * @method IPlugin#beforeDatasetDraw
- 	 * @desc Called before drawing the `chart` dataset at the given `args.index` (datasets
-	 * are drawn in the reverse order). If any plugin returns `false`, the datasets drawing
-	 * is cancelled until another `render` is triggered.
-	 * @param {Chart} chart - The chart instance.
-	 * @param {Object} args - The call arguments.
-	 * @param {Number} args.index - The dataset index.
-	 * @param {Object} args.meta - The dataset metadata.
-	 * @param {Number} args.easingValue - The current animation value, between 0.0 and 1.0.
-	 * @param {Object} options - The plugin options.
-	 * @returns {Boolean} `false` to cancel the chart datasets drawing.
-	 */
-	/**
-	 * @method IPlugin#afterDatasetDraw
- 	 * @desc Called after the `chart` datasets at the given `args.index` have been drawn
-	 * (datasets are drawn in the reverse order). Note that this hook will not be called
-	 * if the datasets drawing has been previously cancelled.
-	 * @param {Chart} chart - The chart instance.
-	 * @param {Object} args - The call arguments.
-	 * @param {Number} args.index - The dataset index.
-	 * @param {Object} args.meta - The dataset metadata.
-	 * @param {Number} args.easingValue - The current animation value, between 0.0 and 1.0.
-	 * @param {Object} options - The plugin options.
-	 */
-	/**
-	 * @method IPlugin#beforeEvent
- 	 * @desc Called before processing the specified `event`. If any plugin returns `false`,
-	 * the event will be discarded.
-	 * @param {Chart.Controller} chart - The chart instance.
-	 * @param {IEvent} event - The event object.
-	 * @param {Object} options - The plugin options.
-	 */
-	/**
-	 * @method IPlugin#afterEvent
-	 * @desc Called after the `event` has been consumed. Note that this hook
-	 * will not be called if the `event` has been previously discarded.
-	 * @param {Chart.Controller} chart - The chart instance.
-	 * @param {IEvent} event - The event object.
-	 * @param {Object} options - The plugin options.
-	 */
-	/**
-	 * @method IPlugin#resize
-	 * @desc Called after the chart as been resized.
-	 * @param {Chart.Controller} chart - The chart instance.
-	 * @param {Number} size - The new canvas display size (eq. canvas.style width & height).
-	 * @param {Object} options - The plugin options.
-	 */
-	/**
-	 * @method IPlugin#destroy
-	 * @desc Called after the chart as been destroyed.
-	 * @param {Chart.Controller} chart - The chart instance.
-	 * @param {Object} options - The plugin options.
-	 */
-
-	/**
-	 * Provided for backward compatibility, use Chart.plugins instead
-	 * @namespace Chart.pluginService
-	 * @deprecated since version 2.1.5
-	 * @todo remove at version 3
+	 * Returns descriptors of enabled plugins for the given chart.
+	 * @returns {Array} [{ plugin, options }]
 	 * @private
 	 */
-	Chart.pluginService = Chart.plugins;
+	descriptors: function(chart) {
+		var cache = chart.$plugins || (chart.$plugins = {});
+		if (cache.id === this._cacheId) {
+			return cache.descriptors;
+		}
+
+		var plugins = [];
+		var descriptors = [];
+		var config = (chart && chart.config) || {};
+		var options = (config.options && config.options.plugins) || {};
+
+		this._plugins.concat(config.plugins || []).forEach(function(plugin) {
+			var idx = plugins.indexOf(plugin);
+			if (idx !== -1) {
+				return;
+			}
+
+			var id = plugin.id;
+			var opts = options[id];
+			if (opts === false) {
+				return;
+			}
+
+			if (opts === true) {
+				opts = helpers.clone(defaults.global.plugins[id]);
+			}
+
+			plugins.push(plugin);
+			descriptors.push({
+				plugin: plugin,
+				options: opts || {}
+			});
+		});
+
+		cache.descriptors = descriptors;
+		cache.id = this._cacheId;
+		return descriptors;
+	},
 
 	/**
-	 * Provided for backward compatibility, inheriting from Chart.PlugingBase has no
-	 * effect, instead simply create/register plugins via plain JavaScript objects.
-	 * @interface Chart.PluginBase
-	 * @deprecated since version 2.5.0
-	 * @todo remove at version 3
+	 * Invalidates cache for the given chart: descriptors hold a reference on plugin option,
+	 * but in some cases, this reference can be changed by the user when updating options.
+	 * https://github.com/chartjs/Chart.js/issues/5111#issuecomment-355934167
 	 * @private
 	 */
-	Chart.PluginBase = Element.extend({});
+	_invalidate: function(chart) {
+		delete chart.$plugins;
+	}
 };
 
-},{"../helpers/index":42,"./core.defaults":22,"./core.element":23}],29:[function(require,module,exports){
+/**
+ * Plugin extension hooks.
+ * @interface IPlugin
+ * @since 2.1.0
+ */
+/**
+ * @method IPlugin#beforeInit
+ * @desc Called before initializing `chart`.
+ * @param {Chart.Controller} chart - The chart instance.
+ * @param {Object} options - The plugin options.
+ */
+/**
+ * @method IPlugin#afterInit
+ * @desc Called after `chart` has been initialized and before the first update.
+ * @param {Chart.Controller} chart - The chart instance.
+ * @param {Object} options - The plugin options.
+ */
+/**
+ * @method IPlugin#beforeUpdate
+ * @desc Called before updating `chart`. If any plugin returns `false`, the update
+ * is cancelled (and thus subsequent render(s)) until another `update` is triggered.
+ * @param {Chart.Controller} chart - The chart instance.
+ * @param {Object} options - The plugin options.
+ * @returns {Boolean} `false` to cancel the chart update.
+ */
+/**
+ * @method IPlugin#afterUpdate
+ * @desc Called after `chart` has been updated and before rendering. Note that this
+ * hook will not be called if the chart update has been previously cancelled.
+ * @param {Chart.Controller} chart - The chart instance.
+ * @param {Object} options - The plugin options.
+ */
+/**
+ * @method IPlugin#beforeDatasetsUpdate
+ * @desc Called before updating the `chart` datasets. If any plugin returns `false`,
+ * the datasets update is cancelled until another `update` is triggered.
+ * @param {Chart.Controller} chart - The chart instance.
+ * @param {Object} options - The plugin options.
+ * @returns {Boolean} false to cancel the datasets update.
+ * @since version 2.1.5
+*/
+/**
+ * @method IPlugin#afterDatasetsUpdate
+ * @desc Called after the `chart` datasets have been updated. Note that this hook
+ * will not be called if the datasets update has been previously cancelled.
+ * @param {Chart.Controller} chart - The chart instance.
+ * @param {Object} options - The plugin options.
+ * @since version 2.1.5
+ */
+/**
+ * @method IPlugin#beforeDatasetUpdate
+ * @desc Called before updating the `chart` dataset at the given `args.index`. If any plugin
+ * returns `false`, the datasets update is cancelled until another `update` is triggered.
+ * @param {Chart} chart - The chart instance.
+ * @param {Object} args - The call arguments.
+ * @param {Number} args.index - The dataset index.
+ * @param {Object} args.meta - The dataset metadata.
+ * @param {Object} options - The plugin options.
+ * @returns {Boolean} `false` to cancel the chart datasets drawing.
+ */
+/**
+ * @method IPlugin#afterDatasetUpdate
+ * @desc Called after the `chart` datasets at the given `args.index` has been updated. Note
+ * that this hook will not be called if the datasets update has been previously cancelled.
+ * @param {Chart} chart - The chart instance.
+ * @param {Object} args - The call arguments.
+ * @param {Number} args.index - The dataset index.
+ * @param {Object} args.meta - The dataset metadata.
+ * @param {Object} options - The plugin options.
+ */
+/**
+ * @method IPlugin#beforeLayout
+ * @desc Called before laying out `chart`. If any plugin returns `false`,
+ * the layout update is cancelled until another `update` is triggered.
+ * @param {Chart.Controller} chart - The chart instance.
+ * @param {Object} options - The plugin options.
+ * @returns {Boolean} `false` to cancel the chart layout.
+ */
+/**
+ * @method IPlugin#afterLayout
+ * @desc Called after the `chart` has been layed out. Note that this hook will not
+ * be called if the layout update has been previously cancelled.
+ * @param {Chart.Controller} chart - The chart instance.
+ * @param {Object} options - The plugin options.
+ */
+/**
+ * @method IPlugin#beforeRender
+ * @desc Called before rendering `chart`. If any plugin returns `false`,
+ * the rendering is cancelled until another `render` is triggered.
+ * @param {Chart.Controller} chart - The chart instance.
+ * @param {Object} options - The plugin options.
+ * @returns {Boolean} `false` to cancel the chart rendering.
+ */
+/**
+ * @method IPlugin#afterRender
+ * @desc Called after the `chart` has been fully rendered (and animation completed). Note
+ * that this hook will not be called if the rendering has been previously cancelled.
+ * @param {Chart.Controller} chart - The chart instance.
+ * @param {Object} options - The plugin options.
+ */
+/**
+ * @method IPlugin#beforeDraw
+ * @desc Called before drawing `chart` at every animation frame specified by the given
+ * easing value. If any plugin returns `false`, the frame drawing is cancelled until
+ * another `render` is triggered.
+ * @param {Chart.Controller} chart - The chart instance.
+ * @param {Number} easingValue - The current animation value, between 0.0 and 1.0.
+ * @param {Object} options - The plugin options.
+ * @returns {Boolean} `false` to cancel the chart drawing.
+ */
+/**
+ * @method IPlugin#afterDraw
+ * @desc Called after the `chart` has been drawn for the specific easing value. Note
+ * that this hook will not be called if the drawing has been previously cancelled.
+ * @param {Chart.Controller} chart - The chart instance.
+ * @param {Number} easingValue - The current animation value, between 0.0 and 1.0.
+ * @param {Object} options - The plugin options.
+ */
+/**
+ * @method IPlugin#beforeDatasetsDraw
+ * @desc Called before drawing the `chart` datasets. If any plugin returns `false`,
+ * the datasets drawing is cancelled until another `render` is triggered.
+ * @param {Chart.Controller} chart - The chart instance.
+ * @param {Number} easingValue - The current animation value, between 0.0 and 1.0.
+ * @param {Object} options - The plugin options.
+ * @returns {Boolean} `false` to cancel the chart datasets drawing.
+ */
+/**
+ * @method IPlugin#afterDatasetsDraw
+ * @desc Called after the `chart` datasets have been drawn. Note that this hook
+ * will not be called if the datasets drawing has been previously cancelled.
+ * @param {Chart.Controller} chart - The chart instance.
+ * @param {Number} easingValue - The current animation value, between 0.0 and 1.0.
+ * @param {Object} options - The plugin options.
+ */
+/**
+ * @method IPlugin#beforeDatasetDraw
+ * @desc Called before drawing the `chart` dataset at the given `args.index` (datasets
+ * are drawn in the reverse order). If any plugin returns `false`, the datasets drawing
+ * is cancelled until another `render` is triggered.
+ * @param {Chart} chart - The chart instance.
+ * @param {Object} args - The call arguments.
+ * @param {Number} args.index - The dataset index.
+ * @param {Object} args.meta - The dataset metadata.
+ * @param {Number} args.easingValue - The current animation value, between 0.0 and 1.0.
+ * @param {Object} options - The plugin options.
+ * @returns {Boolean} `false` to cancel the chart datasets drawing.
+ */
+/**
+ * @method IPlugin#afterDatasetDraw
+ * @desc Called after the `chart` datasets at the given `args.index` have been drawn
+ * (datasets are drawn in the reverse order). Note that this hook will not be called
+ * if the datasets drawing has been previously cancelled.
+ * @param {Chart} chart - The chart instance.
+ * @param {Object} args - The call arguments.
+ * @param {Number} args.index - The dataset index.
+ * @param {Object} args.meta - The dataset metadata.
+ * @param {Number} args.easingValue - The current animation value, between 0.0 and 1.0.
+ * @param {Object} options - The plugin options.
+ */
+/**
+ * @method IPlugin#beforeTooltipDraw
+ * @desc Called before drawing the `tooltip`. If any plugin returns `false`,
+ * the tooltip drawing is cancelled until another `render` is triggered.
+ * @param {Chart} chart - The chart instance.
+ * @param {Object} args - The call arguments.
+ * @param {Object} args.tooltip - The tooltip.
+ * @param {Number} args.easingValue - The current animation value, between 0.0 and 1.0.
+ * @param {Object} options - The plugin options.
+ * @returns {Boolean} `false` to cancel the chart tooltip drawing.
+ */
+/**
+ * @method IPlugin#afterTooltipDraw
+ * @desc Called after drawing the `tooltip`. Note that this hook will not
+ * be called if the tooltip drawing has been previously cancelled.
+ * @param {Chart} chart - The chart instance.
+ * @param {Object} args - The call arguments.
+ * @param {Object} args.tooltip - The tooltip.
+ * @param {Number} args.easingValue - The current animation value, between 0.0 and 1.0.
+ * @param {Object} options - The plugin options.
+ */
+/**
+ * @method IPlugin#beforeEvent
+ * @desc Called before processing the specified `event`. If any plugin returns `false`,
+ * the event will be discarded.
+ * @param {Chart.Controller} chart - The chart instance.
+ * @param {IEvent} event - The event object.
+ * @param {Object} options - The plugin options.
+ */
+/**
+ * @method IPlugin#afterEvent
+ * @desc Called after the `event` has been consumed. Note that this hook
+ * will not be called if the `event` has been previously discarded.
+ * @param {Chart.Controller} chart - The chart instance.
+ * @param {IEvent} event - The event object.
+ * @param {Object} options - The plugin options.
+ */
+/**
+ * @method IPlugin#resize
+ * @desc Called after the chart as been resized.
+ * @param {Chart.Controller} chart - The chart instance.
+ * @param {Number} size - The new canvas display size (eq. canvas.style width & height).
+ * @param {Object} options - The plugin options.
+ */
+/**
+ * @method IPlugin#destroy
+ * @desc Called after the chart as been destroyed.
+ * @param {Chart.Controller} chart - The chart instance.
+ * @param {Object} options - The plugin options.
+ */
+
+},{"../helpers/index":42,"./core.defaults":22}],29:[function(require,module,exports){
 'use strict';
 
 var defaults = require('./core.defaults');
@@ -6286,17 +6468,33 @@ module.exports = function(Chart) {
 			return rawValue;
 		},
 
-		// Used to get the value to display in the tooltip for the data at the given index
-		// function getLabelForIndex(index, datasetIndex)
+		/**
+		 * Used to get the value to display in the tooltip for the data at the given index
+		 * @param index
+		 * @param datasetIndex
+		 */
 		getLabelForIndex: helpers.noop,
 
-		// Used to get data value locations.  Value can either be an index or a numerical value
+		/**
+		 * Returns the location of the given data point. Value can either be an index or a numerical value
+		 * The coordinate (0, 0) is at the upper-left corner of the canvas
+		 * @param value
+		 * @param index
+		 * @param datasetIndex
+		 */
 		getPixelForValue: helpers.noop,
 
-		// Used to get the data value from a given pixel. This is the inverse of getPixelForValue
+		/**
+		 * Used to get the data value from a given pixel. This is the inverse of getPixelForValue
+		 * The coordinate (0, 0) is at the upper-left corner of the canvas
+		 * @param pixel
+		 */
 		getValueForPixel: helpers.noop,
 
-		// Used for tick location, should
+		/**
+		 * Returns the location of the tick at the given index
+		 * The coordinate (0, 0) is at the upper-left corner of the canvas
+		 */
 		getPixelForTick: function(index) {
 			var me = this;
 			var offset = me.options.offset;
@@ -6317,7 +6515,10 @@ module.exports = function(Chart) {
 			return me.top + (index * (innerHeight / (me._ticks.length - 1)));
 		},
 
-		// Utility for getting the pixel location of a percentage of scale
+		/**
+		 * Utility for getting the pixel location of a percentage of scale
+		 * The coordinate (0, 0) is at the upper-left corner of the canvas
+		 */
 		getPixelForDecimal: function(decimal) {
 			var me = this;
 			if (me.isHorizontal()) {
@@ -6331,6 +6532,10 @@ module.exports = function(Chart) {
 			return me.top + (decimal * me.height);
 		},
 
+		/**
+		 * Returns the pixel for the minimum chart value
+		 * The coordinate (0, 0) is at the upper-left corner of the canvas
+		 */
 		getBasePixel: function() {
 			return this.getPixelForValue(this.getBaseValue());
 		},
@@ -6387,7 +6592,7 @@ module.exports = function(Chart) {
 
 				// Since we always show the last tick,we need may need to hide the last shown one before
 				shouldSkip = (skipRatio > 1 && i % skipRatio > 0) || (i % skipRatio === 0 && i + skipRatio >= tickCount);
-				if (shouldSkip && i !== tickCount - 1 || helpers.isNullOrUndef(tick.label)) {
+				if (shouldSkip && i !== tickCount - 1) {
 					// leave tick in place but make sure it's not displayed (#4635)
 					delete tick.label;
 				}
@@ -6430,14 +6635,15 @@ module.exports = function(Chart) {
 
 			var itemsToDraw = [];
 
-			var xTickStart = options.position === 'right' ? me.left : me.right - tl;
-			var xTickEnd = options.position === 'right' ? me.left + tl : me.right;
-			var yTickStart = options.position === 'bottom' ? me.top : me.bottom - tl;
-			var yTickEnd = options.position === 'bottom' ? me.top + tl : me.bottom;
+			var axisWidth = me.options.gridLines.lineWidth;
+			var xTickStart = options.position === 'right' ? me.right : me.right - axisWidth - tl;
+			var xTickEnd = options.position === 'right' ? me.right + tl : me.right;
+			var yTickStart = options.position === 'bottom' ? me.top + axisWidth : me.bottom - tl - axisWidth;
+			var yTickEnd = options.position === 'bottom' ? me.top + axisWidth + tl : me.bottom + axisWidth;
 
 			helpers.each(ticks, function(tick, index) {
 				// autoskipper skipped this tick (#4635)
-				if (tick.label === undefined) {
+				if (helpers.isNullOrUndef(tick.label)) {
 					return;
 				}
 
@@ -6489,7 +6695,7 @@ module.exports = function(Chart) {
 					ty1 = yTickStart;
 					ty2 = yTickEnd;
 					y1 = chartArea.top;
-					y2 = chartArea.bottom;
+					y2 = chartArea.bottom + axisWidth;
 				} else {
 					var isLeft = options.position === 'left';
 					var labelXOffset;
@@ -6515,7 +6721,7 @@ module.exports = function(Chart) {
 					tx1 = xTickStart;
 					tx2 = xTickEnd;
 					x1 = chartArea.left;
-					x2 = chartArea.right;
+					x2 = chartArea.right + axisWidth;
 					ty1 = ty2 = y1 = y2 = yLineValue;
 				}
 
@@ -6581,11 +6787,15 @@ module.exports = function(Chart) {
 
 					var label = itemToDraw.label;
 					if (helpers.isArray(label)) {
-						for (var i = 0, y = 0; i < label.length; ++i) {
+						var lineCount = label.length;
+						var lineHeight = tickFont.size * 1.5;
+						var y = me.isHorizontal() ? 0 : -lineHeight * (lineCount - 1) / 2;
+
+						for (var i = 0; i < lineCount; ++i) {
 							// We just make sure the multiline element is a string here..
 							context.fillText('' + label[i], 0, y);
 							// apply same lineSpacing as calculated @ L#320
-							y += (tickFont.size * 1.5);
+							y += lineHeight;
 						}
 					} else {
 						context.fillText(label, 0, 0);
@@ -6631,9 +6841,9 @@ module.exports = function(Chart) {
 				context.lineWidth = helpers.valueAtIndexOrDefault(gridLines.lineWidth, 0);
 				context.strokeStyle = helpers.valueAtIndexOrDefault(gridLines.color, 0);
 				var x1 = me.left;
-				var x2 = me.right;
+				var x2 = me.right + axisWidth;
 				var y1 = me.top;
-				var y2 = me.bottom;
+				var y2 = me.bottom + axisWidth;
 
 				var aliasPixel = helpers.aliasPixel(context.lineWidth);
 				if (isHorizontal) {
@@ -6660,6 +6870,7 @@ module.exports = function(Chart) {
 
 var defaults = require('./core.defaults');
 var helpers = require('../helpers/index');
+var layouts = require('./core.layouts');
 
 module.exports = function(Chart) {
 
@@ -6696,13 +6907,13 @@ module.exports = function(Chart) {
 				scale.fullWidth = scale.options.fullWidth;
 				scale.position = scale.options.position;
 				scale.weight = scale.options.weight;
-				Chart.layoutService.addBox(chart, scale);
+				layouts.addBox(chart, scale);
 			});
 		}
 	};
 };
 
-},{"../helpers/index":42,"./core.defaults":22}],31:[function(require,module,exports){
+},{"../helpers/index":42,"./core.defaults":22,"./core.layouts":27}],31:[function(require,module,exports){
 'use strict';
 
 var helpers = require('../helpers/index');
@@ -6712,140 +6923,6 @@ var helpers = require('../helpers/index');
  * @namespace Chart.Ticks
  */
 module.exports = {
-	/**
-	 * Namespace to hold generators for different types of ticks
-	 * @namespace Chart.Ticks.generators
-	 */
-	generators: {
-		/**
-		 * Interface for the options provided to the numeric tick generator
-		 * @interface INumericTickGenerationOptions
-		 */
-		/**
-		 * The maximum number of ticks to display
-		 * @name INumericTickGenerationOptions#maxTicks
-		 * @type Number
-		 */
-		/**
-		 * The distance between each tick.
-		 * @name INumericTickGenerationOptions#stepSize
-		 * @type Number
-		 * @optional
-		 */
-		/**
-		 * Forced minimum for the ticks. If not specified, the minimum of the data range is used to calculate the tick minimum
-		 * @name INumericTickGenerationOptions#min
-		 * @type Number
-		 * @optional
-		 */
-		/**
-		 * The maximum value of the ticks. If not specified, the maximum of the data range is used to calculate the tick maximum
-		 * @name INumericTickGenerationOptions#max
-		 * @type Number
-		 * @optional
-		 */
-
-		/**
-		 * Generate a set of linear ticks
-		 * @method Chart.Ticks.generators.linear
-		 * @param generationOptions {INumericTickGenerationOptions} the options used to generate the ticks
-		 * @param dataRange {IRange} the range of the data
-		 * @returns {Array<Number>} array of tick values
-		 */
-		linear: function(generationOptions, dataRange) {
-			var ticks = [];
-			// To get a "nice" value for the tick spacing, we will use the appropriately named
-			// "nice number" algorithm. See http://stackoverflow.com/questions/8506881/nice-label-algorithm-for-charts-with-minimum-ticks
-			// for details.
-
-			var spacing;
-			if (generationOptions.stepSize && generationOptions.stepSize > 0) {
-				spacing = generationOptions.stepSize;
-			} else {
-				var niceRange = helpers.niceNum(dataRange.max - dataRange.min, false);
-				spacing = helpers.niceNum(niceRange / (generationOptions.maxTicks - 1), true);
-			}
-			var niceMin = Math.floor(dataRange.min / spacing) * spacing;
-			var niceMax = Math.ceil(dataRange.max / spacing) * spacing;
-
-			// If min, max and stepSize is set and they make an evenly spaced scale use it.
-			if (generationOptions.min && generationOptions.max && generationOptions.stepSize) {
-				// If very close to our whole number, use it.
-				if (helpers.almostWhole((generationOptions.max - generationOptions.min) / generationOptions.stepSize, spacing / 1000)) {
-					niceMin = generationOptions.min;
-					niceMax = generationOptions.max;
-				}
-			}
-
-			var numSpaces = (niceMax - niceMin) / spacing;
-			// If very close to our rounded value, use it.
-			if (helpers.almostEquals(numSpaces, Math.round(numSpaces), spacing / 1000)) {
-				numSpaces = Math.round(numSpaces);
-			} else {
-				numSpaces = Math.ceil(numSpaces);
-			}
-
-			// Put the values into the ticks array
-			ticks.push(generationOptions.min !== undefined ? generationOptions.min : niceMin);
-			for (var j = 1; j < numSpaces; ++j) {
-				ticks.push(niceMin + (j * spacing));
-			}
-			ticks.push(generationOptions.max !== undefined ? generationOptions.max : niceMax);
-
-			return ticks;
-		},
-
-		/**
-		 * Generate a set of logarithmic ticks
-		 * @method Chart.Ticks.generators.logarithmic
-		 * @param generationOptions {INumericTickGenerationOptions} the options used to generate the ticks
-		 * @param dataRange {IRange} the range of the data
-		 * @returns {Array<Number>} array of tick values
-		 */
-		logarithmic: function(generationOptions, dataRange) {
-			var ticks = [];
-			var valueOrDefault = helpers.valueOrDefault;
-
-			// Figure out what the max number of ticks we can support it is based on the size of
-			// the axis area. For now, we say that the minimum tick spacing in pixels must be 50
-			// We also limit the maximum number of ticks to 11 which gives a nice 10 squares on
-			// the graph
-			var tickVal = valueOrDefault(generationOptions.min, Math.pow(10, Math.floor(helpers.log10(dataRange.min))));
-
-			var endExp = Math.floor(helpers.log10(dataRange.max));
-			var endSignificand = Math.ceil(dataRange.max / Math.pow(10, endExp));
-			var exp, significand;
-
-			if (tickVal === 0) {
-				exp = Math.floor(helpers.log10(dataRange.minNotZero));
-				significand = Math.floor(dataRange.minNotZero / Math.pow(10, exp));
-
-				ticks.push(tickVal);
-				tickVal = significand * Math.pow(10, exp);
-			} else {
-				exp = Math.floor(helpers.log10(tickVal));
-				significand = Math.floor(tickVal / Math.pow(10, exp));
-			}
-
-			do {
-				ticks.push(tickVal);
-
-				++significand;
-				if (significand === 10) {
-					significand = 1;
-					++exp;
-				}
-
-				tickVal = significand * Math.pow(10, exp);
-			} while (exp < endExp || (exp === endExp && significand < endSignificand));
-
-			var lastTick = valueOrDefault(generationOptions.max, tickVal);
-			ticks.push(lastTick);
-
-			return ticks;
-		}
-	},
-
 	/**
 	 * Namespace to hold formatters for different types of ticks
 	 * @namespace Chart.Ticks.formatters
@@ -7210,10 +7287,10 @@ module.exports = function(Chart) {
 		}
 
 		olf = function(x) {
-			return x + size.width > chart.width;
+			return x + size.width + model.caretSize + model.caretPadding > chart.width;
 		};
 		orf = function(x) {
-			return x - size.width < 0;
+			return x - size.width - model.caretSize - model.caretPadding < 0;
 		};
 		yf = function(y) {
 			return y <= midY ? 'top' : 'bottom';
@@ -7247,7 +7324,7 @@ module.exports = function(Chart) {
 	/**
 	 * @Helper to get the location a tooltip needs to be placed at given the initial position (via the vm) and the size and alignment
 	 */
-	function getBackgroundPoint(vm, size, alignment) {
+	function getBackgroundPoint(vm, size, alignment, chart) {
 		// Background Position
 		var x = vm.x;
 		var y = vm.y;
@@ -7264,6 +7341,12 @@ module.exports = function(Chart) {
 			x -= size.width;
 		} else if (xAlign === 'center') {
 			x -= (size.width / 2);
+			if (x + size.width > chart.width) {
+				x = chart.width - size.width;
+			}
+			if (x < 0) {
+				x = 0;
+			}
 		}
 
 		if (yAlign === 'top') {
@@ -7295,6 +7378,7 @@ module.exports = function(Chart) {
 	Chart.Tooltip = Element.extend({
 		initialize: function() {
 			this._model = getBaseModel(this._options);
+			this._lastActive = [];
 		},
 
 		// Get the title
@@ -7406,7 +7490,7 @@ module.exports = function(Chart) {
 
 				var labelColors = [];
 				var labelTextColors = [];
-				tooltipPosition = Chart.Tooltip.positioners[opts.position](active, me._eventPosition);
+				tooltipPosition = Chart.Tooltip.positioners[opts.position].call(me, active, me._eventPosition);
 
 				var tooltipItems = [];
 				for (i = 0, len = active.length; i < len; ++i) {
@@ -7455,7 +7539,7 @@ module.exports = function(Chart) {
 				tooltipSize = getTooltipSize(this, model);
 				alignment = determineAlignment(this, tooltipSize);
 				// Final Size and Position
-				backgroundPoint = getBackgroundPoint(model, tooltipSize, alignment);
+				backgroundPoint = getBackgroundPoint(model, tooltipSize, alignment, me._chart);
 			} else {
 				model.opacity = 0;
 			}
@@ -7527,7 +7611,7 @@ module.exports = function(Chart) {
 					x1 = x2 - caretSize;
 					x3 = x2 + caretSize;
 				} else {
-					x2 = ptX + (width / 2);
+					x2 = vm.caretX;
 					x1 = x2 - caretSize;
 					x3 = x2 + caretSize;
 				}
@@ -7588,6 +7672,7 @@ module.exports = function(Chart) {
 			};
 
 			// Before body lines
+			ctx.fillStyle = mergeOpacity(vm.bodyFontColor, opacity);
 			helpers.each(vm.beforeBody, fillLineOfText);
 
 			var drawColorBoxes = vm.displayColors;
@@ -7595,6 +7680,8 @@ module.exports = function(Chart) {
 
 			// Draw body lines now
 			helpers.each(body, function(bodyItem, i) {
+				var textColor = mergeOpacity(vm.labelTextColors[i], opacity);
+				ctx.fillStyle = textColor;
 				helpers.each(bodyItem.before, fillLineOfText);
 
 				helpers.each(bodyItem.lines, function(line) {
@@ -7612,7 +7699,6 @@ module.exports = function(Chart) {
 						// Inner square
 						ctx.fillStyle = mergeOpacity(vm.labelColors[i].backgroundColor, opacity);
 						ctx.fillRect(pt.x + 1, pt.y + 1, bodyFontSize - 2, bodyFontSize - 2);
-						var textColor = mergeOpacity(vm.labelTextColors[i], opacity);
 						ctx.fillStyle = textColor;
 					}
 
@@ -7754,25 +7840,19 @@ module.exports = function(Chart) {
 			// Remember Last Actives
 			changed = !helpers.arrayEquals(me._active, me._lastActive);
 
-			// If tooltip didn't change, do not handle the target event
-			if (!changed) {
-				return false;
-			}
+			// Only handle target event on tooltip change
+			if (changed) {
+				me._lastActive = me._active;
 
-			me._lastActive = me._active;
+				if (options.enabled || options.custom) {
+					me._eventPosition = {
+						x: e.x,
+						y: e.y
+					};
 
-			if (options.enabled || options.custom) {
-				me._eventPosition = {
-					x: e.x,
-					y: e.y
-				};
-
-				var model = me._model;
-				me.update(true);
-				me.pivot();
-
-				// See if our tooltip position changed
-				changed |= (model.x !== me._model.x) || (model.y !== me._model.y);
+					me.update(true);
+					me.pivot();
+				}
 			}
 
 			return changed;
@@ -8084,12 +8164,12 @@ defaults._set('global', {
 
 function xRange(mouseX) {
 	var vm = this._view;
-	return vm ? (Math.pow(mouseX - vm.x, 2) < Math.pow(vm.radius + vm.hitRadius, 2)) : false;
+	return vm ? (Math.abs(mouseX - vm.x) < vm.radius + vm.hitRadius) : false;
 }
 
 function yRange(mouseY) {
 	var vm = this._view;
-	return vm ? (Math.pow(mouseY - vm.y, 2) < Math.pow(vm.radius + vm.hitRadius, 2)) : false;
+	return vm ? (Math.abs(mouseY - vm.y) < vm.radius + vm.hitRadius) : false;
 }
 
 module.exports = Element.extend({
@@ -8443,7 +8523,7 @@ var exports = module.exports = {
 	drawPoint: function(ctx, style, radius, x, y) {
 		var type, edgeLength, xOffset, yOffset, height, size;
 
-		if (typeof style === 'object') {
+		if (style && typeof style === 'object') {
 			type = style.toString();
 			if (type === '[object HTMLImageElement]' || type === '[object HTMLCanvasElement]') {
 				ctx.drawImage(style, x - style.width / 2, y - style.height / 2, style.width, style.height);
@@ -8862,6 +8942,48 @@ var helpers = {
 	 */
 	mergeIf: function(target, source) {
 		return helpers.merge(target, source, {merger: helpers._mergerIf});
+	},
+
+	/**
+	 * Applies the contents of two or more objects together into the first object.
+	 * @param {Object} target - The target object in which all objects are merged into.
+	 * @param {Object} arg1 - Object containing additional properties to merge in target.
+	 * @param {Object} argN - Additional objects containing properties to merge in target.
+	 * @returns {Object} The `target` object.
+	 */
+	extend: function(target) {
+		var setFn = function(value, key) {
+			target[key] = value;
+		};
+		for (var i = 1, ilen = arguments.length; i < ilen; ++i) {
+			helpers.each(arguments[i], setFn);
+		}
+		return target;
+	},
+
+	/**
+	 * Basic javascript inheritance based on the model created in Backbone.js
+	 */
+	inherits: function(extensions) {
+		var me = this;
+		var ChartElement = (extensions && extensions.hasOwnProperty('constructor')) ? extensions.constructor : function() {
+			return me.apply(this, arguments);
+		};
+
+		var Surrogate = function() {
+			this.constructor = ChartElement;
+		};
+
+		Surrogate.prototype = me.prototype;
+		ChartElement.prototype = new Surrogate();
+		ChartElement.extend = helpers.inherits;
+
+		if (extensions) {
+			helpers.extend(ChartElement.prototype, extensions);
+		}
+
+		ChartElement.__super__ = me.prototype;
+		return ChartElement;
 	}
 };
 
@@ -9522,6 +9644,13 @@ function watchForRender(node, handler) {
 		addEventListener(node, type, proxy);
 	});
 
+	// #4737: Chrome might skip the CSS animation when the CSS_RENDER_MONITOR class
+	// is removed then added back immediately (same animation frame?). Accessing the
+	// `offsetParent` property will force a reflow and re-evaluate the CSS animation.
+	// https://gist.github.com/paulirish/5d52fb081b3570c81e3a#box-metrics
+	// https://github.com/chartjs/Chart.js/issues/4737
+	expando.reflow = !!node.offsetParent;
+
 	node.classList.add(CSS_RENDER_MONITOR);
 }
 
@@ -9812,6 +9941,14 @@ module.exports = helpers.extend({
  */
 
 },{"../helpers/index":42,"./platform.basic":43,"./platform.dom":44}],46:[function(require,module,exports){
+'use strict';
+
+module.exports = {};
+module.exports.filler = require('./plugin.filler');
+module.exports.legend = require('./plugin.legend');
+module.exports.title = require('./plugin.title');
+
+},{"./plugin.filler":47,"./plugin.legend":48,"./plugin.title":49}],47:[function(require,module,exports){
 /**
  * Plugin based on discussion from the following Chart.js issues:
  * @see https://github.com/chartjs/Chart.js/issues/2380#issuecomment-279961569
@@ -9832,314 +9969,314 @@ defaults._set('global', {
 	}
 });
 
-module.exports = function() {
+var mappers = {
+	dataset: function(source) {
+		var index = source.fill;
+		var chart = source.chart;
+		var meta = chart.getDatasetMeta(index);
+		var visible = meta && chart.isDatasetVisible(index);
+		var points = (visible && meta.dataset._children) || [];
+		var length = points.length || 0;
 
-	var mappers = {
-		dataset: function(source) {
-			var index = source.fill;
-			var chart = source.chart;
-			var meta = chart.getDatasetMeta(index);
-			var visible = meta && chart.isDatasetVisible(index);
-			var points = (visible && meta.dataset._children) || [];
-			var length = points.length || 0;
+		return !length ? null : function(point, i) {
+			return (i < length && points[i]._view) || null;
+		};
+	},
 
-			return !length ? null : function(point, i) {
-				return (i < length && points[i]._view) || null;
+	boundary: function(source) {
+		var boundary = source.boundary;
+		var x = boundary ? boundary.x : null;
+		var y = boundary ? boundary.y : null;
+
+		return function(point) {
+			return {
+				x: x === null ? point.x : x,
+				y: y === null ? point.y : y,
 			};
-		},
+		};
+	}
+};
 
-		boundary: function(source) {
-			var boundary = source.boundary;
-			var x = boundary ? boundary.x : null;
-			var y = boundary ? boundary.y : null;
+// @todo if (fill[0] === '#')
+function decodeFill(el, index, count) {
+	var model = el._model || {};
+	var fill = model.fill;
+	var target;
 
-			return function(point) {
-				return {
-					x: x === null ? point.x : x,
-					y: y === null ? point.y : y,
-				};
-			};
-		}
-	};
-
-	// @todo if (fill[0] === '#')
-	function decodeFill(el, index, count) {
-		var model = el._model || {};
-		var fill = model.fill;
-		var target;
-
-		if (fill === undefined) {
-			fill = !!model.backgroundColor;
-		}
-
-		if (fill === false || fill === null) {
-			return false;
-		}
-
-		if (fill === true) {
-			return 'origin';
-		}
-
-		target = parseFloat(fill, 10);
-		if (isFinite(target) && Math.floor(target) === target) {
-			if (fill[0] === '-' || fill[0] === '+') {
-				target = index + target;
-			}
-
-			if (target === index || target < 0 || target >= count) {
-				return false;
-			}
-
-			return target;
-		}
-
-		switch (fill) {
-		// compatibility
-		case 'bottom':
-			return 'start';
-		case 'top':
-			return 'end';
-		case 'zero':
-			return 'origin';
-		// supported boundaries
-		case 'origin':
-		case 'start':
-		case 'end':
-			return fill;
-		// invalid fill values
-		default:
-			return false;
-		}
+	if (fill === undefined) {
+		fill = !!model.backgroundColor;
 	}
 
-	function computeBoundary(source) {
-		var model = source.el._model || {};
-		var scale = source.el._scale || {};
-		var fill = source.fill;
-		var target = null;
-		var horizontal;
-
-		if (isFinite(fill)) {
-			return null;
-		}
-
-		// Backward compatibility: until v3, we still need to support boundary values set on
-		// the model (scaleTop, scaleBottom and scaleZero) because some external plugins and
-		// controllers might still use it (e.g. the Smith chart).
-
-		if (fill === 'start') {
-			target = model.scaleBottom === undefined ? scale.bottom : model.scaleBottom;
-		} else if (fill === 'end') {
-			target = model.scaleTop === undefined ? scale.top : model.scaleTop;
-		} else if (model.scaleZero !== undefined) {
-			target = model.scaleZero;
-		} else if (scale.getBasePosition) {
-			target = scale.getBasePosition();
-		} else if (scale.getBasePixel) {
-			target = scale.getBasePixel();
-		}
-
-		if (target !== undefined && target !== null) {
-			if (target.x !== undefined && target.y !== undefined) {
-				return target;
-			}
-
-			if (typeof target === 'number' && isFinite(target)) {
-				horizontal = scale.isHorizontal();
-				return {
-					x: horizontal ? target : null,
-					y: horizontal ? null : target
-				};
-			}
-		}
-
-		return null;
-	}
-
-	function resolveTarget(sources, index, propagate) {
-		var source = sources[index];
-		var fill = source.fill;
-		var visited = [index];
-		var target;
-
-		if (!propagate) {
-			return fill;
-		}
-
-		while (fill !== false && visited.indexOf(fill) === -1) {
-			if (!isFinite(fill)) {
-				return fill;
-			}
-
-			target = sources[fill];
-			if (!target) {
-				return false;
-			}
-
-			if (target.visible) {
-				return fill;
-			}
-
-			visited.push(fill);
-			fill = target.fill;
-		}
-
+	if (fill === false || fill === null) {
 		return false;
 	}
 
-	function createMapper(source) {
-		var fill = source.fill;
-		var type = 'dataset';
+	if (fill === true) {
+		return 'origin';
+	}
 
-		if (fill === false) {
-			return null;
+	target = parseFloat(fill, 10);
+	if (isFinite(target) && Math.floor(target) === target) {
+		if (fill[0] === '-' || fill[0] === '+') {
+			target = index + target;
 		}
 
+		if (target === index || target < 0 || target >= count) {
+			return false;
+		}
+
+		return target;
+	}
+
+	switch (fill) {
+	// compatibility
+	case 'bottom':
+		return 'start';
+	case 'top':
+		return 'end';
+	case 'zero':
+		return 'origin';
+	// supported boundaries
+	case 'origin':
+	case 'start':
+	case 'end':
+		return fill;
+	// invalid fill values
+	default:
+		return false;
+	}
+}
+
+function computeBoundary(source) {
+	var model = source.el._model || {};
+	var scale = source.el._scale || {};
+	var fill = source.fill;
+	var target = null;
+	var horizontal;
+
+	if (isFinite(fill)) {
+		return null;
+	}
+
+	// Backward compatibility: until v3, we still need to support boundary values set on
+	// the model (scaleTop, scaleBottom and scaleZero) because some external plugins and
+	// controllers might still use it (e.g. the Smith chart).
+
+	if (fill === 'start') {
+		target = model.scaleBottom === undefined ? scale.bottom : model.scaleBottom;
+	} else if (fill === 'end') {
+		target = model.scaleTop === undefined ? scale.top : model.scaleTop;
+	} else if (model.scaleZero !== undefined) {
+		target = model.scaleZero;
+	} else if (scale.getBasePosition) {
+		target = scale.getBasePosition();
+	} else if (scale.getBasePixel) {
+		target = scale.getBasePixel();
+	}
+
+	if (target !== undefined && target !== null) {
+		if (target.x !== undefined && target.y !== undefined) {
+			return target;
+		}
+
+		if (typeof target === 'number' && isFinite(target)) {
+			horizontal = scale.isHorizontal();
+			return {
+				x: horizontal ? target : null,
+				y: horizontal ? null : target
+			};
+		}
+	}
+
+	return null;
+}
+
+function resolveTarget(sources, index, propagate) {
+	var source = sources[index];
+	var fill = source.fill;
+	var visited = [index];
+	var target;
+
+	if (!propagate) {
+		return fill;
+	}
+
+	while (fill !== false && visited.indexOf(fill) === -1) {
 		if (!isFinite(fill)) {
-			type = 'boundary';
+			return fill;
 		}
 
-		return mappers[type](source);
+		target = sources[fill];
+		if (!target) {
+			return false;
+		}
+
+		if (target.visible) {
+			return fill;
+		}
+
+		visited.push(fill);
+		fill = target.fill;
 	}
 
-	function isDrawable(point) {
-		return point && !point.skip;
+	return false;
+}
+
+function createMapper(source) {
+	var fill = source.fill;
+	var type = 'dataset';
+
+	if (fill === false) {
+		return null;
 	}
 
-	function drawArea(ctx, curve0, curve1, len0, len1) {
-		var i;
+	if (!isFinite(fill)) {
+		type = 'boundary';
+	}
 
-		if (!len0 || !len1) {
+	return mappers[type](source);
+}
+
+function isDrawable(point) {
+	return point && !point.skip;
+}
+
+function drawArea(ctx, curve0, curve1, len0, len1) {
+	var i;
+
+	if (!len0 || !len1) {
+		return;
+	}
+
+	// building first area curve (normal)
+	ctx.moveTo(curve0[0].x, curve0[0].y);
+	for (i = 1; i < len0; ++i) {
+		helpers.canvas.lineTo(ctx, curve0[i - 1], curve0[i]);
+	}
+
+	// joining the two area curves
+	ctx.lineTo(curve1[len1 - 1].x, curve1[len1 - 1].y);
+
+	// building opposite area curve (reverse)
+	for (i = len1 - 1; i > 0; --i) {
+		helpers.canvas.lineTo(ctx, curve1[i], curve1[i - 1], true);
+	}
+}
+
+function doFill(ctx, points, mapper, view, color, loop) {
+	var count = points.length;
+	var span = view.spanGaps;
+	var curve0 = [];
+	var curve1 = [];
+	var len0 = 0;
+	var len1 = 0;
+	var i, ilen, index, p0, p1, d0, d1;
+
+	ctx.beginPath();
+
+	for (i = 0, ilen = (count + !!loop); i < ilen; ++i) {
+		index = i % count;
+		p0 = points[index]._view;
+		p1 = mapper(p0, index, view);
+		d0 = isDrawable(p0);
+		d1 = isDrawable(p1);
+
+		if (d0 && d1) {
+			len0 = curve0.push(p0);
+			len1 = curve1.push(p1);
+		} else if (len0 && len1) {
+			if (!span) {
+				drawArea(ctx, curve0, curve1, len0, len1);
+				len0 = len1 = 0;
+				curve0 = [];
+				curve1 = [];
+			} else {
+				if (d0) {
+					curve0.push(p0);
+				}
+				if (d1) {
+					curve1.push(p1);
+				}
+			}
+		}
+	}
+
+	drawArea(ctx, curve0, curve1, len0, len1);
+
+	ctx.closePath();
+	ctx.fillStyle = color;
+	ctx.fill();
+}
+
+module.exports = {
+	id: 'filler',
+
+	afterDatasetsUpdate: function(chart, options) {
+		var count = (chart.data.datasets || []).length;
+		var propagate = options.propagate;
+		var sources = [];
+		var meta, i, el, source;
+
+		for (i = 0; i < count; ++i) {
+			meta = chart.getDatasetMeta(i);
+			el = meta.dataset;
+			source = null;
+
+			if (el && el._model && el instanceof elements.Line) {
+				source = {
+					visible: chart.isDatasetVisible(i),
+					fill: decodeFill(el, i, count),
+					chart: chart,
+					el: el
+				};
+			}
+
+			meta.$filler = source;
+			sources.push(source);
+		}
+
+		for (i = 0; i < count; ++i) {
+			source = sources[i];
+			if (!source) {
+				continue;
+			}
+
+			source.fill = resolveTarget(sources, i, propagate);
+			source.boundary = computeBoundary(source);
+			source.mapper = createMapper(source);
+		}
+	},
+
+	beforeDatasetDraw: function(chart, args) {
+		var meta = args.meta.$filler;
+		if (!meta) {
 			return;
 		}
 
-		// building first area curve (normal)
-		ctx.moveTo(curve0[0].x, curve0[0].y);
-		for (i = 1; i < len0; ++i) {
-			helpers.canvas.lineTo(ctx, curve0[i - 1], curve0[i]);
-		}
+		var ctx = chart.ctx;
+		var el = meta.el;
+		var view = el._view;
+		var points = el._children || [];
+		var mapper = meta.mapper;
+		var color = view.backgroundColor || defaults.global.defaultColor;
 
-		// joining the two area curves
-		ctx.lineTo(curve1[len1 - 1].x, curve1[len1 - 1].y);
-
-		// building opposite area curve (reverse)
-		for (i = len1 - 1; i > 0; --i) {
-			helpers.canvas.lineTo(ctx, curve1[i], curve1[i - 1], true);
+		if (mapper && color && points.length) {
+			helpers.canvas.clipArea(ctx, chart.chartArea);
+			doFill(ctx, points, mapper, view, color, el._loop);
+			helpers.canvas.unclipArea(ctx);
 		}
 	}
-
-	function doFill(ctx, points, mapper, view, color, loop) {
-		var count = points.length;
-		var span = view.spanGaps;
-		var curve0 = [];
-		var curve1 = [];
-		var len0 = 0;
-		var len1 = 0;
-		var i, ilen, index, p0, p1, d0, d1;
-
-		ctx.beginPath();
-
-		for (i = 0, ilen = (count + !!loop); i < ilen; ++i) {
-			index = i % count;
-			p0 = points[index]._view;
-			p1 = mapper(p0, index, view);
-			d0 = isDrawable(p0);
-			d1 = isDrawable(p1);
-
-			if (d0 && d1) {
-				len0 = curve0.push(p0);
-				len1 = curve1.push(p1);
-			} else if (len0 && len1) {
-				if (!span) {
-					drawArea(ctx, curve0, curve1, len0, len1);
-					len0 = len1 = 0;
-					curve0 = [];
-					curve1 = [];
-				} else {
-					if (d0) {
-						curve0.push(p0);
-					}
-					if (d1) {
-						curve1.push(p1);
-					}
-				}
-			}
-		}
-
-		drawArea(ctx, curve0, curve1, len0, len1);
-
-		ctx.closePath();
-		ctx.fillStyle = color;
-		ctx.fill();
-	}
-
-	return {
-		id: 'filler',
-
-		afterDatasetsUpdate: function(chart, options) {
-			var count = (chart.data.datasets || []).length;
-			var propagate = options.propagate;
-			var sources = [];
-			var meta, i, el, source;
-
-			for (i = 0; i < count; ++i) {
-				meta = chart.getDatasetMeta(i);
-				el = meta.dataset;
-				source = null;
-
-				if (el && el._model && el instanceof elements.Line) {
-					source = {
-						visible: chart.isDatasetVisible(i),
-						fill: decodeFill(el, i, count),
-						chart: chart,
-						el: el
-					};
-				}
-
-				meta.$filler = source;
-				sources.push(source);
-			}
-
-			for (i = 0; i < count; ++i) {
-				source = sources[i];
-				if (!source) {
-					continue;
-				}
-
-				source.fill = resolveTarget(sources, i, propagate);
-				source.boundary = computeBoundary(source);
-				source.mapper = createMapper(source);
-			}
-		},
-
-		beforeDatasetDraw: function(chart, args) {
-			var meta = args.meta.$filler;
-			if (!meta) {
-				return;
-			}
-
-			var ctx = chart.ctx;
-			var el = meta.el;
-			var view = el._view;
-			var points = el._children || [];
-			var mapper = meta.mapper;
-			var color = view.backgroundColor || defaults.global.defaultColor;
-
-			if (mapper && color && points.length) {
-				helpers.canvas.clipArea(ctx, chart.chartArea);
-				doFill(ctx, points, mapper, view, color, el._loop);
-				helpers.canvas.unclipArea(ctx);
-			}
-		}
-	};
 };
 
-},{"../core/core.defaults":22,"../elements/index":37,"../helpers/index":42}],47:[function(require,module,exports){
+},{"../core/core.defaults":22,"../elements/index":37,"../helpers/index":42}],48:[function(require,module,exports){
 'use strict';
 
 var defaults = require('../core/core.defaults');
 var Element = require('../core/core.element');
 var helpers = require('../helpers/index');
+var layouts = require('../core/core.layouts');
+
+var noop = helpers.noop;
 
 defaults._set('global', {
 	legend: {
@@ -10216,499 +10353,508 @@ defaults._set('global', {
 	}
 });
 
-module.exports = function(Chart) {
+/**
+ * Helper function to get the box width based on the usePointStyle option
+ * @param labelopts {Object} the label options on the legend
+ * @param fontSize {Number} the label font size
+ * @return {Number} width of the color box area
+ */
+function getBoxWidth(labelOpts, fontSize) {
+	return labelOpts.usePointStyle ?
+		fontSize * Math.SQRT2 :
+		labelOpts.boxWidth;
+}
 
-	var layout = Chart.layoutService;
-	var noop = helpers.noop;
+/**
+ * IMPORTANT: this class is exposed publicly as Chart.Legend, backward compatibility required!
+ */
+var Legend = Element.extend({
 
-	/**
-	 * Helper function to get the box width based on the usePointStyle option
-	 * @param labelopts {Object} the label options on the legend
-	 * @param fontSize {Number} the label font size
-	 * @return {Number} width of the color box area
-	 */
-	function getBoxWidth(labelOpts, fontSize) {
-		return labelOpts.usePointStyle ?
-			fontSize * Math.SQRT2 :
-			labelOpts.boxWidth;
-	}
+	initialize: function(config) {
+		helpers.extend(this, config);
 
-	Chart.Legend = Element.extend({
+		// Contains hit boxes for each dataset (in dataset order)
+		this.legendHitBoxes = [];
 
-		initialize: function(config) {
-			helpers.extend(this, config);
+		// Are we in doughnut mode which has a different data type
+		this.doughnutMode = false;
+	},
 
-			// Contains hit boxes for each dataset (in dataset order)
-			this.legendHitBoxes = [];
+	// These methods are ordered by lifecycle. Utilities then follow.
+	// Any function defined here is inherited by all legend types.
+	// Any function can be extended by the legend type
 
-			// Are we in doughnut mode which has a different data type
-			this.doughnutMode = false;
-		},
+	beforeUpdate: noop,
+	update: function(maxWidth, maxHeight, margins) {
+		var me = this;
 
-		// These methods are ordered by lifecycle. Utilities then follow.
-		// Any function defined here is inherited by all legend types.
-		// Any function can be extended by the legend type
+		// Update Lifecycle - Probably don't want to ever extend or overwrite this function ;)
+		me.beforeUpdate();
 
-		beforeUpdate: noop,
-		update: function(maxWidth, maxHeight, margins) {
-			var me = this;
+		// Absorb the master measurements
+		me.maxWidth = maxWidth;
+		me.maxHeight = maxHeight;
+		me.margins = margins;
 
-			// Update Lifecycle - Probably don't want to ever extend or overwrite this function ;)
-			me.beforeUpdate();
+		// Dimensions
+		me.beforeSetDimensions();
+		me.setDimensions();
+		me.afterSetDimensions();
+		// Labels
+		me.beforeBuildLabels();
+		me.buildLabels();
+		me.afterBuildLabels();
 
-			// Absorb the master measurements
-			me.maxWidth = maxWidth;
-			me.maxHeight = maxHeight;
-			me.margins = margins;
-
-			// Dimensions
-			me.beforeSetDimensions();
-			me.setDimensions();
-			me.afterSetDimensions();
-			// Labels
-			me.beforeBuildLabels();
-			me.buildLabels();
-			me.afterBuildLabels();
-
-			// Fit
-			me.beforeFit();
-			me.fit();
-			me.afterFit();
-			//
-			me.afterUpdate();
-
-			return me.minSize;
-		},
-		afterUpdate: noop,
-
+		// Fit
+		me.beforeFit();
+		me.fit();
+		me.afterFit();
 		//
+		me.afterUpdate();
 
-		beforeSetDimensions: noop,
-		setDimensions: function() {
-			var me = this;
-			// Set the unconstrained dimension before label rotation
-			if (me.isHorizontal()) {
-				// Reset position before calculating rotation
-				me.width = me.maxWidth;
-				me.left = 0;
-				me.right = me.width;
-			} else {
-				me.height = me.maxHeight;
+		return me.minSize;
+	},
+	afterUpdate: noop,
 
-				// Reset position before calculating rotation
-				me.top = 0;
-				me.bottom = me.height;
-			}
+	//
 
-			// Reset padding
-			me.paddingLeft = 0;
-			me.paddingTop = 0;
-			me.paddingRight = 0;
-			me.paddingBottom = 0;
+	beforeSetDimensions: noop,
+	setDimensions: function() {
+		var me = this;
+		// Set the unconstrained dimension before label rotation
+		if (me.isHorizontal()) {
+			// Reset position before calculating rotation
+			me.width = me.maxWidth;
+			me.left = 0;
+			me.right = me.width;
+		} else {
+			me.height = me.maxHeight;
 
-			// Reset minSize
-			me.minSize = {
-				width: 0,
-				height: 0
-			};
-		},
-		afterSetDimensions: noop,
+			// Reset position before calculating rotation
+			me.top = 0;
+			me.bottom = me.height;
+		}
 
-		//
+		// Reset padding
+		me.paddingLeft = 0;
+		me.paddingTop = 0;
+		me.paddingRight = 0;
+		me.paddingBottom = 0;
 
-		beforeBuildLabels: noop,
-		buildLabels: function() {
-			var me = this;
-			var labelOpts = me.options.labels || {};
-			var legendItems = helpers.callback(labelOpts.generateLabels, [me.chart], me) || [];
+		// Reset minSize
+		me.minSize = {
+			width: 0,
+			height: 0
+		};
+	},
+	afterSetDimensions: noop,
 
-			if (labelOpts.filter) {
-				legendItems = legendItems.filter(function(item) {
-					return labelOpts.filter(item, me.chart.data);
+	//
+
+	beforeBuildLabels: noop,
+	buildLabels: function() {
+		var me = this;
+		var labelOpts = me.options.labels || {};
+		var legendItems = helpers.callback(labelOpts.generateLabels, [me.chart], me) || [];
+
+		if (labelOpts.filter) {
+			legendItems = legendItems.filter(function(item) {
+				return labelOpts.filter(item, me.chart.data);
+			});
+		}
+
+		if (me.options.reverse) {
+			legendItems.reverse();
+		}
+
+		me.legendItems = legendItems;
+	},
+	afterBuildLabels: noop,
+
+	//
+
+	beforeFit: noop,
+	fit: function() {
+		var me = this;
+		var opts = me.options;
+		var labelOpts = opts.labels;
+		var display = opts.display;
+
+		var ctx = me.ctx;
+
+		var globalDefault = defaults.global;
+		var valueOrDefault = helpers.valueOrDefault;
+		var fontSize = valueOrDefault(labelOpts.fontSize, globalDefault.defaultFontSize);
+		var fontStyle = valueOrDefault(labelOpts.fontStyle, globalDefault.defaultFontStyle);
+		var fontFamily = valueOrDefault(labelOpts.fontFamily, globalDefault.defaultFontFamily);
+		var labelFont = helpers.fontString(fontSize, fontStyle, fontFamily);
+
+		// Reset hit boxes
+		var hitboxes = me.legendHitBoxes = [];
+
+		var minSize = me.minSize;
+		var isHorizontal = me.isHorizontal();
+
+		if (isHorizontal) {
+			minSize.width = me.maxWidth; // fill all the width
+			minSize.height = display ? 10 : 0;
+		} else {
+			minSize.width = display ? 10 : 0;
+			minSize.height = me.maxHeight; // fill all the height
+		}
+
+		// Increase sizes here
+		if (display) {
+			ctx.font = labelFont;
+
+			if (isHorizontal) {
+				// Labels
+
+				// Width of each line of legend boxes. Labels wrap onto multiple lines when there are too many to fit on one
+				var lineWidths = me.lineWidths = [0];
+				var totalHeight = me.legendItems.length ? fontSize + (labelOpts.padding) : 0;
+
+				ctx.textAlign = 'left';
+				ctx.textBaseline = 'top';
+
+				helpers.each(me.legendItems, function(legendItem, i) {
+					var boxWidth = getBoxWidth(labelOpts, fontSize);
+					var width = boxWidth + (fontSize / 2) + ctx.measureText(legendItem.text).width;
+
+					if (lineWidths[lineWidths.length - 1] + width + labelOpts.padding >= me.width) {
+						totalHeight += fontSize + (labelOpts.padding);
+						lineWidths[lineWidths.length] = me.left;
+					}
+
+					// Store the hitbox width and height here. Final position will be updated in `draw`
+					hitboxes[i] = {
+						left: 0,
+						top: 0,
+						width: width,
+						height: fontSize
+					};
+
+					lineWidths[lineWidths.length - 1] += width + labelOpts.padding;
 				});
+
+				minSize.height += totalHeight;
+
+			} else {
+				var vPadding = labelOpts.padding;
+				var columnWidths = me.columnWidths = [];
+				var totalWidth = labelOpts.padding;
+				var currentColWidth = 0;
+				var currentColHeight = 0;
+				var itemHeight = fontSize + vPadding;
+
+				helpers.each(me.legendItems, function(legendItem, i) {
+					var boxWidth = getBoxWidth(labelOpts, fontSize);
+					var itemWidth = boxWidth + (fontSize / 2) + ctx.measureText(legendItem.text).width;
+
+					// If too tall, go to new column
+					if (currentColHeight + itemHeight > minSize.height) {
+						totalWidth += currentColWidth + labelOpts.padding;
+						columnWidths.push(currentColWidth); // previous column width
+
+						currentColWidth = 0;
+						currentColHeight = 0;
+					}
+
+					// Get max width
+					currentColWidth = Math.max(currentColWidth, itemWidth);
+					currentColHeight += itemHeight;
+
+					// Store the hitbox width and height here. Final position will be updated in `draw`
+					hitboxes[i] = {
+						left: 0,
+						top: 0,
+						width: itemWidth,
+						height: fontSize
+					};
+				});
+
+				totalWidth += currentColWidth;
+				columnWidths.push(currentColWidth);
+				minSize.width += totalWidth;
 			}
+		}
 
-			if (me.options.reverse) {
-				legendItems.reverse();
-			}
+		me.width = minSize.width;
+		me.height = minSize.height;
+	},
+	afterFit: noop,
 
-			me.legendItems = legendItems;
-		},
-		afterBuildLabels: noop,
+	// Shared Methods
+	isHorizontal: function() {
+		return this.options.position === 'top' || this.options.position === 'bottom';
+	},
 
-		//
+	// Actually draw the legend on the canvas
+	draw: function() {
+		var me = this;
+		var opts = me.options;
+		var labelOpts = opts.labels;
+		var globalDefault = defaults.global;
+		var lineDefault = globalDefault.elements.line;
+		var legendWidth = me.width;
+		var lineWidths = me.lineWidths;
 
-		beforeFit: noop,
-		fit: function() {
-			var me = this;
-			var opts = me.options;
-			var labelOpts = opts.labels;
-			var display = opts.display;
-
+		if (opts.display) {
 			var ctx = me.ctx;
-
-			var globalDefault = defaults.global;
 			var valueOrDefault = helpers.valueOrDefault;
+			var fontColor = valueOrDefault(labelOpts.fontColor, globalDefault.defaultFontColor);
 			var fontSize = valueOrDefault(labelOpts.fontSize, globalDefault.defaultFontSize);
 			var fontStyle = valueOrDefault(labelOpts.fontStyle, globalDefault.defaultFontStyle);
 			var fontFamily = valueOrDefault(labelOpts.fontFamily, globalDefault.defaultFontFamily);
 			var labelFont = helpers.fontString(fontSize, fontStyle, fontFamily);
+			var cursor;
 
-			// Reset hit boxes
-			var hitboxes = me.legendHitBoxes = [];
+			// Canvas setup
+			ctx.textAlign = 'left';
+			ctx.textBaseline = 'middle';
+			ctx.lineWidth = 0.5;
+			ctx.strokeStyle = fontColor; // for strikethrough effect
+			ctx.fillStyle = fontColor; // render in correct colour
+			ctx.font = labelFont;
 
-			var minSize = me.minSize;
+			var boxWidth = getBoxWidth(labelOpts, fontSize);
+			var hitboxes = me.legendHitBoxes;
+
+			// current position
+			var drawLegendBox = function(x, y, legendItem) {
+				if (isNaN(boxWidth) || boxWidth <= 0) {
+					return;
+				}
+
+				// Set the ctx for the box
+				ctx.save();
+
+				ctx.fillStyle = valueOrDefault(legendItem.fillStyle, globalDefault.defaultColor);
+				ctx.lineCap = valueOrDefault(legendItem.lineCap, lineDefault.borderCapStyle);
+				ctx.lineDashOffset = valueOrDefault(legendItem.lineDashOffset, lineDefault.borderDashOffset);
+				ctx.lineJoin = valueOrDefault(legendItem.lineJoin, lineDefault.borderJoinStyle);
+				ctx.lineWidth = valueOrDefault(legendItem.lineWidth, lineDefault.borderWidth);
+				ctx.strokeStyle = valueOrDefault(legendItem.strokeStyle, globalDefault.defaultColor);
+				var isLineWidthZero = (valueOrDefault(legendItem.lineWidth, lineDefault.borderWidth) === 0);
+
+				if (ctx.setLineDash) {
+					// IE 9 and 10 do not support line dash
+					ctx.setLineDash(valueOrDefault(legendItem.lineDash, lineDefault.borderDash));
+				}
+
+				if (opts.labels && opts.labels.usePointStyle) {
+					// Recalculate x and y for drawPoint() because its expecting
+					// x and y to be center of figure (instead of top left)
+					var radius = fontSize * Math.SQRT2 / 2;
+					var offSet = radius / Math.SQRT2;
+					var centerX = x + offSet;
+					var centerY = y + offSet;
+
+					// Draw pointStyle as legend symbol
+					helpers.canvas.drawPoint(ctx, legendItem.pointStyle, radius, centerX, centerY);
+				} else {
+					// Draw box as legend symbol
+					if (!isLineWidthZero) {
+						ctx.strokeRect(x, y, boxWidth, fontSize);
+					}
+					ctx.fillRect(x, y, boxWidth, fontSize);
+				}
+
+				ctx.restore();
+			};
+			var fillText = function(x, y, legendItem, textWidth) {
+				var halfFontSize = fontSize / 2;
+				var xLeft = boxWidth + halfFontSize + x;
+				var yMiddle = y + halfFontSize;
+
+				ctx.fillText(legendItem.text, xLeft, yMiddle);
+
+				if (legendItem.hidden) {
+					// Strikethrough the text if hidden
+					ctx.beginPath();
+					ctx.lineWidth = 2;
+					ctx.moveTo(xLeft, yMiddle);
+					ctx.lineTo(xLeft + textWidth, yMiddle);
+					ctx.stroke();
+				}
+			};
+
+			// Horizontal
 			var isHorizontal = me.isHorizontal();
-
 			if (isHorizontal) {
-				minSize.width = me.maxWidth; // fill all the width
-				minSize.height = display ? 10 : 0;
+				cursor = {
+					x: me.left + ((legendWidth - lineWidths[0]) / 2),
+					y: me.top + labelOpts.padding,
+					line: 0
+				};
 			} else {
-				minSize.width = display ? 10 : 0;
-				minSize.height = me.maxHeight; // fill all the height
+				cursor = {
+					x: me.left + labelOpts.padding,
+					y: me.top + labelOpts.padding,
+					line: 0
+				};
 			}
 
-			// Increase sizes here
-			if (display) {
-				ctx.font = labelFont;
+			var itemHeight = fontSize + labelOpts.padding;
+			helpers.each(me.legendItems, function(legendItem, i) {
+				var textWidth = ctx.measureText(legendItem.text).width;
+				var width = boxWidth + (fontSize / 2) + textWidth;
+				var x = cursor.x;
+				var y = cursor.y;
 
 				if (isHorizontal) {
-					// Labels
-
-					// Width of each line of legend boxes. Labels wrap onto multiple lines when there are too many to fit on one
-					var lineWidths = me.lineWidths = [0];
-					var totalHeight = me.legendItems.length ? fontSize + (labelOpts.padding) : 0;
-
-					ctx.textAlign = 'left';
-					ctx.textBaseline = 'top';
-
-					helpers.each(me.legendItems, function(legendItem, i) {
-						var boxWidth = getBoxWidth(labelOpts, fontSize);
-						var width = boxWidth + (fontSize / 2) + ctx.measureText(legendItem.text).width;
-
-						if (lineWidths[lineWidths.length - 1] + width + labelOpts.padding >= me.width) {
-							totalHeight += fontSize + (labelOpts.padding);
-							lineWidths[lineWidths.length] = me.left;
-						}
-
-						// Store the hitbox width and height here. Final position will be updated in `draw`
-						hitboxes[i] = {
-							left: 0,
-							top: 0,
-							width: width,
-							height: fontSize
-						};
-
-						lineWidths[lineWidths.length - 1] += width + labelOpts.padding;
-					});
-
-					minSize.height += totalHeight;
-
-				} else {
-					var vPadding = labelOpts.padding;
-					var columnWidths = me.columnWidths = [];
-					var totalWidth = labelOpts.padding;
-					var currentColWidth = 0;
-					var currentColHeight = 0;
-					var itemHeight = fontSize + vPadding;
-
-					helpers.each(me.legendItems, function(legendItem, i) {
-						var boxWidth = getBoxWidth(labelOpts, fontSize);
-						var itemWidth = boxWidth + (fontSize / 2) + ctx.measureText(legendItem.text).width;
-
-						// If too tall, go to new column
-						if (currentColHeight + itemHeight > minSize.height) {
-							totalWidth += currentColWidth + labelOpts.padding;
-							columnWidths.push(currentColWidth); // previous column width
-
-							currentColWidth = 0;
-							currentColHeight = 0;
-						}
-
-						// Get max width
-						currentColWidth = Math.max(currentColWidth, itemWidth);
-						currentColHeight += itemHeight;
-
-						// Store the hitbox width and height here. Final position will be updated in `draw`
-						hitboxes[i] = {
-							left: 0,
-							top: 0,
-							width: itemWidth,
-							height: fontSize
-						};
-					});
-
-					totalWidth += currentColWidth;
-					columnWidths.push(currentColWidth);
-					minSize.width += totalWidth;
-				}
-			}
-
-			me.width = minSize.width;
-			me.height = minSize.height;
-		},
-		afterFit: noop,
-
-		// Shared Methods
-		isHorizontal: function() {
-			return this.options.position === 'top' || this.options.position === 'bottom';
-		},
-
-		// Actually draw the legend on the canvas
-		draw: function() {
-			var me = this;
-			var opts = me.options;
-			var labelOpts = opts.labels;
-			var globalDefault = defaults.global;
-			var lineDefault = globalDefault.elements.line;
-			var legendWidth = me.width;
-			var lineWidths = me.lineWidths;
-
-			if (opts.display) {
-				var ctx = me.ctx;
-				var valueOrDefault = helpers.valueOrDefault;
-				var fontColor = valueOrDefault(labelOpts.fontColor, globalDefault.defaultFontColor);
-				var fontSize = valueOrDefault(labelOpts.fontSize, globalDefault.defaultFontSize);
-				var fontStyle = valueOrDefault(labelOpts.fontStyle, globalDefault.defaultFontStyle);
-				var fontFamily = valueOrDefault(labelOpts.fontFamily, globalDefault.defaultFontFamily);
-				var labelFont = helpers.fontString(fontSize, fontStyle, fontFamily);
-				var cursor;
-
-				// Canvas setup
-				ctx.textAlign = 'left';
-				ctx.textBaseline = 'middle';
-				ctx.lineWidth = 0.5;
-				ctx.strokeStyle = fontColor; // for strikethrough effect
-				ctx.fillStyle = fontColor; // render in correct colour
-				ctx.font = labelFont;
-
-				var boxWidth = getBoxWidth(labelOpts, fontSize);
-				var hitboxes = me.legendHitBoxes;
-
-				// current position
-				var drawLegendBox = function(x, y, legendItem) {
-					if (isNaN(boxWidth) || boxWidth <= 0) {
-						return;
-					}
-
-					// Set the ctx for the box
-					ctx.save();
-
-					ctx.fillStyle = valueOrDefault(legendItem.fillStyle, globalDefault.defaultColor);
-					ctx.lineCap = valueOrDefault(legendItem.lineCap, lineDefault.borderCapStyle);
-					ctx.lineDashOffset = valueOrDefault(legendItem.lineDashOffset, lineDefault.borderDashOffset);
-					ctx.lineJoin = valueOrDefault(legendItem.lineJoin, lineDefault.borderJoinStyle);
-					ctx.lineWidth = valueOrDefault(legendItem.lineWidth, lineDefault.borderWidth);
-					ctx.strokeStyle = valueOrDefault(legendItem.strokeStyle, globalDefault.defaultColor);
-					var isLineWidthZero = (valueOrDefault(legendItem.lineWidth, lineDefault.borderWidth) === 0);
-
-					if (ctx.setLineDash) {
-						// IE 9 and 10 do not support line dash
-						ctx.setLineDash(valueOrDefault(legendItem.lineDash, lineDefault.borderDash));
-					}
-
-					if (opts.labels && opts.labels.usePointStyle) {
-						// Recalculate x and y for drawPoint() because its expecting
-						// x and y to be center of figure (instead of top left)
-						var radius = fontSize * Math.SQRT2 / 2;
-						var offSet = radius / Math.SQRT2;
-						var centerX = x + offSet;
-						var centerY = y + offSet;
-
-						// Draw pointStyle as legend symbol
-						helpers.canvas.drawPoint(ctx, legendItem.pointStyle, radius, centerX, centerY);
-					} else {
-						// Draw box as legend symbol
-						if (!isLineWidthZero) {
-							ctx.strokeRect(x, y, boxWidth, fontSize);
-						}
-						ctx.fillRect(x, y, boxWidth, fontSize);
-					}
-
-					ctx.restore();
-				};
-				var fillText = function(x, y, legendItem, textWidth) {
-					var halfFontSize = fontSize / 2;
-					var xLeft = boxWidth + halfFontSize + x;
-					var yMiddle = y + halfFontSize;
-
-					ctx.fillText(legendItem.text, xLeft, yMiddle);
-
-					if (legendItem.hidden) {
-						// Strikethrough the text if hidden
-						ctx.beginPath();
-						ctx.lineWidth = 2;
-						ctx.moveTo(xLeft, yMiddle);
-						ctx.lineTo(xLeft + textWidth, yMiddle);
-						ctx.stroke();
-					}
-				};
-
-				// Horizontal
-				var isHorizontal = me.isHorizontal();
-				if (isHorizontal) {
-					cursor = {
-						x: me.left + ((legendWidth - lineWidths[0]) / 2),
-						y: me.top + labelOpts.padding,
-						line: 0
-					};
-				} else {
-					cursor = {
-						x: me.left + labelOpts.padding,
-						y: me.top + labelOpts.padding,
-						line: 0
-					};
-				}
-
-				var itemHeight = fontSize + labelOpts.padding;
-				helpers.each(me.legendItems, function(legendItem, i) {
-					var textWidth = ctx.measureText(legendItem.text).width;
-					var width = boxWidth + (fontSize / 2) + textWidth;
-					var x = cursor.x;
-					var y = cursor.y;
-
-					if (isHorizontal) {
-						if (x + width >= legendWidth) {
-							y = cursor.y += itemHeight;
-							cursor.line++;
-							x = cursor.x = me.left + ((legendWidth - lineWidths[cursor.line]) / 2);
-						}
-					} else if (y + itemHeight > me.bottom) {
-						x = cursor.x = x + me.columnWidths[cursor.line] + labelOpts.padding;
-						y = cursor.y = me.top + labelOpts.padding;
+					if (x + width >= legendWidth) {
+						y = cursor.y += itemHeight;
 						cursor.line++;
+						x = cursor.x = me.left + ((legendWidth - lineWidths[cursor.line]) / 2);
 					}
-
-					drawLegendBox(x, y, legendItem);
-
-					hitboxes[i].left = x;
-					hitboxes[i].top = y;
-
-					// Fill the actual label
-					fillText(x, y, legendItem, textWidth);
-
-					if (isHorizontal) {
-						cursor.x += width + (labelOpts.padding);
-					} else {
-						cursor.y += itemHeight;
-					}
-
-				});
-			}
-		},
-
-		/**
-		 * Handle an event
-		 * @private
-		 * @param {IEvent} event - The event to handle
-		 * @return {Boolean} true if a change occured
-		 */
-		handleEvent: function(e) {
-			var me = this;
-			var opts = me.options;
-			var type = e.type === 'mouseup' ? 'click' : e.type;
-			var changed = false;
-
-			if (type === 'mousemove') {
-				if (!opts.onHover) {
-					return;
+				} else if (y + itemHeight > me.bottom) {
+					x = cursor.x = x + me.columnWidths[cursor.line] + labelOpts.padding;
+					y = cursor.y = me.top + labelOpts.padding;
+					cursor.line++;
 				}
-			} else if (type === 'click') {
-				if (!opts.onClick) {
-					return;
+
+				drawLegendBox(x, y, legendItem);
+
+				hitboxes[i].left = x;
+				hitboxes[i].top = y;
+
+				// Fill the actual label
+				fillText(x, y, legendItem, textWidth);
+
+				if (isHorizontal) {
+					cursor.x += width + (labelOpts.padding);
+				} else {
+					cursor.y += itemHeight;
 				}
-			} else {
+
+			});
+		}
+	},
+
+	/**
+	 * Handle an event
+	 * @private
+	 * @param {IEvent} event - The event to handle
+	 * @return {Boolean} true if a change occured
+	 */
+	handleEvent: function(e) {
+		var me = this;
+		var opts = me.options;
+		var type = e.type === 'mouseup' ? 'click' : e.type;
+		var changed = false;
+
+		if (type === 'mousemove') {
+			if (!opts.onHover) {
 				return;
 			}
+		} else if (type === 'click') {
+			if (!opts.onClick) {
+				return;
+			}
+		} else {
+			return;
+		}
 
-			// Chart event already has relative position in it
-			var x = e.x;
-			var y = e.y;
+		// Chart event already has relative position in it
+		var x = e.x;
+		var y = e.y;
 
-			if (x >= me.left && x <= me.right && y >= me.top && y <= me.bottom) {
-				// See if we are touching one of the dataset boxes
-				var lh = me.legendHitBoxes;
-				for (var i = 0; i < lh.length; ++i) {
-					var hitBox = lh[i];
+		if (x >= me.left && x <= me.right && y >= me.top && y <= me.bottom) {
+			// See if we are touching one of the dataset boxes
+			var lh = me.legendHitBoxes;
+			for (var i = 0; i < lh.length; ++i) {
+				var hitBox = lh[i];
 
-					if (x >= hitBox.left && x <= hitBox.left + hitBox.width && y >= hitBox.top && y <= hitBox.top + hitBox.height) {
-						// Touching an element
-						if (type === 'click') {
-							// use e.native for backwards compatibility
-							opts.onClick.call(me, e.native, me.legendItems[i]);
-							changed = true;
-							break;
-						} else if (type === 'mousemove') {
-							// use e.native for backwards compatibility
-							opts.onHover.call(me, e.native, me.legendItems[i]);
-							changed = true;
-							break;
-						}
+				if (x >= hitBox.left && x <= hitBox.left + hitBox.width && y >= hitBox.top && y <= hitBox.top + hitBox.height) {
+					// Touching an element
+					if (type === 'click') {
+						// use e.native for backwards compatibility
+						opts.onClick.call(me, e.native, me.legendItems[i]);
+						changed = true;
+						break;
+					} else if (type === 'mousemove') {
+						// use e.native for backwards compatibility
+						opts.onHover.call(me, e.native, me.legendItems[i]);
+						changed = true;
+						break;
 					}
 				}
 			}
-
-			return changed;
 		}
+
+		return changed;
+	}
+});
+
+function createNewLegendAndAttach(chart, legendOpts) {
+	var legend = new Legend({
+		ctx: chart.ctx,
+		options: legendOpts,
+		chart: chart
 	});
 
-	function createNewLegendAndAttach(chart, legendOpts) {
-		var legend = new Chart.Legend({
-			ctx: chart.ctx,
-			options: legendOpts,
-			chart: chart
-		});
+	layouts.configure(chart, legend, legendOpts);
+	layouts.addBox(chart, legend);
+	chart.legend = legend;
+}
 
-		layout.configure(chart, legend, legendOpts);
-		layout.addBox(chart, legend);
-		chart.legend = legend;
-	}
+module.exports = {
+	id: 'legend',
 
-	return {
-		id: 'legend',
+	/**
+	 * Backward compatibility: since 2.1.5, the legend is registered as a plugin, making
+	 * Chart.Legend obsolete. To avoid a breaking change, we export the Legend as part of
+	 * the plugin, which one will be re-exposed in the chart.js file.
+	 * https://github.com/chartjs/Chart.js/pull/2640
+	 * @private
+	 */
+	_element: Legend,
 
-		beforeInit: function(chart) {
-			var legendOpts = chart.options.legend;
+	beforeInit: function(chart) {
+		var legendOpts = chart.options.legend;
 
-			if (legendOpts) {
+		if (legendOpts) {
+			createNewLegendAndAttach(chart, legendOpts);
+		}
+	},
+
+	beforeUpdate: function(chart) {
+		var legendOpts = chart.options.legend;
+		var legend = chart.legend;
+
+		if (legendOpts) {
+			helpers.mergeIf(legendOpts, defaults.global.legend);
+
+			if (legend) {
+				layouts.configure(chart, legend, legendOpts);
+				legend.options = legendOpts;
+			} else {
 				createNewLegendAndAttach(chart, legendOpts);
 			}
-		},
-
-		beforeUpdate: function(chart) {
-			var legendOpts = chart.options.legend;
-			var legend = chart.legend;
-
-			if (legendOpts) {
-				helpers.mergeIf(legendOpts, defaults.global.legend);
-
-				if (legend) {
-					layout.configure(chart, legend, legendOpts);
-					legend.options = legendOpts;
-				} else {
-					createNewLegendAndAttach(chart, legendOpts);
-				}
-			} else if (legend) {
-				layout.removeBox(chart, legend);
-				delete chart.legend;
-			}
-		},
-
-		afterEvent: function(chart, e) {
-			var legend = chart.legend;
-			if (legend) {
-				legend.handleEvent(e);
-			}
+		} else if (legend) {
+			layouts.removeBox(chart, legend);
+			delete chart.legend;
 		}
-	};
+	},
+
+	afterEvent: function(chart, e) {
+		var legend = chart.legend;
+		if (legend) {
+			legend.handleEvent(e);
+		}
+	}
 };
 
-},{"../core/core.defaults":22,"../core/core.element":23,"../helpers/index":42}],48:[function(require,module,exports){
+},{"../core/core.defaults":22,"../core/core.element":23,"../core/core.layouts":27,"../helpers/index":42}],49:[function(require,module,exports){
 'use strict';
 
 var defaults = require('../core/core.defaults');
 var Element = require('../core/core.element');
 var helpers = require('../helpers/index');
+var layouts = require('../core/core.layouts');
+
+var noop = helpers.noop;
 
 defaults._set('global', {
 	title: {
@@ -10723,232 +10869,238 @@ defaults._set('global', {
 	}
 });
 
-module.exports = function(Chart) {
+/**
+ * IMPORTANT: this class is exposed publicly as Chart.Legend, backward compatibility required!
+ */
+var Title = Element.extend({
+	initialize: function(config) {
+		var me = this;
+		helpers.extend(me, config);
 
-	var layout = Chart.layoutService;
-	var noop = helpers.noop;
+		// Contains hit boxes for each dataset (in dataset order)
+		me.legendHitBoxes = [];
+	},
 
-	Chart.Title = Element.extend({
-		initialize: function(config) {
-			var me = this;
-			helpers.extend(me, config);
+	// These methods are ordered by lifecycle. Utilities then follow.
 
-			// Contains hit boxes for each dataset (in dataset order)
-			me.legendHitBoxes = [];
-		},
+	beforeUpdate: noop,
+	update: function(maxWidth, maxHeight, margins) {
+		var me = this;
 
-		// These methods are ordered by lifecycle. Utilities then follow.
+		// Update Lifecycle - Probably don't want to ever extend or overwrite this function ;)
+		me.beforeUpdate();
 
-		beforeUpdate: noop,
-		update: function(maxWidth, maxHeight, margins) {
-			var me = this;
+		// Absorb the master measurements
+		me.maxWidth = maxWidth;
+		me.maxHeight = maxHeight;
+		me.margins = margins;
 
-			// Update Lifecycle - Probably don't want to ever extend or overwrite this function ;)
-			me.beforeUpdate();
+		// Dimensions
+		me.beforeSetDimensions();
+		me.setDimensions();
+		me.afterSetDimensions();
+		// Labels
+		me.beforeBuildLabels();
+		me.buildLabels();
+		me.afterBuildLabels();
 
-			// Absorb the master measurements
-			me.maxWidth = maxWidth;
-			me.maxHeight = maxHeight;
-			me.margins = margins;
-
-			// Dimensions
-			me.beforeSetDimensions();
-			me.setDimensions();
-			me.afterSetDimensions();
-			// Labels
-			me.beforeBuildLabels();
-			me.buildLabels();
-			me.afterBuildLabels();
-
-			// Fit
-			me.beforeFit();
-			me.fit();
-			me.afterFit();
-			//
-			me.afterUpdate();
-
-			return me.minSize;
-
-		},
-		afterUpdate: noop,
-
+		// Fit
+		me.beforeFit();
+		me.fit();
+		me.afterFit();
 		//
+		me.afterUpdate();
 
-		beforeSetDimensions: noop,
-		setDimensions: function() {
-			var me = this;
-			// Set the unconstrained dimension before label rotation
-			if (me.isHorizontal()) {
-				// Reset position before calculating rotation
-				me.width = me.maxWidth;
-				me.left = 0;
-				me.right = me.width;
-			} else {
-				me.height = me.maxHeight;
+		return me.minSize;
 
-				// Reset position before calculating rotation
-				me.top = 0;
-				me.bottom = me.height;
-			}
+	},
+	afterUpdate: noop,
 
-			// Reset padding
-			me.paddingLeft = 0;
-			me.paddingTop = 0;
-			me.paddingRight = 0;
-			me.paddingBottom = 0;
+	//
 
-			// Reset minSize
-			me.minSize = {
-				width: 0,
-				height: 0
-			};
-		},
-		afterSetDimensions: noop,
+	beforeSetDimensions: noop,
+	setDimensions: function() {
+		var me = this;
+		// Set the unconstrained dimension before label rotation
+		if (me.isHorizontal()) {
+			// Reset position before calculating rotation
+			me.width = me.maxWidth;
+			me.left = 0;
+			me.right = me.width;
+		} else {
+			me.height = me.maxHeight;
 
-		//
-
-		beforeBuildLabels: noop,
-		buildLabels: noop,
-		afterBuildLabels: noop,
-
-		//
-
-		beforeFit: noop,
-		fit: function() {
-			var me = this;
-			var valueOrDefault = helpers.valueOrDefault;
-			var opts = me.options;
-			var display = opts.display;
-			var fontSize = valueOrDefault(opts.fontSize, defaults.global.defaultFontSize);
-			var minSize = me.minSize;
-			var lineCount = helpers.isArray(opts.text) ? opts.text.length : 1;
-			var lineHeight = helpers.options.toLineHeight(opts.lineHeight, fontSize);
-			var textSize = display ? (lineCount * lineHeight) + (opts.padding * 2) : 0;
-
-			if (me.isHorizontal()) {
-				minSize.width = me.maxWidth; // fill all the width
-				minSize.height = textSize;
-			} else {
-				minSize.width = textSize;
-				minSize.height = me.maxHeight; // fill all the height
-			}
-
-			me.width = minSize.width;
-			me.height = minSize.height;
-
-		},
-		afterFit: noop,
-
-		// Shared Methods
-		isHorizontal: function() {
-			var pos = this.options.position;
-			return pos === 'top' || pos === 'bottom';
-		},
-
-		// Actually draw the title block on the canvas
-		draw: function() {
-			var me = this;
-			var ctx = me.ctx;
-			var valueOrDefault = helpers.valueOrDefault;
-			var opts = me.options;
-			var globalDefaults = defaults.global;
-
-			if (opts.display) {
-				var fontSize = valueOrDefault(opts.fontSize, globalDefaults.defaultFontSize);
-				var fontStyle = valueOrDefault(opts.fontStyle, globalDefaults.defaultFontStyle);
-				var fontFamily = valueOrDefault(opts.fontFamily, globalDefaults.defaultFontFamily);
-				var titleFont = helpers.fontString(fontSize, fontStyle, fontFamily);
-				var lineHeight = helpers.options.toLineHeight(opts.lineHeight, fontSize);
-				var offset = lineHeight / 2 + opts.padding;
-				var rotation = 0;
-				var top = me.top;
-				var left = me.left;
-				var bottom = me.bottom;
-				var right = me.right;
-				var maxWidth, titleX, titleY;
-
-				ctx.fillStyle = valueOrDefault(opts.fontColor, globalDefaults.defaultFontColor); // render in correct colour
-				ctx.font = titleFont;
-
-				// Horizontal
-				if (me.isHorizontal()) {
-					titleX = left + ((right - left) / 2); // midpoint of the width
-					titleY = top + offset;
-					maxWidth = right - left;
-				} else {
-					titleX = opts.position === 'left' ? left + offset : right - offset;
-					titleY = top + ((bottom - top) / 2);
-					maxWidth = bottom - top;
-					rotation = Math.PI * (opts.position === 'left' ? -0.5 : 0.5);
-				}
-
-				ctx.save();
-				ctx.translate(titleX, titleY);
-				ctx.rotate(rotation);
-				ctx.textAlign = 'center';
-				ctx.textBaseline = 'middle';
-
-				var text = opts.text;
-				if (helpers.isArray(text)) {
-					var y = 0;
-					for (var i = 0; i < text.length; ++i) {
-						ctx.fillText(text[i], 0, y, maxWidth);
-						y += lineHeight;
-					}
-				} else {
-					ctx.fillText(text, 0, 0, maxWidth);
-				}
-
-				ctx.restore();
-			}
+			// Reset position before calculating rotation
+			me.top = 0;
+			me.bottom = me.height;
 		}
+
+		// Reset padding
+		me.paddingLeft = 0;
+		me.paddingTop = 0;
+		me.paddingRight = 0;
+		me.paddingBottom = 0;
+
+		// Reset minSize
+		me.minSize = {
+			width: 0,
+			height: 0
+		};
+	},
+	afterSetDimensions: noop,
+
+	//
+
+	beforeBuildLabels: noop,
+	buildLabels: noop,
+	afterBuildLabels: noop,
+
+	//
+
+	beforeFit: noop,
+	fit: function() {
+		var me = this;
+		var valueOrDefault = helpers.valueOrDefault;
+		var opts = me.options;
+		var display = opts.display;
+		var fontSize = valueOrDefault(opts.fontSize, defaults.global.defaultFontSize);
+		var minSize = me.minSize;
+		var lineCount = helpers.isArray(opts.text) ? opts.text.length : 1;
+		var lineHeight = helpers.options.toLineHeight(opts.lineHeight, fontSize);
+		var textSize = display ? (lineCount * lineHeight) + (opts.padding * 2) : 0;
+
+		if (me.isHorizontal()) {
+			minSize.width = me.maxWidth; // fill all the width
+			minSize.height = textSize;
+		} else {
+			minSize.width = textSize;
+			minSize.height = me.maxHeight; // fill all the height
+		}
+
+		me.width = minSize.width;
+		me.height = minSize.height;
+
+	},
+	afterFit: noop,
+
+	// Shared Methods
+	isHorizontal: function() {
+		var pos = this.options.position;
+		return pos === 'top' || pos === 'bottom';
+	},
+
+	// Actually draw the title block on the canvas
+	draw: function() {
+		var me = this;
+		var ctx = me.ctx;
+		var valueOrDefault = helpers.valueOrDefault;
+		var opts = me.options;
+		var globalDefaults = defaults.global;
+
+		if (opts.display) {
+			var fontSize = valueOrDefault(opts.fontSize, globalDefaults.defaultFontSize);
+			var fontStyle = valueOrDefault(opts.fontStyle, globalDefaults.defaultFontStyle);
+			var fontFamily = valueOrDefault(opts.fontFamily, globalDefaults.defaultFontFamily);
+			var titleFont = helpers.fontString(fontSize, fontStyle, fontFamily);
+			var lineHeight = helpers.options.toLineHeight(opts.lineHeight, fontSize);
+			var offset = lineHeight / 2 + opts.padding;
+			var rotation = 0;
+			var top = me.top;
+			var left = me.left;
+			var bottom = me.bottom;
+			var right = me.right;
+			var maxWidth, titleX, titleY;
+
+			ctx.fillStyle = valueOrDefault(opts.fontColor, globalDefaults.defaultFontColor); // render in correct colour
+			ctx.font = titleFont;
+
+			// Horizontal
+			if (me.isHorizontal()) {
+				titleX = left + ((right - left) / 2); // midpoint of the width
+				titleY = top + offset;
+				maxWidth = right - left;
+			} else {
+				titleX = opts.position === 'left' ? left + offset : right - offset;
+				titleY = top + ((bottom - top) / 2);
+				maxWidth = bottom - top;
+				rotation = Math.PI * (opts.position === 'left' ? -0.5 : 0.5);
+			}
+
+			ctx.save();
+			ctx.translate(titleX, titleY);
+			ctx.rotate(rotation);
+			ctx.textAlign = 'center';
+			ctx.textBaseline = 'middle';
+
+			var text = opts.text;
+			if (helpers.isArray(text)) {
+				var y = 0;
+				for (var i = 0; i < text.length; ++i) {
+					ctx.fillText(text[i], 0, y, maxWidth);
+					y += lineHeight;
+				}
+			} else {
+				ctx.fillText(text, 0, 0, maxWidth);
+			}
+
+			ctx.restore();
+		}
+	}
+});
+
+function createNewTitleBlockAndAttach(chart, titleOpts) {
+	var title = new Title({
+		ctx: chart.ctx,
+		options: titleOpts,
+		chart: chart
 	});
 
-	function createNewTitleBlockAndAttach(chart, titleOpts) {
-		var title = new Chart.Title({
-			ctx: chart.ctx,
-			options: titleOpts,
-			chart: chart
-		});
+	layouts.configure(chart, title, titleOpts);
+	layouts.addBox(chart, title);
+	chart.titleBlock = title;
+}
 
-		layout.configure(chart, title, titleOpts);
-		layout.addBox(chart, title);
-		chart.titleBlock = title;
-	}
+module.exports = {
+	id: 'title',
 
-	return {
-		id: 'title',
+	/**
+	 * Backward compatibility: since 2.1.5, the title is registered as a plugin, making
+	 * Chart.Title obsolete. To avoid a breaking change, we export the Title as part of
+	 * the plugin, which one will be re-exposed in the chart.js file.
+	 * https://github.com/chartjs/Chart.js/pull/2640
+	 * @private
+	 */
+	_element: Title,
 
-		beforeInit: function(chart) {
-			var titleOpts = chart.options.title;
+	beforeInit: function(chart) {
+		var titleOpts = chart.options.title;
 
-			if (titleOpts) {
+		if (titleOpts) {
+			createNewTitleBlockAndAttach(chart, titleOpts);
+		}
+	},
+
+	beforeUpdate: function(chart) {
+		var titleOpts = chart.options.title;
+		var titleBlock = chart.titleBlock;
+
+		if (titleOpts) {
+			helpers.mergeIf(titleOpts, defaults.global.title);
+
+			if (titleBlock) {
+				layouts.configure(chart, titleBlock, titleOpts);
+				titleBlock.options = titleOpts;
+			} else {
 				createNewTitleBlockAndAttach(chart, titleOpts);
 			}
-		},
-
-		beforeUpdate: function(chart) {
-			var titleOpts = chart.options.title;
-			var titleBlock = chart.titleBlock;
-
-			if (titleOpts) {
-				helpers.mergeIf(titleOpts, defaults.global.title);
-
-				if (titleBlock) {
-					layout.configure(chart, titleBlock, titleOpts);
-					titleBlock.options = titleOpts;
-				} else {
-					createNewTitleBlockAndAttach(chart, titleOpts);
-				}
-			} else if (titleBlock) {
-				Chart.layoutService.removeBox(chart, titleBlock);
-				delete chart.titleBlock;
-			}
+		} else if (titleBlock) {
+			layouts.removeBox(chart, titleBlock);
+			delete chart.titleBlock;
 		}
-	};
+	}
 };
 
-},{"../core/core.defaults":22,"../core/core.element":23,"../helpers/index":42}],49:[function(require,module,exports){
+},{"../core/core.defaults":22,"../core/core.element":23,"../core/core.layouts":27,"../helpers/index":42}],50:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -11083,7 +11235,7 @@ module.exports = function(Chart) {
 
 };
 
-},{}],50:[function(require,module,exports){
+},{}],51:[function(require,module,exports){
 'use strict';
 
 var defaults = require('../core/core.defaults');
@@ -11256,11 +11408,10 @@ module.exports = function(Chart) {
 
 			if (me.isHorizontal()) {
 				pixel = me.left + (me.width / range * (rightValue - start));
-				return Math.round(pixel);
+			} else {
+				pixel = me.bottom - (me.height / range * (rightValue - start));
 			}
-
-			pixel = me.bottom - (me.height / range * (rightValue - start));
-			return Math.round(pixel);
+			return pixel;
 		},
 		getValueForPixel: function(pixel) {
 			var me = this;
@@ -11277,11 +11428,65 @@ module.exports = function(Chart) {
 
 };
 
-},{"../core/core.defaults":22,"../core/core.ticks":31,"../helpers/index":42}],51:[function(require,module,exports){
+},{"../core/core.defaults":22,"../core/core.ticks":31,"../helpers/index":42}],52:[function(require,module,exports){
 'use strict';
 
 var helpers = require('../helpers/index');
-var Ticks = require('../core/core.ticks');
+
+/**
+ * Generate a set of linear ticks
+ * @param generationOptions the options used to generate the ticks
+ * @param dataRange the range of the data
+ * @returns {Array<Number>} array of tick values
+ */
+function generateTicks(generationOptions, dataRange) {
+	var ticks = [];
+	// To get a "nice" value for the tick spacing, we will use the appropriately named
+	// "nice number" algorithm. See http://stackoverflow.com/questions/8506881/nice-label-algorithm-for-charts-with-minimum-ticks
+	// for details.
+
+	var spacing;
+	if (generationOptions.stepSize && generationOptions.stepSize > 0) {
+		spacing = generationOptions.stepSize;
+	} else {
+		var niceRange = helpers.niceNum(dataRange.max - dataRange.min, false);
+		spacing = helpers.niceNum(niceRange / (generationOptions.maxTicks - 1), true);
+	}
+	var niceMin = Math.floor(dataRange.min / spacing) * spacing;
+	var niceMax = Math.ceil(dataRange.max / spacing) * spacing;
+
+	// If min, max and stepSize is set and they make an evenly spaced scale use it.
+	if (generationOptions.min && generationOptions.max && generationOptions.stepSize) {
+		// If very close to our whole number, use it.
+		if (helpers.almostWhole((generationOptions.max - generationOptions.min) / generationOptions.stepSize, spacing / 1000)) {
+			niceMin = generationOptions.min;
+			niceMax = generationOptions.max;
+		}
+	}
+
+	var numSpaces = (niceMax - niceMin) / spacing;
+	// If very close to our rounded value, use it.
+	if (helpers.almostEquals(numSpaces, Math.round(numSpaces), spacing / 1000)) {
+		numSpaces = Math.round(numSpaces);
+	} else {
+		numSpaces = Math.ceil(numSpaces);
+	}
+
+	var precision = 1;
+	if (spacing < 1) {
+		precision = Math.pow(10, spacing.toString().length - 2);
+		niceMin = Math.round(niceMin * precision) / precision;
+		niceMax = Math.round(niceMax * precision) / precision;
+	}
+	ticks.push(generationOptions.min !== undefined ? generationOptions.min : niceMin);
+	for (var j = 1; j < numSpaces; ++j) {
+		ticks.push(Math.round((niceMin + j * spacing) * precision) / precision);
+	}
+	ticks.push(generationOptions.max !== undefined ? generationOptions.max : niceMax);
+
+	return ticks;
+}
+
 
 module.exports = function(Chart) {
 
@@ -11382,7 +11587,7 @@ module.exports = function(Chart) {
 				max: tickOpts.max,
 				stepSize: helpers.valueOrDefault(tickOpts.fixedStepSize, tickOpts.stepSize)
 			};
-			var ticks = me.ticks = Ticks.generators.linear(numericGeneratorOptions, me);
+			var ticks = me.ticks = generateTicks(numericGeneratorOptions, me);
 
 			me.handleDirectionalChanges();
 
@@ -11411,11 +11616,63 @@ module.exports = function(Chart) {
 	});
 };
 
-},{"../core/core.ticks":31,"../helpers/index":42}],52:[function(require,module,exports){
+},{"../helpers/index":42}],53:[function(require,module,exports){
 'use strict';
 
 var helpers = require('../helpers/index');
 var Ticks = require('../core/core.ticks');
+
+/**
+ * Generate a set of logarithmic ticks
+ * @param generationOptions the options used to generate the ticks
+ * @param dataRange the range of the data
+ * @returns {Array<Number>} array of tick values
+ */
+function generateTicks(generationOptions, dataRange) {
+	var ticks = [];
+	var valueOrDefault = helpers.valueOrDefault;
+
+	// Figure out what the max number of ticks we can support it is based on the size of
+	// the axis area. For now, we say that the minimum tick spacing in pixels must be 50
+	// We also limit the maximum number of ticks to 11 which gives a nice 10 squares on
+	// the graph
+	var tickVal = valueOrDefault(generationOptions.min, Math.pow(10, Math.floor(helpers.log10(dataRange.min))));
+
+	var endExp = Math.floor(helpers.log10(dataRange.max));
+	var endSignificand = Math.ceil(dataRange.max / Math.pow(10, endExp));
+	var exp, significand;
+
+	if (tickVal === 0) {
+		exp = Math.floor(helpers.log10(dataRange.minNotZero));
+		significand = Math.floor(dataRange.minNotZero / Math.pow(10, exp));
+
+		ticks.push(tickVal);
+		tickVal = significand * Math.pow(10, exp);
+	} else {
+		exp = Math.floor(helpers.log10(tickVal));
+		significand = Math.floor(tickVal / Math.pow(10, exp));
+	}
+	var precision = exp < 0 ? Math.pow(10, Math.abs(exp)) : 1;
+
+	do {
+		ticks.push(tickVal);
+
+		++significand;
+		if (significand === 10) {
+			significand = 1;
+			++exp;
+			precision = exp >= 0 ? 1 : precision;
+		}
+
+		tickVal = Math.round(significand * Math.pow(10, exp) * precision) / precision;
+	} while (exp < endExp || (exp === endExp && significand < endSignificand));
+
+	var lastTick = valueOrDefault(generationOptions.max, tickVal);
+	ticks.push(lastTick);
+
+	return ticks;
+}
+
 
 module.exports = function(Chart) {
 
@@ -11432,11 +11689,9 @@ module.exports = function(Chart) {
 		determineDataLimits: function() {
 			var me = this;
 			var opts = me.options;
-			var tickOpts = opts.ticks;
 			var chart = me.chart;
 			var data = chart.data;
 			var datasets = data.datasets;
-			var valueOrDefault = helpers.valueOrDefault;
 			var isHorizontal = me.isHorizontal();
 			function IDMatches(meta) {
 				return isHorizontal ? meta.xAxisID === me.id : meta.yAxisID === me.id;
@@ -11482,27 +11737,23 @@ module.exports = function(Chart) {
 						helpers.each(dataset.data, function(rawValue, index) {
 							var values = valuesPerStack[key];
 							var value = +me.getRightValue(rawValue);
-							if (isNaN(value) || meta.data[index].hidden) {
+							// invalid, hidden and negative values are ignored
+							if (isNaN(value) || meta.data[index].hidden || value < 0) {
 								return;
 							}
-
 							values[index] = values[index] || 0;
-
-							if (opts.relativePoints) {
-								values[index] = 100;
-							} else {
-								// Don't need to split positive and negative since the log scale can't handle a 0 crossing
-								values[index] += value;
-							}
+							values[index] += value;
 						});
 					}
 				});
 
 				helpers.each(valuesPerStack, function(valuesForType) {
-					var minVal = helpers.min(valuesForType);
-					var maxVal = helpers.max(valuesForType);
-					me.min = me.min === null ? minVal : Math.min(me.min, minVal);
-					me.max = me.max === null ? maxVal : Math.max(me.max, maxVal);
+					if (valuesForType.length > 0) {
+						var minVal = helpers.min(valuesForType);
+						var maxVal = helpers.max(valuesForType);
+						me.min = me.min === null ? minVal : Math.min(me.min, minVal);
+						me.max = me.max === null ? maxVal : Math.max(me.max, maxVal);
+					}
 				});
 
 			} else {
@@ -11511,7 +11762,8 @@ module.exports = function(Chart) {
 					if (chart.isDatasetVisible(datasetIndex) && IDMatches(meta)) {
 						helpers.each(dataset.data, function(rawValue, index) {
 							var value = +me.getRightValue(rawValue);
-							if (isNaN(value) || meta.data[index].hidden) {
+							// invalid, hidden and negative values are ignored
+							if (isNaN(value) || meta.data[index].hidden || value < 0) {
 								return;
 							}
 
@@ -11535,6 +11787,17 @@ module.exports = function(Chart) {
 				});
 			}
 
+			// Common base implementation to handle ticks.min, ticks.max
+			this.handleTickRangeOptions();
+		},
+		handleTickRangeOptions: function() {
+			var me = this;
+			var opts = me.options;
+			var tickOpts = opts.ticks;
+			var valueOrDefault = helpers.valueOrDefault;
+			var DEFAULT_MIN = 1;
+			var DEFAULT_MAX = 10;
+
 			me.min = valueOrDefault(tickOpts.min, me.min);
 			me.max = valueOrDefault(tickOpts.max, me.max);
 
@@ -11543,8 +11806,25 @@ module.exports = function(Chart) {
 					me.min = Math.pow(10, Math.floor(helpers.log10(me.min)) - 1);
 					me.max = Math.pow(10, Math.floor(helpers.log10(me.max)) + 1);
 				} else {
-					me.min = 1;
-					me.max = 10;
+					me.min = DEFAULT_MIN;
+					me.max = DEFAULT_MAX;
+				}
+			}
+			if (me.min === null) {
+				me.min = Math.pow(10, Math.floor(helpers.log10(me.max)) - 1);
+			}
+			if (me.max === null) {
+				me.max = me.min !== 0
+					? Math.pow(10, Math.floor(helpers.log10(me.min)) + 1)
+					: DEFAULT_MAX;
+			}
+			if (me.minNotZero === null) {
+				if (me.min > 0) {
+					me.minNotZero = me.min;
+				} else if (me.max < 1) {
+					me.minNotZero = Math.pow(10, Math.floor(helpers.log10(me.max)));
+				} else {
+					me.minNotZero = DEFAULT_MIN;
 				}
 			}
 		},
@@ -11552,17 +11832,13 @@ module.exports = function(Chart) {
 			var me = this;
 			var opts = me.options;
 			var tickOpts = opts.ticks;
+			var reverse = !me.isHorizontal();
 
 			var generationOptions = {
 				min: tickOpts.min,
 				max: tickOpts.max
 			};
-			var ticks = me.ticks = Ticks.generators.logarithmic(generationOptions, me);
-
-			if (!me.isHorizontal()) {
-				// We are in a vertical orientation. The top value is the highest. So reverse the array
-				ticks.reverse();
-			}
+			var ticks = me.ticks = generateTicks(generationOptions, me);
 
 			// At this point, we need to update our max and min given the tick values since we have expanded the
 			// range of the scale
@@ -11570,13 +11846,15 @@ module.exports = function(Chart) {
 			me.min = helpers.min(ticks);
 
 			if (tickOpts.reverse) {
-				ticks.reverse();
-
+				reverse = !reverse;
 				me.start = me.max;
 				me.end = me.min;
 			} else {
 				me.start = me.min;
 				me.end = me.max;
+			}
+			if (reverse) {
+				ticks.reverse();
 			}
 		},
 		convertTicksToLabels: function() {
@@ -11591,64 +11869,94 @@ module.exports = function(Chart) {
 		getPixelForTick: function(index) {
 			return this.getPixelForValue(this.tickValues[index]);
 		},
+		/**
+		 * Returns the value of the first tick.
+		 * @param {Number} value - The minimum not zero value.
+		 * @return {Number} The first tick value.
+		 * @private
+		 */
+		_getFirstTickValue: function(value) {
+			var exp = Math.floor(helpers.log10(value));
+			var significand = Math.floor(value / Math.pow(10, exp));
+
+			return significand * Math.pow(10, exp);
+		},
 		getPixelForValue: function(value) {
 			var me = this;
-			var start = me.start;
-			var newVal = +me.getRightValue(value);
-			var opts = me.options;
-			var tickOpts = opts.ticks;
-			var innerDimension, pixel, range;
+			var reverse = me.options.ticks.reverse;
+			var log10 = helpers.log10;
+			var firstTickValue = me._getFirstTickValue(me.minNotZero);
+			var offset = 0;
+			var innerDimension, pixel, start, end, sign;
 
-			if (me.isHorizontal()) {
-				range = helpers.log10(me.end) - helpers.log10(start); // todo: if start === 0
-				if (newVal === 0) {
-					pixel = me.left;
-				} else {
-					innerDimension = me.width;
-					pixel = me.left + (innerDimension / range * (helpers.log10(newVal) - helpers.log10(start)));
-				}
+			value = +me.getRightValue(value);
+			if (reverse) {
+				start = me.end;
+				end = me.start;
+				sign = -1;
 			} else {
-				// Bottom - top since pixels increase downward on a screen
+				start = me.start;
+				end = me.end;
+				sign = 1;
+			}
+			if (me.isHorizontal()) {
+				innerDimension = me.width;
+				pixel = reverse ? me.right : me.left;
+			} else {
 				innerDimension = me.height;
-				if (start === 0 && !tickOpts.reverse) {
-					range = helpers.log10(me.end) - helpers.log10(me.minNotZero);
-					if (newVal === start) {
-						pixel = me.bottom;
-					} else if (newVal === me.minNotZero) {
-						pixel = me.bottom - innerDimension * 0.02;
-					} else {
-						pixel = me.bottom - innerDimension * 0.02 - (innerDimension * 0.98 / range * (helpers.log10(newVal) - helpers.log10(me.minNotZero)));
-					}
-				} else if (me.end === 0 && tickOpts.reverse) {
-					range = helpers.log10(me.start) - helpers.log10(me.minNotZero);
-					if (newVal === me.end) {
-						pixel = me.top;
-					} else if (newVal === me.minNotZero) {
-						pixel = me.top + innerDimension * 0.02;
-					} else {
-						pixel = me.top + innerDimension * 0.02 + (innerDimension * 0.98 / range * (helpers.log10(newVal) - helpers.log10(me.minNotZero)));
-					}
-				} else if (newVal === 0) {
-					pixel = tickOpts.reverse ? me.top : me.bottom;
-				} else {
-					range = helpers.log10(me.end) - helpers.log10(start);
-					innerDimension = me.height;
-					pixel = me.bottom - (innerDimension / range * (helpers.log10(newVal) - helpers.log10(start)));
+				sign *= -1; // invert, since the upper-left corner of the canvas is at pixel (0, 0)
+				pixel = reverse ? me.top : me.bottom;
+			}
+			if (value !== start) {
+				if (start === 0) { // include zero tick
+					offset = helpers.getValueOrDefault(
+						me.options.ticks.fontSize,
+						Chart.defaults.global.defaultFontSize
+					);
+					innerDimension -= offset;
+					start = firstTickValue;
 				}
+				if (value !== 0) {
+					offset += innerDimension / (log10(end) - log10(start)) * (log10(value) - log10(start));
+				}
+				pixel += sign * offset;
 			}
 			return pixel;
 		},
 		getValueForPixel: function(pixel) {
 			var me = this;
-			var range = helpers.log10(me.end) - helpers.log10(me.start);
-			var value, innerDimension;
+			var reverse = me.options.ticks.reverse;
+			var log10 = helpers.log10;
+			var firstTickValue = me._getFirstTickValue(me.minNotZero);
+			var innerDimension, start, end, value;
 
+			if (reverse) {
+				start = me.end;
+				end = me.start;
+			} else {
+				start = me.start;
+				end = me.end;
+			}
 			if (me.isHorizontal()) {
 				innerDimension = me.width;
-				value = me.start * Math.pow(10, (pixel - me.left) * range / innerDimension);
-			} else { // todo: if start === 0
+				value = reverse ? me.right - pixel : pixel - me.left;
+			} else {
 				innerDimension = me.height;
-				value = Math.pow(10, (me.bottom - pixel) * range / innerDimension) / me.start;
+				value = reverse ? pixel - me.top : me.bottom - pixel;
+			}
+			if (value !== start) {
+				if (start === 0) { // include zero tick
+					var offset = helpers.getValueOrDefault(
+						me.options.ticks.fontSize,
+						Chart.defaults.global.defaultFontSize
+					);
+					value -= offset;
+					innerDimension -= offset;
+					start = firstTickValue;
+				}
+				value *= log10(end) - log10(start);
+				value /= innerDimension;
+				value = Math.pow(10, log10(start) + value);
 			}
 			return value;
 		}
@@ -11657,7 +11965,7 @@ module.exports = function(Chart) {
 
 };
 
-},{"../core/core.ticks":31,"../helpers/index":42}],53:[function(require,module,exports){
+},{"../core/core.ticks":31,"../helpers/index":42}],54:[function(require,module,exports){
 'use strict';
 
 var defaults = require('../core/core.defaults');
@@ -11897,7 +12205,6 @@ module.exports = function(Chart) {
 
 	function drawPointLabels(scale) {
 		var ctx = scale.ctx;
-		var valueOrDefault = helpers.valueOrDefault;
 		var opts = scale.options;
 		var angleLineOpts = opts.angleLines;
 		var pointLabelOpts = opts.pointLabels;
@@ -11927,7 +12234,7 @@ module.exports = function(Chart) {
 				var pointLabelPosition = scale.getPointPosition(i, outerDistance + 5);
 
 				// Keep this in loop since we may support array properties here
-				var pointLabelFontColor = valueOrDefault(pointLabelOpts.fontColor, globalDefaults.defaultFontColor);
+				var pointLabelFontColor = helpers.valueAtIndexOrDefault(pointLabelOpts.fontColor, i, globalDefaults.defaultFontColor);
 				ctx.font = plFont.font;
 				ctx.fillStyle = pointLabelFontColor;
 
@@ -12189,7 +12496,7 @@ module.exports = function(Chart) {
 
 };
 
-},{"../core/core.defaults":22,"../core/core.ticks":31,"../helpers/index":42}],54:[function(require,module,exports){
+},{"../core/core.defaults":22,"../core/core.ticks":31,"../helpers/index":42}],55:[function(require,module,exports){
 /* global window: false */
 'use strict';
 
@@ -12205,47 +12512,47 @@ var MAX_INTEGER = Number.MAX_SAFE_INTEGER || 9007199254740991;
 
 var INTERVALS = {
 	millisecond: {
-		major: true,
+		common: true,
 		size: 1,
 		steps: [1, 2, 5, 10, 20, 50, 100, 250, 500]
 	},
 	second: {
-		major: true,
+		common: true,
 		size: 1000,
 		steps: [1, 2, 5, 10, 30]
 	},
 	minute: {
-		major: true,
+		common: true,
 		size: 60000,
 		steps: [1, 2, 5, 10, 30]
 	},
 	hour: {
-		major: true,
+		common: true,
 		size: 3600000,
 		steps: [1, 2, 3, 6, 12]
 	},
 	day: {
-		major: true,
+		common: true,
 		size: 86400000,
 		steps: [1, 2, 5]
 	},
 	week: {
-		major: false,
+		common: false,
 		size: 604800000,
 		steps: [1, 2, 3, 4]
 	},
 	month: {
-		major: true,
+		common: true,
 		size: 2.628e9,
 		steps: [1, 2, 3]
 	},
 	quarter: {
-		major: false,
+		common: false,
 		size: 7.884e9,
 		steps: [1, 2, 3, 4]
 	},
 	year: {
-		major: true,
+		common: true,
 		size: 3.154e10
 	}
 };
@@ -12432,7 +12739,7 @@ function determineStepSize(min, max, unit, capacity) {
 	var i, ilen, factor;
 
 	if (!steps) {
-		return Math.ceil(range / ((capacity || 1) * milliseconds));
+		return Math.ceil(range / (capacity * milliseconds));
 	}
 
 	for (i = 0, ilen = steps.length; i < ilen; ++i) {
@@ -12445,7 +12752,10 @@ function determineStepSize(min, max, unit, capacity) {
 	return factor;
 }
 
-function determineUnit(minUnit, min, max, capacity) {
+/**
+ * Figures out what unit results in an appropriate number of auto-generated ticks
+ */
+function determineUnitForAutoTicks(minUnit, min, max, capacity) {
 	var ilen = UNITS.length;
 	var i, interval, factor;
 
@@ -12453,7 +12763,7 @@ function determineUnit(minUnit, min, max, capacity) {
 		interval = INTERVALS[UNITS[i]];
 		factor = interval.steps ? interval.steps[interval.steps.length - 1] : MAX_INTEGER;
 
-		if (Math.ceil((max - min) / (factor * interval.size)) <= capacity) {
+		if (interval.common && Math.ceil((max - min) / (factor * interval.size)) <= capacity) {
 			return UNITS[i];
 		}
 	}
@@ -12461,9 +12771,27 @@ function determineUnit(minUnit, min, max, capacity) {
 	return UNITS[ilen - 1];
 }
 
+/**
+ * Figures out what unit to format a set of ticks with
+ */
+function determineUnitForFormatting(ticks, minUnit, min, max) {
+	var duration = moment.duration(moment(max).diff(moment(min)));
+	var ilen = UNITS.length;
+	var i, unit;
+
+	for (i = ilen - 1; i >= UNITS.indexOf(minUnit); i--) {
+		unit = UNITS[i];
+		if (INTERVALS[unit].common && duration.as(unit) >= ticks.length) {
+			return unit;
+		}
+	}
+
+	return UNITS[minUnit ? UNITS.indexOf(minUnit) : 0];
+}
+
 function determineMajorUnit(unit) {
 	for (var i = UNITS.indexOf(unit) + 1, ilen = UNITS.length; i < ilen; ++i) {
-		if (INTERVALS[UNITS[i]].major) {
+		if (INTERVALS[UNITS[i]].common) {
 			return UNITS[i];
 		}
 	}
@@ -12475,8 +12803,10 @@ function determineMajorUnit(unit) {
  * Important: this method can return ticks outside the min and max range, it's the
  * responsibility of the calling code to clamp values if needed.
  */
-function generate(min, max, minor, major, capacity, options) {
+function generate(min, max, capacity, options) {
 	var timeOpts = options.time;
+	var minor = timeOpts.unit || determineUnitForAutoTicks(timeOpts.minUnit, min, max, capacity);
+	var major = determineMajorUnit(minor);
 	var stepSize = helpers.valueOrDefault(timeOpts.stepSize, timeOpts.unitStepSize);
 	var weekday = minor === 'week' ? timeOpts.isoWeekday : false;
 	var majorTicksEnabled = options.ticks.major.enabled;
@@ -12570,6 +12900,27 @@ function ticksFromTimestamps(values, majorUnit) {
 	}
 
 	return ticks;
+}
+
+function determineLabelFormat(data, timeOpts) {
+	var i, momentDate, hasTime;
+	var ilen = data.length;
+
+	// find the label with the most parts (milliseconds, minutes, etc.)
+	// format all labels with the same level of detail as the most specific label
+	for (i = 0; i < ilen; i++) {
+		momentDate = momentify(data[i], timeOpts);
+		if (momentDate.millisecond() !== 0) {
+			return 'MMM D, YYYY h:mm:ss.SSS a';
+		}
+		if (momentDate.second() !== 0 || momentDate.minute() !== 0 || momentDate.hour() !== 0) {
+			hasTime = true;
+		}
+	}
+	if (hasTime) {
+		return 'MMM D, YYYY h:mm:ss a';
+	}
+	return 'MMM D, YYYY';
 }
 
 module.exports = function(Chart) {
@@ -12673,8 +13024,9 @@ module.exports = function(Chart) {
 			var me = this;
 			var chart = me.chart;
 			var timeOpts = me.options.time;
-			var min = parse(timeOpts.min, me) || MAX_INTEGER;
-			var max = parse(timeOpts.max, me) || MIN_INTEGER;
+			var unit = timeOpts.unit || 'day';
+			var min = MAX_INTEGER;
+			var max = MIN_INTEGER;
 			var timestamps = [];
 			var datasets = [];
 			var labels = [];
@@ -12721,9 +13073,12 @@ module.exports = function(Chart) {
 				max = Math.max(max, timestamps[timestamps.length - 1]);
 			}
 
-			// In case there is no valid min/max, let's use today limits
-			min = min === MAX_INTEGER ? +moment().startOf('day') : min;
-			max = max === MIN_INTEGER ? +moment().endOf('day') + 1 : max;
+			min = parse(timeOpts.min, me) || min;
+			max = parse(timeOpts.max, me) || max;
+
+			// In case there is no valid min/max, set limits based on unit time option
+			min = min === MAX_INTEGER ? +moment().startOf(unit) : min;
+			max = max === MIN_INTEGER ? +moment().endOf(unit) + 1 : max;
 
 			// Make sure that max is strictly higher than min (required by the lookup table)
 			me.min = Math.min(min, max);
@@ -12745,10 +13100,6 @@ module.exports = function(Chart) {
 			var max = me.max;
 			var options = me.options;
 			var timeOpts = options.time;
-			var formats = timeOpts.displayFormats;
-			var capacity = me.getLabelCapacity(min);
-			var unit = timeOpts.unit || determineUnit(timeOpts.minUnit, min, max, capacity);
-			var majorUnit = determineMajorUnit(unit);
 			var timestamps = [];
 			var ticks = [];
 			var i, ilen, timestamp;
@@ -12762,7 +13113,7 @@ module.exports = function(Chart) {
 				break;
 			case 'auto':
 			default:
-				timestamps = generate(min, max, unit, majorUnit, capacity, options);
+				timestamps = generate(min, max, me.getLabelCapacity(min), options);
 			}
 
 			if (options.bounds === 'ticks' && timestamps.length) {
@@ -12786,14 +13137,13 @@ module.exports = function(Chart) {
 			me.max = max;
 
 			// PRIVATE
-			me._unit = unit;
-			me._majorUnit = majorUnit;
-			me._minorFormat = formats[unit];
-			me._majorFormat = formats[majorUnit];
+			me._unit = timeOpts.unit || determineUnitForFormatting(ticks, timeOpts.minUnit, me.min, me.max);
+			me._majorUnit = determineMajorUnit(me._unit);
 			me._table = buildLookupTable(me._timestamps.data, min, max, options.distribution);
 			me._offsets = computeOffsets(me._table, ticks, min, max, options);
+			me._labelFormat = determineLabelFormat(me._timestamps.data, timeOpts);
 
-			return ticksFromTimestamps(ticks, majorUnit);
+			return ticksFromTimestamps(ticks, me._majorUnit);
 		},
 
 		getLabelForIndex: function(index, datasetIndex) {
@@ -12807,26 +13157,31 @@ module.exports = function(Chart) {
 				label = me.getRightValue(value);
 			}
 			if (timeOpts.tooltipFormat) {
-				label = momentify(label, timeOpts).format(timeOpts.tooltipFormat);
+				return momentify(label, timeOpts).format(timeOpts.tooltipFormat);
+			}
+			if (typeof label === 'string') {
+				return label;
 			}
 
-			return label;
+			return momentify(label, timeOpts).format(me._labelFormat);
 		},
 
 		/**
 		 * Function to format an individual tick mark
 		 * @private
 		 */
-		tickFormatFunction: function(tick, index, ticks) {
+		tickFormatFunction: function(tick, index, ticks, formatOverride) {
 			var me = this;
 			var options = me.options;
 			var time = tick.valueOf();
+			var formats = options.time.displayFormats;
+			var minorFormat = formats[me._unit];
 			var majorUnit = me._majorUnit;
-			var majorFormat = me._majorFormat;
-			var majorTime = tick.clone().startOf(me._majorUnit).valueOf();
+			var majorFormat = formats[majorUnit];
+			var majorTime = tick.clone().startOf(majorUnit).valueOf();
 			var majorTickOpts = options.ticks.major;
 			var major = majorTickOpts.enabled && majorUnit && majorFormat && time === majorTime;
-			var label = tick.format(major ? majorFormat : me._minorFormat);
+			var label = tick.format(formatOverride ? formatOverride : major ? majorFormat : minorFormat);
 			var tickOpts = major ? majorTickOpts : options.ticks.minor;
 			var formatter = helpers.valueOrDefault(tickOpts.callback, tickOpts.userCallback);
 
@@ -12912,20 +13267,21 @@ module.exports = function(Chart) {
 		getLabelCapacity: function(exampleTime) {
 			var me = this;
 
-			me._minorFormat = me.options.time.displayFormats.millisecond;	// Pick the longest format for guestimation
+			var formatOverride = me.options.time.displayFormats.millisecond;	// Pick the longest format for guestimation
 
-			var exampleLabel = me.tickFormatFunction(moment(exampleTime), 0, []);
+			var exampleLabel = me.tickFormatFunction(moment(exampleTime), 0, [], formatOverride);
 			var tickLabelWidth = me.getLabelWidth(exampleLabel);
 			var innerWidth = me.isHorizontal() ? me.width : me.height;
 
-			return Math.floor(innerWidth / tickLabelWidth);
+			var capacity = Math.floor(innerWidth / tickLabelWidth);
+			return capacity > 0 ? capacity : 1;
 		}
 	});
 
 	Chart.scaleService.registerScaleType('time', TimeScale, defaultConfig);
 };
 
-},{"../core/core.defaults":22,"../helpers/index":42,"moment":63}],55:[function(require,module,exports){
+},{"../core/core.defaults":22,"../helpers/index":42,"moment":64}],56:[function(require,module,exports){
 /* MIT license */
 var colorNames = require('color-name');
 
@@ -13148,7 +13504,7 @@ for (var name in colorNames) {
    reverseNames[colorNames[name]] = name;
 }
 
-},{"color-name":59}],56:[function(require,module,exports){
+},{"color-name":60}],57:[function(require,module,exports){
 /* MIT license */
 var convert = require('color-convert');
 var string = require('chartjs-color-string');
@@ -13635,7 +13991,7 @@ if (typeof window !== 'undefined') {
 
 module.exports = Color;
 
-},{"chartjs-color-string":55,"color-convert":58}],57:[function(require,module,exports){
+},{"chartjs-color-string":56,"color-convert":59}],58:[function(require,module,exports){
 /* MIT license */
 
 module.exports = {
@@ -14335,7 +14691,7 @@ for (var key in cssKeywords) {
   reverseKeywords[JSON.stringify(cssKeywords[key])] = key;
 }
 
-},{}],58:[function(require,module,exports){
+},{}],59:[function(require,module,exports){
 var conversions = require("./conversions");
 
 var convert = function() {
@@ -14428,7 +14784,7 @@ Converter.prototype.getValues = function(space) {
 });
 
 module.exports = convert;
-},{"./conversions":57}],59:[function(require,module,exports){
+},{"./conversions":58}],60:[function(require,module,exports){
 'use strict'
 
 module.exports = {
@@ -14582,2779 +14938,2607 @@ module.exports = {
 	"yellowgreen": [154, 205, 50]
 };
 
-},{}],60:[function(require,module,exports){
+},{}],61:[function(require,module,exports){
 /**
- * enigma.js v2.1.1
- * Copyright (c) 2017 QlikTech International AB
+ * enigma.js v2.2.1
+ * Copyright (c) 2018 QlikTech International AB
  * This library is licensed under MIT - See the LICENSE file for full details
  */
 
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-	typeof define === 'function' && define.amd ? define(factory) :
-	(global.enigma = factory());
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+  typeof define === 'function' && define.amd ? define(factory) :
+  (global.enigma = factory());
 }(this, (function () { 'use strict';
 
-/**
- * Utility functions
- */
+  /**
+   * Utility functions
+   */
 
-var util = {};
+  var util = {};
 
-util.isObject = function isObject(arg) {
-  return typeof arg === 'object' && arg !== null;
-};
+  util.isObject = function isObject(arg) {
+    return typeof arg === 'object' && arg !== null;
+  };
 
-util.isNumber = function isNumber(arg) {
-  return typeof arg === 'number';
-};
+  util.isNumber = function isNumber(arg) {
+    return typeof arg === 'number';
+  };
 
-util.isUndefined = function isUndefined(arg) {
-  return arg === void 0;
-};
+  util.isUndefined = function isUndefined(arg) {
+    return arg === void 0;
+  };
 
-util.isFunction = function isFunction(arg){
-  return typeof arg === 'function';
-};
+  util.isFunction = function isFunction(arg){
+    return typeof arg === 'function';
+  };
 
 
-/**
- * EventEmitter class
- */
+  /**
+   * EventEmitter class
+   */
 
-function EventEmitter() {
-  EventEmitter.init.call(this);
-}
-var nodeEventEmitter = EventEmitter;
-
-// Backwards-compat with node 0.10.x
-EventEmitter.EventEmitter = EventEmitter;
-
-EventEmitter.prototype._events = undefined;
-EventEmitter.prototype._maxListeners = undefined;
-
-// By default EventEmitters will print a warning if more than 10 listeners are
-// added to it. This is a useful default which helps finding memory leaks.
-EventEmitter.defaultMaxListeners = 10;
-
-EventEmitter.init = function() {
-  this._events = this._events || {};
-  this._maxListeners = this._maxListeners || undefined;
-};
-
-// Obviously not all Emitters should be limited to 10. This function allows
-// that to be increased. Set to zero for unlimited.
-EventEmitter.prototype.setMaxListeners = function(n) {
-  if (!util.isNumber(n) || n < 0 || isNaN(n))
-    throw TypeError('n must be a positive number');
-  this._maxListeners = n;
-  return this;
-};
-
-EventEmitter.prototype.emit = function(type) {
-  var er, handler, len, args, i, listeners;
-
-  if (!this._events)
-    this._events = {};
-
-  // If there is no 'error' event listener then throw.
-  if (type === 'error' && !this._events.error) {
-    er = arguments[1];
-    if (er instanceof Error) {
-      throw er; // Unhandled 'error' event
-    } else {
-      throw Error('Uncaught, unspecified "error" event.');
-    }
-    return false;
+  function EventEmitter() {
+    EventEmitter.init.call(this);
   }
+  var nodeEventEmitter = EventEmitter;
 
-  handler = this._events[type];
+  // Backwards-compat with node 0.10.x
+  EventEmitter.EventEmitter = EventEmitter;
 
-  if (util.isUndefined(handler))
-    return false;
+  EventEmitter.prototype._events = undefined;
+  EventEmitter.prototype._maxListeners = undefined;
 
-  if (util.isFunction(handler)) {
-    switch (arguments.length) {
-      // fast cases
-      case 1:
-        handler.call(this);
-        break;
-      case 2:
-        handler.call(this, arguments[1]);
-        break;
-      case 3:
-        handler.call(this, arguments[1], arguments[2]);
-        break;
-      // slower
-      default:
-        len = arguments.length;
-        args = new Array(len - 1);
-        for (i = 1; i < len; i++)
-          args[i - 1] = arguments[i];
-        handler.apply(this, args);
-    }
-  } else if (util.isObject(handler)) {
-    len = arguments.length;
-    args = new Array(len - 1);
-    for (i = 1; i < len; i++)
-      args[i - 1] = arguments[i];
+  // By default EventEmitters will print a warning if more than 10 listeners are
+  // added to it. This is a useful default which helps finding memory leaks.
+  EventEmitter.defaultMaxListeners = 10;
 
-    listeners = handler.slice();
-    len = listeners.length;
-    for (i = 0; i < len; i++)
-      listeners[i].apply(this, args);
-  }
+  EventEmitter.init = function() {
+    this._events = this._events || {};
+    this._maxListeners = this._maxListeners || undefined;
+  };
 
-  return true;
-};
-
-EventEmitter.prototype.addListener = function(type, listener) {
-  var m;
-
-  if (!util.isFunction(listener))
-    throw TypeError('listener must be a function');
-
-  if (!this._events)
-    this._events = {};
-
-  // To avoid recursion in the case that type === "newListener"! Before
-  // adding it to the listeners, first emit "newListener".
-  if (this._events.newListener)
-    this.emit('newListener', type,
-              util.isFunction(listener.listener) ?
-              listener.listener : listener);
-
-  if (!this._events[type])
-    // Optimize the case of one listener. Don't need the extra array object.
-    this._events[type] = listener;
-  else if (util.isObject(this._events[type]))
-    // If we've already got an array, just append.
-    this._events[type].push(listener);
-  else
-    // Adding the second element, need to change to array.
-    this._events[type] = [this._events[type], listener];
-
-  // Check for listener leak
-  if (util.isObject(this._events[type]) && !this._events[type].warned) {
-    var m;
-    if (!util.isUndefined(this._maxListeners)) {
-      m = this._maxListeners;
-    } else {
-      m = EventEmitter.defaultMaxListeners;
-    }
-
-    if (m && m > 0 && this._events[type].length > m) {
-      this._events[type].warned = true;
-
-      if (util.isFunction(console.error)) {
-        console.error('(node) warning: possible EventEmitter memory ' +
-                      'leak detected. %d listeners added. ' +
-                      'Use emitter.setMaxListeners() to increase limit.',
-                      this._events[type].length);
-      }
-      if (util.isFunction(console.trace))
-        console.trace();
-    }
-  }
-
-  return this;
-};
-
-EventEmitter.prototype.on = EventEmitter.prototype.addListener;
-
-EventEmitter.prototype.once = function(type, listener) {
-  if (!util.isFunction(listener))
-    throw TypeError('listener must be a function');
-
-  var fired = false;
-
-  function g() {
-    this.removeListener(type, g);
-
-    if (!fired) {
-      fired = true;
-      listener.apply(this, arguments);
-    }
-  }
-
-  g.listener = listener;
-  this.on(type, g);
-
-  return this;
-};
-
-// emits a 'removeListener' event iff the listener was removed
-EventEmitter.prototype.removeListener = function(type, listener) {
-  var list, position, length, i;
-
-  if (!util.isFunction(listener))
-    throw TypeError('listener must be a function');
-
-  if (!this._events || !this._events[type])
+  // Obviously not all Emitters should be limited to 10. This function allows
+  // that to be increased. Set to zero for unlimited.
+  EventEmitter.prototype.setMaxListeners = function(n) {
+    if (!util.isNumber(n) || n < 0 || isNaN(n))
+      throw TypeError('n must be a positive number');
+    this._maxListeners = n;
     return this;
+  };
 
-  list = this._events[type];
-  length = list.length;
-  position = -1;
+  EventEmitter.prototype.emit = function(type) {
+    var er, handler, len, args, i, listeners;
 
-  if (list === listener ||
-      (util.isFunction(list.listener) && list.listener === listener)) {
-    delete this._events[type];
-    if (this._events.removeListener)
-      this.emit('removeListener', type, listener);
-
-  } else if (util.isObject(list)) {
-    for (i = length; i-- > 0;) {
-      if (list[i] === listener ||
-          (list[i].listener && list[i].listener === listener)) {
-        position = i;
-        break;
-      }
-    }
-
-    if (position < 0)
-      return this;
-
-    if (list.length === 1) {
-      list.length = 0;
-      delete this._events[type];
-    } else {
-      list.splice(position, 1);
-    }
-
-    if (this._events.removeListener)
-      this.emit('removeListener', type, listener);
-  }
-
-  return this;
-};
-
-EventEmitter.prototype.removeAllListeners = function(type) {
-  var key, listeners;
-
-  if (!this._events)
-    return this;
-
-  // not listening for removeListener, no need to emit
-  if (!this._events.removeListener) {
-    if (arguments.length === 0)
+    if (!this._events)
       this._events = {};
-    else if (this._events[type])
-      delete this._events[type];
-    return this;
-  }
 
-  // emit removeListener for all listeners on all events
-  if (arguments.length === 0) {
-    for (key in this._events) {
-      if (key === 'removeListener') continue;
-      this.removeAllListeners(key);
-    }
-    this.removeAllListeners('removeListener');
-    this._events = {};
-    return this;
-  }
-
-  listeners = this._events[type];
-
-  if (util.isFunction(listeners)) {
-    this.removeListener(type, listeners);
-  } else if (Array.isArray(listeners)) {
-    // LIFO order
-    while (listeners.length)
-      this.removeListener(type, listeners[listeners.length - 1]);
-  }
-  delete this._events[type];
-
-  return this;
-};
-
-EventEmitter.prototype.listeners = function(type) {
-  var ret;
-  if (!this._events || !this._events[type])
-    ret = [];
-  else if (util.isFunction(this._events[type]))
-    ret = [this._events[type]];
-  else
-    ret = this._events[type].slice();
-  return ret;
-};
-
-EventEmitter.listenerCount = function(emitter, type) {
-  var ret;
-  if (!emitter._events || !emitter._events[type])
-    ret = 0;
-  else if (util.isFunction(emitter._events[type]))
-    ret = 1;
-  else
-    ret = emitter._events[type].length;
-  return ret;
-};
-
-/**
-* @module EventEmitter
-*/
-var Events = {
-
-  /**
-  * Function used to add event handling to objects passed in.
-  * @param {Object} obj Object instance that will get event handling.
-  */
-  mixin: function mixin(obj) {
-    Object.keys(nodeEventEmitter.prototype).forEach(function (key) {
-      obj[key] = nodeEventEmitter.prototype[key];
-    });
-    nodeEventEmitter.init(obj);
-  }
-};
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
-  return typeof obj;
-} : function (obj) {
-  return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-};
-
-
-
-
-
-var asyncGenerator = function () {
-  function AwaitValue(value) {
-    this.value = value;
-  }
-
-  function AsyncGenerator(gen) {
-    var front, back;
-
-    function send(key, arg) {
-      return new Promise(function (resolve, reject) {
-        var request = {
-          key: key,
-          arg: arg,
-          resolve: resolve,
-          reject: reject,
-          next: null
-        };
-
-        if (back) {
-          back = back.next = request;
-        } else {
-          front = back = request;
-          resume(key, arg);
-        }
-      });
-    }
-
-    function resume(key, arg) {
-      try {
-        var result = gen[key](arg);
-        var value = result.value;
-
-        if (value instanceof AwaitValue) {
-          Promise.resolve(value.value).then(function (arg) {
-            resume("next", arg);
-          }, function (arg) {
-            resume("throw", arg);
-          });
-        } else {
-          settle(result.done ? "return" : "normal", result.value);
-        }
-      } catch (err) {
-        settle("throw", err);
+    // If there is no 'error' event listener then throw.
+    if (type === 'error' && !this._events.error) {
+      er = arguments[1];
+      if (er instanceof Error) {
+        throw er; // Unhandled 'error' event
+      } else {
+        throw Error('Uncaught, unspecified "error" event.');
       }
+      return false;
     }
 
-    function settle(type, value) {
-      switch (type) {
-        case "return":
-          front.resolve({
-            value: value,
-            done: true
-          });
-          break;
+    handler = this._events[type];
 
-        case "throw":
-          front.reject(value);
-          break;
+    if (util.isUndefined(handler))
+      return false;
 
+    if (util.isFunction(handler)) {
+      switch (arguments.length) {
+        // fast cases
+        case 1:
+          handler.call(this);
+          break;
+        case 2:
+          handler.call(this, arguments[1]);
+          break;
+        case 3:
+          handler.call(this, arguments[1], arguments[2]);
+          break;
+        // slower
         default:
-          front.resolve({
-            value: value,
-            done: false
-          });
-          break;
+          len = arguments.length;
+          args = new Array(len - 1);
+          for (i = 1; i < len; i++)
+            args[i - 1] = arguments[i];
+          handler.apply(this, args);
       }
+    } else if (util.isObject(handler)) {
+      len = arguments.length;
+      args = new Array(len - 1);
+      for (i = 1; i < len; i++)
+        args[i - 1] = arguments[i];
 
-      front = front.next;
+      listeners = handler.slice();
+      len = listeners.length;
+      for (i = 0; i < len; i++)
+        listeners[i].apply(this, args);
+    }
 
-      if (front) {
-        resume(front.key, front.arg);
+    return true;
+  };
+
+  EventEmitter.prototype.addListener = function(type, listener) {
+    var m;
+
+    if (!util.isFunction(listener))
+      throw TypeError('listener must be a function');
+
+    if (!this._events)
+      this._events = {};
+
+    // To avoid recursion in the case that type === "newListener"! Before
+    // adding it to the listeners, first emit "newListener".
+    if (this._events.newListener)
+      this.emit('newListener', type,
+                util.isFunction(listener.listener) ?
+                listener.listener : listener);
+
+    if (!this._events[type])
+      // Optimize the case of one listener. Don't need the extra array object.
+      this._events[type] = listener;
+    else if (util.isObject(this._events[type]))
+      // If we've already got an array, just append.
+      this._events[type].push(listener);
+    else
+      // Adding the second element, need to change to array.
+      this._events[type] = [this._events[type], listener];
+
+    // Check for listener leak
+    if (util.isObject(this._events[type]) && !this._events[type].warned) {
+      var m;
+      if (!util.isUndefined(this._maxListeners)) {
+        m = this._maxListeners;
       } else {
-        back = null;
+        m = EventEmitter.defaultMaxListeners;
+      }
+
+      if (m && m > 0 && this._events[type].length > m) {
+        this._events[type].warned = true;
+
+        if (util.isFunction(console.error)) {
+          console.error('(node) warning: possible EventEmitter memory ' +
+                        'leak detected. %d listeners added. ' +
+                        'Use emitter.setMaxListeners() to increase limit.',
+                        this._events[type].length);
+        }
+        if (util.isFunction(console.trace))
+          console.trace();
       }
     }
 
-    this._invoke = send;
+    return this;
+  };
 
-    if (typeof gen.return !== "function") {
-      this.return = undefined;
+  EventEmitter.prototype.on = EventEmitter.prototype.addListener;
+
+  EventEmitter.prototype.once = function(type, listener) {
+    if (!util.isFunction(listener))
+      throw TypeError('listener must be a function');
+
+    var fired = false;
+
+    function g() {
+      this.removeListener(type, g);
+
+      if (!fired) {
+        fired = true;
+        listener.apply(this, arguments);
+      }
     }
-  }
 
-  if (typeof Symbol === "function" && Symbol.asyncIterator) {
-    AsyncGenerator.prototype[Symbol.asyncIterator] = function () {
+    g.listener = listener;
+    this.on(type, g);
+
+    return this;
+  };
+
+  // emits a 'removeListener' event iff the listener was removed
+  EventEmitter.prototype.removeListener = function(type, listener) {
+    var list, position, length, i;
+
+    if (!util.isFunction(listener))
+      throw TypeError('listener must be a function');
+
+    if (!this._events || !this._events[type])
       return this;
-    };
-  }
 
-  AsyncGenerator.prototype.next = function (arg) {
-    return this._invoke("next", arg);
-  };
+    list = this._events[type];
+    length = list.length;
+    position = -1;
 
-  AsyncGenerator.prototype.throw = function (arg) {
-    return this._invoke("throw", arg);
-  };
+    if (list === listener ||
+        (util.isFunction(list.listener) && list.listener === listener)) {
+      delete this._events[type];
+      if (this._events.removeListener)
+        this.emit('removeListener', type, listener);
 
-  AsyncGenerator.prototype.return = function (arg) {
-    return this._invoke("return", arg);
-  };
-
-  return {
-    wrap: function (fn) {
-      return function () {
-        return new AsyncGenerator(fn.apply(this, arguments));
-      };
-    },
-    await: function (value) {
-      return new AwaitValue(value);
-    }
-  };
-}();
-
-
-
-
-
-var classCallCheck = function (instance, Constructor) {
-  if (!(instance instanceof Constructor)) {
-    throw new TypeError("Cannot call a class as a function");
-  }
-};
-
-var createClass = function () {
-  function defineProperties(target, props) {
-    for (var i = 0; i < props.length; i++) {
-      var descriptor = props[i];
-      descriptor.enumerable = descriptor.enumerable || false;
-      descriptor.configurable = true;
-      if ("value" in descriptor) descriptor.writable = true;
-      Object.defineProperty(target, descriptor.key, descriptor);
-    }
-  }
-
-  return function (Constructor, protoProps, staticProps) {
-    if (protoProps) defineProperties(Constructor.prototype, protoProps);
-    if (staticProps) defineProperties(Constructor, staticProps);
-    return Constructor;
-  };
-}();
-
-
-
-
-
-
-
-var _extends = Object.assign || function (target) {
-  for (var i = 1; i < arguments.length; i++) {
-    var source = arguments[i];
-
-    for (var key in source) {
-      if (Object.prototype.hasOwnProperty.call(source, key)) {
-        target[key] = source[key];
+    } else if (util.isObject(list)) {
+      for (i = length; i-- > 0;) {
+        if (list[i] === listener ||
+            (list[i].listener && list[i].listener === listener)) {
+          position = i;
+          break;
+        }
       }
-    }
-  }
 
-  return target;
-};
+      if (position < 0)
+        return this;
 
-var get = function get(object, property, receiver) {
-  if (object === null) object = Function.prototype;
-  var desc = Object.getOwnPropertyDescriptor(object, property);
-
-  if (desc === undefined) {
-    var parent = Object.getPrototypeOf(object);
-
-    if (parent === null) {
-      return undefined;
-    } else {
-      return get(parent, property, receiver);
-    }
-  } else if ("value" in desc) {
-    return desc.value;
-  } else {
-    var getter = desc.get;
-
-    if (getter === undefined) {
-      return undefined;
-    }
-
-    return getter.call(receiver);
-  }
-};
-
-var inherits = function (subClass, superClass) {
-  if (typeof superClass !== "function" && superClass !== null) {
-    throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-  }
-
-  subClass.prototype = Object.create(superClass && superClass.prototype, {
-    constructor: {
-      value: subClass,
-      enumerable: false,
-      writable: true,
-      configurable: true
-    }
-  });
-  if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-};
-
-
-
-
-
-
-
-
-
-
-
-var possibleConstructorReturn = function (self, call) {
-  if (!self) {
-    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-  }
-
-  return call && (typeof call === "object" || typeof call === "function") ? call : self;
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-var toConsumableArray = function (arr) {
-  if (Array.isArray(arr)) {
-    for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
-
-    return arr2;
-  } else {
-    return Array.from(arr);
-  }
-};
-
-var RPC_CLOSE_NORMAL = 1000;
-var RPC_CLOSE_MANUAL_SUSPEND = 4000;
-
-var cacheId = 0;
-
-var Session = function () {
-  /**
-  * Creates a new Session instance.
-  * @param {Object} options The configuration option for this class.
-  * @param {Intercept} options.intercept The intercept instance to use.
-  * @param {ApiCache} options.apis The ApiCache instance to bridge events towards.
-  * @param {Promise} options.Promise The promise constructor to use.
-  * @param {RPC} options.rpc The RPC instance to use when communicating towards Engine.
-  * @param {Schema} options.definition The Schema instance to use when generating APIs.
-  * @param {Object} options.protocol Additional protocol properties.
-  * @param {Boolean} options.protocol.delta Flag indicating if delta should be used or not.
-  * @param {SuspendResume} options.suspendResume The SuspendResume instance to use.
-  * @param {Object} [options.eventListeners] An object containing keys (event names) and
-  *                                          values (event handlers) that will be bound
-  *                                          during instantiation.
-  */
-  function Session(options) {
-    classCallCheck(this, Session);
-
-    var session = this;
-    _extends(session, options);
-    Events.mixin(session);
-    cacheId += 1;
-    session.id = cacheId;
-    session.rpc.on('socket-error', session.onRpcError.bind(session));
-    session.rpc.on('closed', session.onRpcClosed.bind(session));
-    session.rpc.on('message', session.onRpcMessage.bind(session));
-    session.rpc.on('notification', session.onRpcNotification.bind(session));
-    session.rpc.on('traffic', session.onRpcTraffic.bind(session));
-    session.on('closed', function () {
-      return session.onSessionClosed();
-    });
-  }
-
-  /**
-  * Event handler for re-triggering error events from RPC.
-  * @emits socket-error
-  * @param {Error} err Webocket error event.
-  */
-
-
-  createClass(Session, [{
-    key: 'onRpcError',
-    value: function onRpcError(err) {
-      if (this.suspendResume.isSuspended) {
-        return;
-      }
-      this.emit('socket-error', err);
-    }
-
-    /**
-    * Event handler for the RPC close event.
-    * @emits suspended
-    * @emits closed
-    * @param {Event} evt WebSocket close event.
-    */
-
-  }, {
-    key: 'onRpcClosed',
-    value: function onRpcClosed(evt) {
-      var _this = this;
-
-      if (this.suspendResume.isSuspended) {
-        return;
-      }
-      if (evt.code === RPC_CLOSE_NORMAL || evt.code === RPC_CLOSE_MANUAL_SUSPEND) {
-        return;
-      }
-      if (this.suspendOnClose) {
-        this.suspendResume.suspend().then(function () {
-          return _this.emit('suspended', { initiator: 'network' });
-        });
+      if (list.length === 1) {
+        list.length = 0;
+        delete this._events[type];
       } else {
-        this.emit('closed', evt);
+        list.splice(position, 1);
       }
+
+      if (this._events.removeListener)
+        this.emit('removeListener', type, listener);
     }
 
-    /**
-    * Event handler for the RPC message event.
-    * @param {Object} response JSONRPC response.
-    */
+    return this;
+  };
 
-  }, {
-    key: 'onRpcMessage',
-    value: function onRpcMessage(response) {
-      var _this2 = this;
+  EventEmitter.prototype.removeAllListeners = function(type) {
+    var key, listeners;
 
-      if (this.suspendResume.isSuspended) {
-        return;
+    if (!this._events)
+      return this;
+
+    // not listening for removeListener, no need to emit
+    if (!this._events.removeListener) {
+      if (arguments.length === 0)
+        this._events = {};
+      else if (this._events[type])
+        delete this._events[type];
+      return this;
+    }
+
+    // emit removeListener for all listeners on all events
+    if (arguments.length === 0) {
+      for (key in this._events) {
+        if (key === 'removeListener') continue;
+        this.removeAllListeners(key);
       }
-      if (response.change) {
-        response.change.forEach(function (handle) {
-          return _this2.emitHandleChanged(handle);
-        });
-      }
-      if (response.close) {
-        response.close.forEach(function (handle) {
-          return _this2.emitHandleClosed(handle);
-        });
-      }
+      this.removeAllListeners('removeListener');
+      this._events = {};
+      return this;
     }
 
-    /**
-    * Event handler for the RPC notification event.
-    * @emits notification:*
-    * @emits notification:[JSONRPC notification name]
-    * @param {Object} response The JSONRPC notification.
-    */
+    listeners = this._events[type];
 
-  }, {
-    key: 'onRpcNotification',
-    value: function onRpcNotification(response) {
-      this.emit('notification:*', response.method, response.params);
-      this.emit('notification:' + response.method, response.params);
+    if (util.isFunction(listeners)) {
+      this.removeListener(type, listeners);
+    } else if (Array.isArray(listeners)) {
+      // LIFO order
+      while (listeners.length)
+        this.removeListener(type, listeners[listeners.length - 1]);
     }
+    delete this._events[type];
 
-    /**
-    * Event handler for the RPC traffic event.
-    * @emits traffic:*
-    * @emits traffic:sent
-    * @emits traffic:received
-    * @param {String} dir The traffic direction, sent or received.
-    * @param {Object} data JSONRPC request/response/WebSocket message.
-    */
+    return this;
+  };
 
-  }, {
-    key: 'onRpcTraffic',
-    value: function onRpcTraffic(dir, data) {
-      this.emit('traffic:*', dir, data);
-      this.emit('traffic:' + dir, data);
-    }
+  EventEmitter.prototype.listeners = function(type) {
+    var ret;
+    if (!this._events || !this._events[type])
+      ret = [];
+    else if (util.isFunction(this._events[type]))
+      ret = [this._events[type]];
+    else
+      ret = this._events[type].slice();
+    return ret;
+  };
 
-    /**
-    * Event handler for cleaning up API instances when a session has been closed.
-    * @emits api#closed
-    */
-
-  }, {
-    key: 'onSessionClosed',
-    value: function onSessionClosed() {
-      this.apis.getApis().forEach(function (entry) {
-        entry.api.emit('closed');
-        entry.api.removeAllListeners();
-      });
-      this.apis.clear();
-    }
-
-    /**
-     * Function used to get an API for a backend object.
-     * @param {Object} args Arguments used to create object API.
-     * @param {Number} args.handle Handle of the backend object.
-     * @param {String} args.id ID of the backend object.
-     * @param {String} args.type QIX type of the backend object. Can for example
-     *                           be "Doc" or "GenericVariable".
-     * @param {String} args.genericType Custom type of the backend object, if defined in qInfo.
-     * @returns {*} Returns the generated and possibly augmented API.
-     */
-
-  }, {
-    key: 'getObjectApi',
-    value: function getObjectApi(args) {
-      var handle = args.handle,
-          id = args.id,
-          type = args.type,
-          genericType = args.genericType;
-
-      var api = this.apis.getApi(handle);
-      if (api) {
-        return api;
-      }
-      api = this.definition.generate(type).create(this, handle, id, genericType);
-      this.apis.add(handle, api);
-      return api;
-    }
-
-    /**
-    * Establishes the RPC socket connection and returns the Global instance.
-    * @returns {Promise} Eventually resolved if the connection was successful.
-    */
-
-  }, {
-    key: 'open',
-    value: function open() {
-      var _this3 = this;
-
-      if (!this.globalPromise) {
-        var args = {
-          handle: -1,
-          id: 'Global',
-          type: 'Global',
-          genericType: 'Global'
-        };
-        this.globalPromise = this.rpc.open().then(function () {
-          return _this3.getObjectApi(args);
-        }).then(function (global) {
-          _this3.emit('opened');
-          return global;
-        });
-      }
-      return this.globalPromise;
-    }
-
-    /**
-    * Function used to send data on the RPC socket.
-    * @param {Object} request The request to be sent. (data and some meta info)
-    * @returns {Object} Returns a promise instance.
-    */
-
-  }, {
-    key: 'send',
-    value: function send(request) {
-      var _this4 = this;
-
-      if (this.suspendResume.isSuspended) {
-        return this.Promise.reject(new Error('Session suspended'));
-      }
-      request.id = this.rpc.createRequestId();
-      var promise = this.intercept.executeRequests(this, this.Promise.resolve(request)).then(function (augmentedRequest) {
-        var data = _extends({}, _this4.protocol, augmentedRequest);
-        // the outKey value is used by multiple-out interceptor, at some point
-        // we need to refactor that implementation and figure out how to transport
-        // this value without hijacking the JSONRPC request object:
-        delete data.outKey;
-        var response = _this4.rpc.send(data);
-        augmentedRequest.retry = function () {
-          return _this4.send(request);
-        };
-        return _this4.intercept.executeResponses(_this4, response, augmentedRequest);
-      });
-      Session.addToPromiseChain(promise, 'requestId', request.id);
-      return promise;
-    }
-
-    /**
-    * Suspends the session ("sleeping state"), and closes the RPC connection.
-    * @emits suspended
-    * @returns {Promise} Eventually resolved when the RPC connection is closed.
-    */
-
-  }, {
-    key: 'suspend',
-    value: function suspend() {
-      var _this5 = this;
-
-      return this.suspendResume.suspend().then(function () {
-        return _this5.emit('suspended', { initiator: 'manual' });
-      });
-    }
-
-    /**
-    * Resumes a previously suspended session.
-    * @param {Boolean} onlyIfAttached If true, resume only if the session was re-attached.
-    * @returns {Promise} Eventually resolved if the session was successfully resumed,
-    *                    otherwise rejected.
-    */
-
-  }, {
-    key: 'resume',
-    value: function resume(onlyIfAttached) {
-      var _this6 = this;
-
-      return this.suspendResume.resume(onlyIfAttached).then(function (value) {
-        _this6.emit('resumed');
-        return value;
-      });
-    }
-
-    /**
-    * Function used to close the session.
-    * @returns {Promise} Eventually resolved when the RPC connection is closed.
-    */
-
-  }, {
-    key: 'close',
-    value: function close() {
-      var _this7 = this;
-
-      this.globalPromise = undefined;
-      return this.rpc.close().then(function (evt) {
-        return _this7.emit('closed', evt);
-      });
-    }
-
-    /**
-    * Given a handle, this function will emit the 'changed' event on the
-    * corresponding API instance.
-    * @param {Number} handle The handle of the API instance.
-    * @emits api#changed
-    */
-
-  }, {
-    key: 'emitHandleChanged',
-    value: function emitHandleChanged(handle) {
-      var api = this.apis.getApi(handle);
-      if (api) {
-        api.emit('changed');
-      }
-    }
-
-    /**
-    * Given a handle, this function will emit the 'closed' event on the
-    * corresponding API instance.
-    * @param {Number} handle The handle of the API instance.
-    * @emits api#closed
-    */
-
-  }, {
-    key: 'emitHandleClosed',
-    value: function emitHandleClosed(handle) {
-      var api = this.apis.getApi(handle);
-      if (api) {
-        api.emit('closed');
-        api.removeAllListeners();
-      }
-    }
-
-    /**
-    * Function used to add info on the promise chain.
-    * @private
-    * @param {Promise} promise The promise to add info on.
-    * @param {String} name The property to add info on.
-    * @param {Any} value The info to add.
-    */
-
-  }], [{
-    key: 'addToPromiseChain',
-    value: function addToPromiseChain(promise, name, value) {
-      promise[name] = value;
-      var then = promise.then;
-
-      promise.then = function patchedThen() {
-        for (var _len = arguments.length, params = Array(_len), _key = 0; _key < _len; _key++) {
-          params[_key] = arguments[_key];
-        }
-
-        var chain = then.apply(this, params);
-        Session.addToPromiseChain(chain, name, value);
-        return chain;
-      };
-    }
-  }]);
-  return Session;
-}();
-
-/**
-* Key-value cache
-*/
-var KeyValueCache = function () {
-  function KeyValueCache() {
-    classCallCheck(this, KeyValueCache);
-
-    this.entries = {};
-  }
+  EventEmitter.listenerCount = function(emitter, type) {
+    var ret;
+    if (!emitter._events || !emitter._events[type])
+      ret = 0;
+    else if (util.isFunction(emitter._events[type]))
+      ret = 1;
+    else
+      ret = emitter._events[type].length;
+    return ret;
+  };
 
   /**
-  * Adds an entry.
-  * @function KeyValueCache#add
-  * @param {String} key The key representing an entry.
-  * @param {*} entry The entry to be added.
+  * @module EventEmitter
   */
-
-
-  createClass(KeyValueCache, [{
-    key: 'add',
-    value: function add(key, entry) {
-      key += '';
-      if (typeof this.entries[key] !== 'undefined') {
-        throw new Error('Entry already defined with key ' + key);
-      }
-      this.entries[key] = entry;
-    }
+  var Events = {
 
     /**
-    * Sets an entry.
-    * @function KeyValueCache#set
-    * @param {String} key The key representing an entry.
-    * @param {*} entry The entry.
+    * Function used to add event handling to objects passed in.
+    * @param {Object} obj Object instance that will get event handling.
     */
-
-  }, {
-    key: 'set',
-    value: function set$$1(key, entry) {
-      key += '';
-      this.entries[key] = entry;
-    }
-
-    /**
-    * Removes an entry.
-    * @function KeyValueCache#remove
-    * @param {String} key The key representing an entry.
-    */
-
-  }, {
-    key: 'remove',
-    value: function remove(key) {
-      delete this.entries[key];
-    }
-
-    /**
-    * Gets an entry.
-    * @function KeyValueCache#get
-    * @param {String} key The key representing an entry.
-    * @returns {*} The entry for the key.
-    */
-
-  }, {
-    key: 'get',
-    value: function get$$1(key) {
-      return this.entries[key];
-    }
-
-    /**
-    * Gets a list of all entries.
-    * @function KeyValueCache#getAll
-    * @returns {Array} The list of entries including its `key` and `value` properties.
-    */
-
-  }, {
-    key: 'getAll',
-    value: function getAll() {
-      var _this = this;
-
-      return Object.keys(this.entries).map(function (key) {
-        return {
-          key: key,
-          value: _this.entries[key]
-        };
+    mixin: function mixin(obj) {
+      Object.keys(nodeEventEmitter.prototype).forEach(function (key) {
+        obj[key] = nodeEventEmitter.prototype[key];
       });
+      nodeEventEmitter.init(obj);
+    }
+  };
+
+  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
+    return typeof obj;
+  } : function (obj) {
+    return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+  };
+
+  var classCallCheck = function (instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  };
+
+  var createClass = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];
+        descriptor.enumerable = descriptor.enumerable || false;
+        descriptor.configurable = true;
+        if ("value" in descriptor) descriptor.writable = true;
+        Object.defineProperty(target, descriptor.key, descriptor);
+      }
     }
 
-    /**
-    * Gets a key for an entry.
-    * @function KeyValueCache#getKey
-    * @param {*} entry The entry to locate the key for.
-    * @returns {String} The key representing an entry.
-    */
+    return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);
+      if (staticProps) defineProperties(Constructor, staticProps);
+      return Constructor;
+    };
+  }();
 
-  }, {
-    key: 'getKey',
-    value: function getKey(entry) {
-      var _this2 = this;
+  var _extends = Object.assign || function (target) {
+    for (var i = 1; i < arguments.length; i++) {
+      var source = arguments[i];
 
-      return Object.keys(this.entries).filter(function (key) {
-        return _this2.entries[key] === entry;
-      })[0];
+      for (var key in source) {
+        if (Object.prototype.hasOwnProperty.call(source, key)) {
+          target[key] = source[key];
+        }
+      }
     }
 
-    /**
-    * Clears the cache of all entries.
-    * @function KeyValueCache#clear
-    */
+    return target;
+  };
 
-  }, {
-    key: 'clear',
-    value: function clear() {
-      this.entries = {};
+  var get = function get(object, property, receiver) {
+    if (object === null) object = Function.prototype;
+    var desc = Object.getOwnPropertyDescriptor(object, property);
+
+    if (desc === undefined) {
+      var parent = Object.getPrototypeOf(object);
+
+      if (parent === null) {
+        return undefined;
+      } else {
+        return get(parent, property, receiver);
+      }
+    } else if ("value" in desc) {
+      return desc.value;
+    } else {
+      var getter = desc.get;
+
+      if (getter === undefined) {
+        return undefined;
+      }
+
+      return getter.call(receiver);
     }
-  }]);
-  return KeyValueCache;
-}();
+  };
 
-var hasOwnProperty$1 = Object.prototype.hasOwnProperty;
+  var inherits = function (subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+    }
 
-/**
-* Returns the camelCase counterpart of a symbol.
-* @param {String} symbol The symbol.
-* @return the camelCase counterpart.
-*/
-
-function toCamelCase(symbol) {
-  return symbol.substring(0, 1).toLowerCase() + symbol.substring(1);
-}
-
-/**
- * A facade function that allows parameters to be passed either by name
- * (through an object), or by position (through an array).
- * @param {Function} base The function that is being overriden. Will be
- *                        called with parameters in array-form.
- * @param {Object} defaults Parameter list and it's default values.
- * @param {*} params The parameters.
- */
-function namedParamFacade(base, defaults$$1) {
-  for (var _len = arguments.length, params = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
-    params[_key - 2] = arguments[_key];
-  }
-
-  if (params.length === 1 && _typeof(params[0]) === 'object') {
-    var valid = Object.keys(params[0]).every(function (key) {
-      return hasOwnProperty$1.call(defaults$$1, key);
+    subClass.prototype = Object.create(superClass && superClass.prototype, {
+      constructor: {
+        value: subClass,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
     });
-    if (valid) {
-      params = Object.keys(defaults$$1).map(function (key) {
-        return params[0][key] || defaults$$1[key];
+    if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+  };
+
+  var possibleConstructorReturn = function (self, call) {
+    if (!self) {
+      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+    }
+
+    return call && (typeof call === "object" || typeof call === "function") ? call : self;
+  };
+
+  var toConsumableArray = function (arr) {
+    if (Array.isArray(arr)) {
+      for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
+
+      return arr2;
+    } else {
+      return Array.from(arr);
+    }
+  };
+
+  var RPC_CLOSE_NORMAL = 1000;
+  var RPC_CLOSE_MANUAL_SUSPEND = 4000;
+
+  var cacheId = 0;
+
+  var Session = function () {
+    /**
+    * Creates a new Session instance.
+    * @param {Object} options The configuration option for this class.
+    * @param {ApiCache} options.apis The ApiCache instance to bridge events towards.
+    * @param {Object} options.config The configuration object for this session.
+    * @param {Intercept} options.intercept The intercept instance to use.
+    * @param {RPC} options.rpc The RPC instance to use when communicating towards Engine.
+    * @param {SuspendResume} options.suspendResume The SuspendResume instance to use.
+    */
+    function Session(options) {
+      classCallCheck(this, Session);
+
+      var session = this;
+      _extends(session, options);
+      this.Promise = this.config.Promise;
+      this.definition = this.config.definition;
+      Events.mixin(session);
+      cacheId += 1;
+      session.id = cacheId;
+      session.rpc.on('socket-error', session.onRpcError.bind(session));
+      session.rpc.on('closed', session.onRpcClosed.bind(session));
+      session.rpc.on('message', session.onRpcMessage.bind(session));
+      session.rpc.on('notification', session.onRpcNotification.bind(session));
+      session.rpc.on('traffic', session.onRpcTraffic.bind(session));
+      session.on('closed', function () {
+        return session.onSessionClosed();
       });
     }
-  }
-  return base.apply(this, params);
-}
 
-/**
-* Qix schema definition.
-*/
-
-var Schema = function () {
-  /**
-  * Create a new schema instance.
-  * @param {Configuration} config The configuration for QIX.
-  */
-  function Schema(config) {
-    classCallCheck(this, Schema);
-
-    this.config = config;
-    this.Promise = config.Promise;
-    this.schema = config.schema;
-    this.mixins = new KeyValueCache();
-    this.types = new KeyValueCache();
-  }
-
-  /**
-  * Function used to add a mixin object to the mixin cache. Will be mixed into the API
-  * of the specified key when generated.
-  * @param {Object} mixin Mixin object.
-  * @param {String|Array<String>} mixin.types String or array of strings containing the
-  *                                           API-types that will be mixed in.
-  * @param {Object} [mixin.extend] Object literal containing the methods that
-  *                                will be extended on the specified API.
-  * @param {Object} [mixin.override] Object literal containing the methods to
-  *                                  override existing methods.
-  * @param {Function} [mixin.init] Init function that, if defined, will run when an API is
-  *                                instantiated. It runs with Promise and API object as parameters.
-  */
+    /**
+    * Event handler for re-triggering error events from RPC.
+    * @emits socket-error
+    * @param {Error} err Webocket error event.
+    */
 
 
-  createClass(Schema, [{
-    key: 'registerMixin',
-    value: function registerMixin(_ref) {
-      var _this = this;
-
-      var types = _ref.types,
-          type = _ref.type,
-          extend = _ref.extend,
-          override = _ref.override,
-          init = _ref.init;
-
-      if (!Array.isArray(types)) {
-        types = [types];
-      }
-      // to support a single type
-      if (type) {
-        types.push(type);
-      }
-      var cached = { extend: extend, override: override, init: init };
-      types.forEach(function (typeKey) {
-        var entryList = _this.mixins.get(typeKey);
-        if (entryList) {
-          entryList.push(cached);
-        } else {
-          _this.mixins.add(typeKey, [cached]);
+    createClass(Session, [{
+      key: 'onRpcError',
+      value: function onRpcError(err) {
+        if (this.suspendResume.isSuspended) {
+          return;
         }
-      });
-    }
-
-    /**
-    * Function used to generate a type definition.
-    * @param {String} type The type.
-    * @returns {{create: Function, def: Object}} Returns an object with a definition
-    *          of the type and a create factory.
-    */
-
-  }, {
-    key: 'generate',
-    value: function generate(type) {
-      var entry = this.types.get(type);
-      if (entry) {
-        return entry;
+        this.emit('socket-error', err);
       }
-      if (!this.schema.structs[type]) {
-        throw new Error(type + ' not found');
+
+      /**
+      * Event handler for the RPC close event.
+      * @emits suspended
+      * @emits closed
+      * @param {Event} evt WebSocket close event.
+      */
+
+    }, {
+      key: 'onRpcClosed',
+      value: function onRpcClosed(evt) {
+        var _this = this;
+
+        if (this.suspendResume.isSuspended) {
+          return;
+        }
+        if (evt.code === RPC_CLOSE_NORMAL || evt.code === RPC_CLOSE_MANUAL_SUSPEND) {
+          return;
+        }
+        if (this.config.suspendOnClose) {
+          this.suspendResume.suspend().then(function () {
+            return _this.emit('suspended', { initiator: 'network' });
+          });
+        } else {
+          this.emit('closed', evt);
+        }
       }
-      var factory = this.generateApi(type, this.schema.structs[type]);
-      this.types.add(type, factory);
-      return factory;
-    }
 
-    /**
-    * Function used to generate an API definition for a given type.
-    * @param {String} type The type to generate.
-    * @param {Object} schema The schema describing the type.
-    * @returns {{create: (function(session:Object, handle:Number, id:String,
-    *          customKey:String)), def: Object}} Returns the API definition.
-    */
+      /**
+      * Event handler for the RPC message event.
+      * @param {Object} response JSONRPC response.
+      */
 
-  }, {
-    key: 'generateApi',
-    value: function generateApi(type, schema) {
-      var api = Object.create({});
-
-      this.generateDefaultApi(api, schema); // Generate default
-      this.mixinType(type, api); // Mixin default type
-      this.mixinNamedParamFacade(api, schema); // Mixin named parameter support
-
-      var create = function create(session, handle, id, customKey) {
+    }, {
+      key: 'onRpcMessage',
+      value: function onRpcMessage(response) {
         var _this2 = this;
 
-        var instance = Object.create(api);
-
-        Events.mixin(instance); // Always mixin event-emitter per instance
-
-        Object.defineProperties(instance, {
-          session: {
-            enumerable: true,
-            value: session
-          },
-          handle: {
-            enumerable: true,
-            value: handle,
-            writable: true
-          },
-          id: {
-            enumerable: true,
-            value: id
-          },
-          type: {
-            enumerable: true,
-            value: type
-          },
-          genericType: {
-            enumerable: true,
-            value: customKey
-          }
-        });
-
-        var mixinList = this.mixins.get(type) || [];
-        if (customKey !== type) {
-          this.mixinType(customKey, instance); // Mixin custom types
-          mixinList = mixinList.concat(this.mixins.get(customKey) || []);
+        if (this.suspendResume.isSuspended) {
+          return;
         }
-        mixinList.forEach(function (mixin) {
-          if (typeof mixin.init === 'function') {
-            mixin.init({ config: _this2.config, api: instance });
-          }
+        if (response.change) {
+          response.change.forEach(function (handle) {
+            return _this2.emitHandleChanged(handle);
+          });
+        }
+        if (response.close) {
+          response.close.forEach(function (handle) {
+            return _this2.emitHandleClosed(handle);
+          });
+        }
+      }
+
+      /**
+      * Event handler for the RPC notification event.
+      * @emits notification:*
+      * @emits notification:[JSONRPC notification name]
+      * @param {Object} response The JSONRPC notification.
+      */
+
+    }, {
+      key: 'onRpcNotification',
+      value: function onRpcNotification(response) {
+        this.emit('notification:*', response.method, response.params);
+        this.emit('notification:' + response.method, response.params);
+      }
+
+      /**
+      * Event handler for the RPC traffic event.
+      * @emits traffic:*
+      * @emits traffic:sent
+      * @emits traffic:received
+      * @param {String} dir The traffic direction, sent or received.
+      * @param {Object} data JSONRPC request/response/WebSocket message.
+      */
+
+    }, {
+      key: 'onRpcTraffic',
+      value: function onRpcTraffic(dir, data) {
+        this.emit('traffic:*', dir, data);
+        this.emit('traffic:' + dir, data);
+      }
+
+      /**
+      * Event handler for cleaning up API instances when a session has been closed.
+      * @emits api#closed
+      */
+
+    }, {
+      key: 'onSessionClosed',
+      value: function onSessionClosed() {
+        this.apis.getApis().forEach(function (entry) {
+          entry.api.emit('closed');
+          entry.api.removeAllListeners();
         });
+        this.apis.clear();
+      }
 
-        return instance;
-      }.bind(this);
+      /**
+       * Function used to get an API for a backend object.
+       * @param {Object} args Arguments used to create object API.
+       * @param {Number} args.handle Handle of the backend object.
+       * @param {String} args.id ID of the backend object.
+       * @param {String} args.type QIX type of the backend object. Can for example
+       *                           be "Doc" or "GenericVariable".
+       * @param {String} args.genericType Custom type of the backend object, if defined in qInfo.
+       * @returns {*} Returns the generated and possibly augmented API.
+       */
 
-      return {
-        create: create,
-        def: api
-      };
-    }
+    }, {
+      key: 'getObjectApi',
+      value: function getObjectApi(args) {
+        var handle = args.handle,
+            id = args.id,
+            type = args.type,
+            genericType = args.genericType;
 
-    /**
-    * Function used to generate the methods with the right handlers to the object
-    * API that is being generated.
-    * @param {Object} api The object API that is currently being generated.
-    * @param {Object} schema The API definition.
-    */
+        var api = this.apis.getApi(handle);
+        if (api) {
+          return api;
+        }
+        var factory = this.definition.generate(type);
+        api = factory(this, handle, id, genericType);
+        this.apis.add(handle, api);
+        return api;
+      }
 
-  }, {
-    key: 'generateDefaultApi',
-    value: function generateDefaultApi(api, schema) {
-      Object.keys(schema).forEach(function (method) {
-        var out = schema[method].Out && schema[method].Out;
-        var outKey = out.length === 1 ? out[0].Name : -1;
-        var fnName = toCamelCase(method);
+      /**
+      * Establishes the RPC socket connection and returns the Global instance.
+      * @returns {Promise} Eventually resolved if the connection was successful.
+      */
 
-        api[fnName] = function generatedMethod() {
-          for (var _len2 = arguments.length, params = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-            params[_key2] = arguments[_key2];
-          }
+    }, {
+      key: 'open',
+      value: function open() {
+        var _this3 = this;
 
-          return this.session.send({
-            handle: this.handle,
-            method: method,
-            params: params,
-            outKey: outKey
+        if (!this.globalPromise) {
+          var args = {
+            handle: -1,
+            id: 'Global',
+            type: 'Global',
+            genericType: 'Global'
+          };
+          this.globalPromise = this.rpc.open().then(function () {
+            return _this3.getObjectApi(args);
+          }).then(function (global) {
+            _this3.emit('opened');
+            return global;
           });
-        };
-      });
-    }
+        }
+        return this.globalPromise;
+      }
 
-    /**
-    * Function used to add mixin methods to a specified API.
-    * @param {String} type Used to specify which mixin should be woven in.
-    * @param {Object} api The object that will be woven.
-    */
+      /**
+      * Function used to send data on the RPC socket.
+      * @param {Object} request The request to be sent. (data and some meta info)
+      * @returns {Object} Returns a promise instance.
+      */
 
-  }, {
-    key: 'mixinType',
-    value: function mixinType(type, api) {
-      var mixinList = this.mixins.get(type);
-      if (mixinList) {
-        mixinList.forEach(function (_ref2) {
-          var _ref2$extend = _ref2.extend,
-              extend = _ref2$extend === undefined ? {} : _ref2$extend,
-              _ref2$override = _ref2.override,
-              override = _ref2$override === undefined ? {} : _ref2$override;
+    }, {
+      key: 'send',
+      value: function send(request) {
+        var _this4 = this;
 
-          Object.keys(override).forEach(function (key) {
-            if (typeof api[key] === 'function' && typeof override[key] === 'function') {
-              var baseFn = api[key];
-              api[key] = function wrappedFn() {
-                for (var _len3 = arguments.length, args = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-                  args[_key3] = arguments[_key3];
-                }
+        if (this.suspendResume.isSuspended) {
+          return this.Promise.reject(new Error('Session suspended'));
+        }
+        request.id = this.rpc.createRequestId();
+        var promise = this.intercept.executeRequests(this, this.Promise.resolve(request)).then(function (augmentedRequest) {
+          var data = _extends({}, _this4.config.protocol, augmentedRequest);
+          // the outKey value is used by multiple-out interceptor, at some point
+          // we need to refactor that implementation and figure out how to transport
+          // this value without hijacking the JSONRPC request object:
+          delete data.outKey;
+          var response = _this4.rpc.send(data);
+          augmentedRequest.retry = function () {
+            return _this4.send(request);
+          };
+          return _this4.intercept.executeResponses(_this4, response, augmentedRequest);
+        });
+        Session.addToPromiseChain(promise, 'requestId', request.id);
+        return promise;
+      }
 
-                return override[key].apply(this, [baseFn.bind(this)].concat(args));
-              };
-            } else {
-              throw new Error('No function to override. Type: ' + type + ' function: ' + key);
-            }
-          });
-          Object.keys(extend).forEach(function (key) {
-            // handle overrides
-            if (typeof api[key] === 'function' && typeof extend[key] === 'function') {
-              throw new Error('Extend is not allowed for this mixin. Type: ' + type + ' function: ' + key);
-            } else {
-              api[key] = extend[key];
-            }
-          });
+      /**
+      * Suspends the session ("sleeping state"), and closes the RPC connection.
+      * @emits suspended
+      * @returns {Promise} Eventually resolved when the RPC connection is closed.
+      */
+
+    }, {
+      key: 'suspend',
+      value: function suspend() {
+        var _this5 = this;
+
+        return this.suspendResume.suspend().then(function () {
+          return _this5.emit('suspended', { initiator: 'manual' });
         });
       }
+
+      /**
+      * Resumes a previously suspended session.
+      * @param {Boolean} onlyIfAttached If true, resume only if the session was re-attached.
+      * @returns {Promise} Eventually resolved if the session was successfully resumed,
+      *                    otherwise rejected.
+      */
+
+    }, {
+      key: 'resume',
+      value: function resume(onlyIfAttached) {
+        var _this6 = this;
+
+        return this.suspendResume.resume(onlyIfAttached).then(function (value) {
+          _this6.emit('resumed');
+          return value;
+        });
+      }
+
+      /**
+      * Function used to close the session.
+      * @returns {Promise} Eventually resolved when the RPC connection is closed.
+      */
+
+    }, {
+      key: 'close',
+      value: function close() {
+        var _this7 = this;
+
+        this.globalPromise = undefined;
+        return this.rpc.close().then(function (evt) {
+          return _this7.emit('closed', evt);
+        });
+      }
+
+      /**
+      * Given a handle, this function will emit the 'changed' event on the
+      * corresponding API instance.
+      * @param {Number} handle The handle of the API instance.
+      * @emits api#changed
+      */
+
+    }, {
+      key: 'emitHandleChanged',
+      value: function emitHandleChanged(handle) {
+        var api = this.apis.getApi(handle);
+        if (api) {
+          api.emit('changed');
+        }
+      }
+
+      /**
+      * Given a handle, this function will emit the 'closed' event on the
+      * corresponding API instance.
+      * @param {Number} handle The handle of the API instance.
+      * @emits api#closed
+      */
+
+    }, {
+      key: 'emitHandleClosed',
+      value: function emitHandleClosed(handle) {
+        var api = this.apis.getApi(handle);
+        if (api) {
+          api.emit('closed');
+          api.removeAllListeners();
+        }
+      }
+
+      /**
+      * Function used to add info on the promise chain.
+      * @private
+      * @param {Promise} promise The promise to add info on.
+      * @param {String} name The property to add info on.
+      * @param {Any} value The info to add.
+      */
+
+    }], [{
+      key: 'addToPromiseChain',
+      value: function addToPromiseChain(promise, name, value) {
+        promise[name] = value;
+        var then = promise.then;
+
+        promise.then = function patchedThen() {
+          for (var _len = arguments.length, params = Array(_len), _key = 0; _key < _len; _key++) {
+            params[_key] = arguments[_key];
+          }
+
+          var chain = then.apply(this, params);
+          Session.addToPromiseChain(chain, name, value);
+          return chain;
+        };
+      }
+    }]);
+    return Session;
+  }();
+
+  /**
+  * Key-value cache
+  */
+  var KeyValueCache = function () {
+    function KeyValueCache() {
+      classCallCheck(this, KeyValueCache);
+
+      this.entries = {};
     }
 
     /**
-    * Function used to mixin the named parameter facade.
-    * @param {Object} api The object API that is currently being generated.
-    * @param {Object} schema The API definition.
+    * Adds an entry.
+    * @function KeyValueCache#add
+    * @param {String} key The key representing an entry.
+    * @param {*} entry The entry to be added.
     */
 
-  }, {
-    key: 'mixinNamedParamFacade',
-    value: function mixinNamedParamFacade(api, schema) {
-      Object.keys(schema).forEach(function (key) {
-        var fnName = toCamelCase(key);
-        var base = api[fnName];
-        var defaults$$1 = schema[key].In.reduce(function (result, item) {
-          result[item.Name] = item.DefaultValue;
-          return result;
-        }, {});
 
-        api[fnName] = function namedParamWrapper() {
-          for (var _len4 = arguments.length, params = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
-            params[_key4] = arguments[_key4];
-          }
+    createClass(KeyValueCache, [{
+      key: 'add',
+      value: function add(key, entry) {
+        key += '';
+        if (typeof this.entries[key] !== 'undefined') {
+          throw new Error('Entry already defined with key ' + key);
+        }
+        this.entries[key] = entry;
+      }
 
-          return namedParamFacade.apply(this, [base, defaults$$1].concat(params));
-        };
-      });
-    }
-  }]);
-  return Schema;
-}();
+      /**
+      * Sets an entry.
+      * @function KeyValueCache#set
+      * @param {String} key The key representing an entry.
+      * @param {*} entry The entry.
+      */
 
-/**
- * Helper class for handling RPC calls
- */
+    }, {
+      key: 'set',
+      value: function set$$1(key, entry) {
+        key += '';
+        this.entries[key] = entry;
+      }
 
-var RPCResolver = function () {
-  function RPCResolver(id, resolve, reject) {
-    classCallCheck(this, RPCResolver);
+      /**
+      * Removes an entry.
+      * @function KeyValueCache#remove
+      * @param {String} key The key representing an entry.
+      */
 
-    Events.mixin(this);
-    this.id = id;
-    this.resolve = resolve;
-    this.reject = reject;
+    }, {
+      key: 'remove',
+      value: function remove(key) {
+        delete this.entries[key];
+      }
+
+      /**
+      * Gets an entry.
+      * @function KeyValueCache#get
+      * @param {String} key The key representing an entry.
+      * @returns {*} The entry for the key.
+      */
+
+    }, {
+      key: 'get',
+      value: function get$$1(key) {
+        return this.entries[key];
+      }
+
+      /**
+      * Gets a list of all entries.
+      * @function KeyValueCache#getAll
+      * @returns {Array} The list of entries including its `key` and `value` properties.
+      */
+
+    }, {
+      key: 'getAll',
+      value: function getAll() {
+        var _this = this;
+
+        return Object.keys(this.entries).map(function (key) {
+          return {
+            key: key,
+            value: _this.entries[key]
+          };
+        });
+      }
+
+      /**
+      * Gets a key for an entry.
+      * @function KeyValueCache#getKey
+      * @param {*} entry The entry to locate the key for.
+      * @returns {String} The key representing an entry.
+      */
+
+    }, {
+      key: 'getKey',
+      value: function getKey(entry) {
+        var _this2 = this;
+
+        return Object.keys(this.entries).filter(function (key) {
+          return _this2.entries[key] === entry;
+        })[0];
+      }
+
+      /**
+      * Clears the cache of all entries.
+      * @function KeyValueCache#clear
+      */
+
+    }, {
+      key: 'clear',
+      value: function clear() {
+        this.entries = {};
+      }
+    }]);
+    return KeyValueCache;
+  }();
+
+  var hasOwnProperty$1 = Object.prototype.hasOwnProperty;
+
+  /**
+  * Returns the camelCase counterpart of a symbol.
+  * @param {String} symbol The symbol.
+  * @return the camelCase counterpart.
+  */
+
+  function toCamelCase(symbol) {
+    return symbol.substring(0, 1).toLowerCase() + symbol.substring(1);
   }
 
-  createClass(RPCResolver, [{
-    key: 'resolveWith',
-    value: function resolveWith(data) {
-      this.resolve(data);
-      this.emit('resolved', this.id);
-    }
-  }, {
-    key: 'rejectWith',
-    value: function rejectWith(err) {
-      this.reject(err);
-      this.emit('rejected', this.id);
-    }
-  }]);
-  return RPCResolver;
-}();
-
-/**
-* This class handles remote procedure calls on a web socket.
-*/
-
-var RPC = function () {
   /**
-  * Create a new RPC instance.
-  * @param {Object} options The configuration options for this class.
-  * @param {Function} options.Promise The promise constructor to use.
-  * @param {String} options.url The complete websocket URL used to connect.
-  * @param {Function} options.createSocket The function callback to create a WebSocket.
-  */
-  function RPC(options) {
-    classCallCheck(this, RPC);
+   * A facade function that allows parameters to be passed either by name
+   * (through an object), or by position (through an array).
+   * @param {Function} base The function that is being overriden. Will be
+   *                        called with parameters in array-form.
+   * @param {Object} defaults Parameter list and it's default values.
+   * @param {*} params The parameters.
+   */
+  function namedParamFacade(base, defaults$$1) {
+    for (var _len = arguments.length, params = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+      params[_key - 2] = arguments[_key];
+    }
 
-    _extends(this, options);
-    Events.mixin(this);
-    this.resolvers = {};
-    this.requestId = 0;
-    this.openedPromise = undefined;
+    if (params.length === 1 && _typeof(params[0]) === 'object' && !Array.isArray(params[0])) {
+      var valid = Object.keys(params[0]).every(function (key) {
+        return hasOwnProperty$1.call(defaults$$1, key);
+      });
+      if (valid) {
+        params = Object.keys(defaults$$1).map(function (key) {
+          return params[0][key] || defaults$$1[key];
+        });
+      }
+    }
+    return base.apply(this, params);
   }
 
   /**
-  * Opens a connection to the configured endpoint.
-  * @param {Boolean} force - ignores all previous and outstanding open calls if set to true.
-  * @returns {Object} A promise instance.
+  * Qix schema definition.
   */
 
+  var Schema = function () {
+    /**
+    * Create a new schema instance.
+    * @param {Configuration} config The configuration for QIX.
+    */
+    function Schema(config) {
+      classCallCheck(this, Schema);
 
-  createClass(RPC, [{
-    key: 'open',
-    value: function open() {
-      var _this = this;
-
-      var force = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
-
-      if (!force && this.openedPromise) {
-        return this.openedPromise;
-      }
-
-      try {
-        this.socket = this.createSocket(this.url);
-      } catch (err) {
-        return this.Promise.reject(err);
-      }
-
-      this.socket.onopen = this.onOpen.bind(this);
-      this.socket.onclose = this.onClose.bind(this);
-      this.socket.onerror = this.onError.bind(this);
-      this.socket.onmessage = this.onMessage.bind(this);
-      this.openedPromise = new this.Promise(function (resolve, reject) {
-        return _this.registerResolver('opened', resolve, reject);
-      });
-      this.closedPromise = new this.Promise(function (resolve, reject) {
-        return _this.registerResolver('closed', resolve, reject);
-      });
-      return this.openedPromise;
+      this.config = config;
+      this.Promise = config.Promise;
+      this.schema = config.schema;
+      this.mixins = new KeyValueCache();
+      this.types = new KeyValueCache();
     }
 
     /**
-    * Resolves the open promise when a connection is successfully established.
+    * Function used to add a mixin object to the mixin cache. Will be mixed into the API
+    * of the specified key when generated.
+    * @param {Object} mixin Mixin object.
+    * @param {String|Array<String>} mixin.types String or array of strings containing the
+    *                                           API-types that will be mixed in.
+    * @param {Object} [mixin.extend] Object literal containing the methods that
+    *                                will be extended on the specified API.
+    * @param {Object} [mixin.override] Object literal containing the methods to
+    *                                  override existing methods.
+    * @param {Function} [mixin.init] Init function that, if defined, will run when an API is
+    *                                instantiated. It runs with Promise and API object as parameters.
     */
 
-  }, {
-    key: 'onOpen',
-    value: function onOpen() {
-      var _this2 = this;
 
-      this.resolvers.opened.resolveWith(function () {
-        return _this2.closedPromise;
-      });
-    }
+    createClass(Schema, [{
+      key: 'registerMixin',
+      value: function registerMixin(_ref) {
+        var _this = this;
 
-    /**
-    * Resolves the close promise when a connection is closed.
-    * @param {Object} event - The event describing close.
-    */
+        var types = _ref.types,
+            type = _ref.type,
+            extend = _ref.extend,
+            override = _ref.override,
+            init = _ref.init;
 
-  }, {
-    key: 'onClose',
-    value: function onClose(event) {
-      this.emit('closed', event);
-      this.resolvers.closed.resolveWith(event);
-      this.rejectAllOutstandingResolvers({ code: -1, message: 'Socket closed' });
-    }
-
-    /**
-    * Closes a connection.
-    * @param {Number} [code=1000] - The reason code for closing the connection.
-    * @param {String} [reason=""] - The human readable string describing why the connection is closed.
-    * @returns {Object} Returns a promise instance.
-    */
-
-  }, {
-    key: 'close',
-    value: function close() {
-      var code = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1000;
-      var reason = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
-
-      if (this.socket) {
-        this.socket.close(code, reason);
-        this.socket = null;
-      }
-      return this.closedPromise;
-    }
-
-    /**
-    * Emits an error event and rejects the open promise if an error is raised on the connection.
-    * @param {Object} event - The event describing the error.
-    */
-
-  }, {
-    key: 'onError',
-    value: function onError(event) {
-      if (this.resolvers.opened) {
-        this.resolvers.opened.rejectWith(event);
-      } else {
-        // only emit errors after the initial open promise has been resolved,
-        // this makes it possible to catch early websocket errors as well
-        // as run-time ones:
-        this.emit('socket-error', event);
-      }
-      this.rejectAllOutstandingResolvers({ code: -1, message: 'Socket error' });
-    }
-
-    /**
-    * Parses the onMessage event on the connection and resolve the promise for the request.
-    * @param {Object} event - The event describing the message.
-    */
-
-  }, {
-    key: 'onMessage',
-    value: function onMessage(event) {
-      var data = JSON.parse(event.data);
-      this.emit('traffic', 'received', data);
-      if (typeof data.id !== 'undefined') {
-        this.emit('message', data);
-        this.resolvers[data.id].resolveWith(data);
-      } else {
-        this.emit(data.params ? 'notification' : 'message', data);
-      }
-    }
-
-    /**
-    * Rejects all outstanding resolvers.
-    * @param {Object} reason - The reject reason.
-    */
-
-  }, {
-    key: 'rejectAllOutstandingResolvers',
-    value: function rejectAllOutstandingResolvers(reason) {
-      var _this3 = this;
-
-      Object.keys(this.resolvers).forEach(function (id) {
-        if (id === 'opened' || id === 'closed') {
-          return; // "opened" and "closed" should not be handled here
+        if (!Array.isArray(types)) {
+          types = [types];
         }
-        var resolver = _this3.resolvers[id];
-        resolver.rejectWith(reason);
-      });
+        // to support a single type
+        if (type) {
+          types.push(type);
+        }
+        var cached = { extend: extend, override: override, init: init };
+        types.forEach(function (typeKey) {
+          var entryList = _this.mixins.get(typeKey);
+          if (entryList) {
+            entryList.push(cached);
+          } else {
+            _this.mixins.add(typeKey, [cached]);
+          }
+        });
+      }
+
+      /**
+      * Function used to generate a type definition.
+      * @param {String} type The type.
+      * @returns {{create: Function, def: Object}} Returns an object with a definition
+      *          of the type and a create factory.
+      */
+
+    }, {
+      key: 'generate',
+      value: function generate(type) {
+        var entry = this.types.get(type);
+        if (entry) {
+          return entry;
+        }
+        if (!this.schema.structs[type]) {
+          throw new Error(type + ' not found');
+        }
+        var factory = this.generateApi(type, this.schema.structs[type]);
+        this.types.add(type, factory);
+        return factory;
+      }
+
+      /**
+      * Function used to generate an API definition for a given type.
+      * @param {String} type The type to generate.
+      * @param {Object} schema The schema describing the type.
+      * @returns {{create: (function(session:Object, handle:Number, id:String,
+      *          customKey:String)), def: Object}} Returns the API definition.
+      */
+
+    }, {
+      key: 'generateApi',
+      value: function generateApi(type, schema) {
+        var api = Object.create({});
+
+        this.generateDefaultApi(api, schema); // Generate default
+        this.mixinType(type, api); // Mixin default type
+        this.mixinNamedParamFacade(api, schema); // Mixin named parameter support
+
+        return function create(session, handle, id, customKey) {
+          var _this2 = this;
+
+          var instance = Object.create(api);
+
+          Events.mixin(instance); // Always mixin event-emitter per instance
+
+          Object.defineProperties(instance, {
+            session: {
+              enumerable: true,
+              value: session
+            },
+            handle: {
+              enumerable: true,
+              value: handle,
+              writable: true
+            },
+            id: {
+              enumerable: true,
+              value: id
+            },
+            type: {
+              enumerable: true,
+              value: type
+            },
+            genericType: {
+              enumerable: true,
+              value: customKey
+            }
+          });
+
+          var mixinList = this.mixins.get(type) || [];
+          if (customKey !== type) {
+            this.mixinType(customKey, instance); // Mixin custom types
+            mixinList = mixinList.concat(this.mixins.get(customKey) || []);
+          }
+          mixinList.forEach(function (mixin) {
+            if (typeof mixin.init === 'function') {
+              mixin.init({ config: _this2.config, api: instance });
+            }
+          });
+
+          return instance;
+        }.bind(this);
+      }
+
+      /**
+      * Function used to generate the methods with the right handlers to the object
+      * API that is being generated.
+      * @param {Object} api The object API that is currently being generated.
+      * @param {Object} schema The API definition.
+      */
+
+    }, {
+      key: 'generateDefaultApi',
+      value: function generateDefaultApi(api, schema) {
+        Object.keys(schema).forEach(function (method) {
+          var out = schema[method].Out;
+          var outKey = out.length === 1 ? out[0].Name : -1;
+          var fnName = toCamelCase(method);
+
+          api[fnName] = function generatedMethod() {
+            for (var _len2 = arguments.length, params = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+              params[_key2] = arguments[_key2];
+            }
+
+            return this.session.send({
+              handle: this.handle,
+              method: method,
+              params: params,
+              outKey: outKey
+            });
+          };
+        });
+      }
+
+      /**
+      * Function used to add mixin methods to a specified API.
+      * @param {String} type Used to specify which mixin should be woven in.
+      * @param {Object} api The object that will be woven.
+      */
+
+    }, {
+      key: 'mixinType',
+      value: function mixinType(type, api) {
+        var mixinList = this.mixins.get(type);
+        if (mixinList) {
+          mixinList.forEach(function (_ref2) {
+            var _ref2$extend = _ref2.extend,
+                extend = _ref2$extend === undefined ? {} : _ref2$extend,
+                _ref2$override = _ref2.override,
+                override = _ref2$override === undefined ? {} : _ref2$override;
+
+            Object.keys(override).forEach(function (key) {
+              if (typeof api[key] === 'function' && typeof override[key] === 'function') {
+                var baseFn = api[key];
+                api[key] = function wrappedFn() {
+                  for (var _len3 = arguments.length, args = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+                    args[_key3] = arguments[_key3];
+                  }
+
+                  return override[key].apply(this, [baseFn.bind(this)].concat(args));
+                };
+              } else {
+                throw new Error('No function to override. Type: ' + type + ' function: ' + key);
+              }
+            });
+            Object.keys(extend).forEach(function (key) {
+              // handle overrides
+              if (typeof api[key] === 'function' && typeof extend[key] === 'function') {
+                throw new Error('Extend is not allowed for this mixin. Type: ' + type + ' function: ' + key);
+              } else {
+                api[key] = extend[key];
+              }
+            });
+          });
+        }
+      }
+
+      /**
+      * Function used to mixin the named parameter facade.
+      * @param {Object} api The object API that is currently being generated.
+      * @param {Object} schema The API definition.
+      */
+
+    }, {
+      key: 'mixinNamedParamFacade',
+      value: function mixinNamedParamFacade(api, schema) {
+        Object.keys(schema).forEach(function (key) {
+          var fnName = toCamelCase(key);
+          var base = api[fnName];
+          var defaults$$1 = schema[key].In.reduce(function (result, item) {
+            result[item.Name] = item.DefaultValue;
+            return result;
+          }, {});
+
+          api[fnName] = function namedParamWrapper() {
+            for (var _len4 = arguments.length, params = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+              params[_key4] = arguments[_key4];
+            }
+
+            return namedParamFacade.apply(this, [base, defaults$$1].concat(params));
+          };
+        });
+      }
+    }]);
+    return Schema;
+  }();
+
+  /**
+   * Helper class for handling RPC calls
+   */
+
+  var RPCResolver = function () {
+    function RPCResolver(id, resolve, reject) {
+      classCallCheck(this, RPCResolver);
+
+      Events.mixin(this);
+      this.id = id;
+      this.resolve = resolve;
+      this.reject = reject;
     }
 
+    createClass(RPCResolver, [{
+      key: 'resolveWith',
+      value: function resolveWith(data) {
+        this.resolve(data);
+        this.emit('resolved', this.id);
+      }
+    }, {
+      key: 'rejectWith',
+      value: function rejectWith(err) {
+        this.reject(err);
+        this.emit('rejected', this.id);
+      }
+    }]);
+    return RPCResolver;
+  }();
+
+  /**
+  * This class handles remote procedure calls on a web socket.
+  */
+
+  var RPC = function () {
     /**
-    * Unregisters a resolver.
-    * @param {Number|String} id - The ID to unregister the resolver with.
+    * Create a new RPC instance.
+    * @param {Object} options The configuration options for this class.
+    * @param {Function} options.Promise The promise constructor to use.
+    * @param {String} options.url The complete websocket URL used to connect.
+    * @param {Function} options.createSocket The function callback to create a WebSocket.
     */
+    function RPC(options) {
+      classCallCheck(this, RPC);
 
-  }, {
-    key: 'unregisterResolver',
-    value: function unregisterResolver(id) {
-      var resolver = this.resolvers[id];
-      resolver.removeAllListeners();
-      delete this.resolvers[id];
+      _extends(this, options);
+      Events.mixin(this);
+      this.resolvers = {};
+      this.requestId = 0;
+      this.openedPromise = undefined;
     }
 
     /**
-    * Registers a resolver.
-    * @param {Number|String} id - The ID to register the resolver with.
-    * @returns {Function} The promise executor function.
-    */
-
-  }, {
-    key: 'registerResolver',
-    value: function registerResolver(id, resolve, reject) {
-      var _this4 = this;
-
-      var resolver = new RPCResolver(id, resolve, reject);
-      this.resolvers[id] = resolver;
-      resolver.on('resolved', function (resolvedId) {
-        return _this4.unregisterResolver(resolvedId);
-      });
-      resolver.on('rejected', function (rejectedId) {
-        return _this4.unregisterResolver(rejectedId);
-      });
-    }
-
-    /**
-    * Sends data on the socket.
-    * @param {Object} data - The data to send.
+    * Opens a connection to the configured endpoint.
+    * @param {Boolean} force - ignores all previous and outstanding open calls if set to true.
     * @returns {Object} A promise instance.
     */
 
-  }, {
-    key: 'send',
-    value: function send(data) {
-      var _this5 = this;
 
-      if (!this.socket || this.socket.readyState !== this.socket.OPEN) {
-        return this.Promise.reject(new Error('Not connected'));
-      }
-      if (!data.id) {
-        data.id = this.createRequestId();
-      }
-      data.jsonrpc = '2.0';
-      return new this.Promise(function (resolve, reject) {
-        _this5.socket.send(JSON.stringify(data));
-        _this5.emit('traffic', 'sent', data);
-        return _this5.registerResolver(data.id, resolve, reject);
-      });
-    }
-  }, {
-    key: 'createRequestId',
-    value: function createRequestId() {
-      this.requestId += 1;
-      return this.requestId;
-    }
-  }]);
-  return RPC;
-}();
+    createClass(RPC, [{
+      key: 'open',
+      value: function open() {
+        var _this = this;
 
-var ON_ATTACHED_TIMEOUT_MS = 5000;
-var RPC_CLOSE_MANUAL_SUSPEND$1 = 4000;
+        var force = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
 
-var SuspendResume = function () {
-  /**
-  * Creates a new SuspendResume instance.
-  * @param {Object} options The configuration option for this class.
-  * @param {Promise} options.Promise The promise constructor to use.
-  * @param {RPC} options.rpc The RPC instance to use when communicating towards Engine.
-  * @param {ApiCache} options.apis The ApiCache instance to use.
-  */
-  function SuspendResume(options) {
-    var _this = this;
-
-    classCallCheck(this, SuspendResume);
-
-    _extends(this, options);
-    this.isSuspended = false;
-    this.rpc.on('traffic', function (dir, data) {
-      if (dir === 'sent' && data.method === 'OpenDoc') {
-        _this.openDocParams = data.params;
-      }
-    });
-  }
-
-  /**
-  * Function used to restore the rpc connection.
-  * @param {Boolean} onlyIfAttached - if true, the returned promise will resolve
-  *                                   only if the session can be re-attached.
-  * @returns {Object} Returns a promise instance.
-  */
-
-
-  createClass(SuspendResume, [{
-    key: 'restoreRpcConnection',
-    value: function restoreRpcConnection(onlyIfAttached) {
-      var _this2 = this;
-
-      return this.reopen(ON_ATTACHED_TIMEOUT_MS).then(function (sessionState) {
-        if (sessionState === 'SESSION_CREATED' && onlyIfAttached) {
-          return _this2.Promise.reject(new Error('Not attached'));
+        if (!force && this.openedPromise) {
+          return this.openedPromise;
         }
-        return _this2.Promise.resolve();
-      });
-    }
 
-    /**
-    * Function used to restore the global API.
-    * @param {Object} changed - A list where the restored APIs will be added.
-    * @returns {Object} Returns a promise instance.
-    */
-
-  }, {
-    key: 'restoreGlobal',
-    value: function restoreGlobal(changed) {
-      var global = this.apis.getApisByType('Global').pop();
-      changed.push(global.api);
-      return this.Promise.resolve();
-    }
-
-    /**
-    * Function used to restore the doc API.
-    * @param {String} sessionState - The state of the session, attached or created.
-    * @param {Array} closed - A list where the closed of APIs APIs will be added.
-    * @param {Object} changed - A list where the restored APIs will be added.
-    * @returns {Object} Returns a promise instance.
-    */
-
-  }, {
-    key: 'restoreDoc',
-    value: function restoreDoc(closed, changed) {
-      var _this3 = this;
-
-      var doc = this.apis.getApisByType('Doc').pop();
-
-      if (!doc) {
-        return this.Promise.resolve();
-      }
-
-      return this.rpc.send({
-        method: 'GetActiveDoc',
-        handle: -1,
-        params: []
-      }).then(function (response) {
-        if (response.error && _this3.openDocParams) {
-          return _this3.rpc.send({
-            method: 'OpenDoc',
-            handle: -1,
-            params: _this3.openDocParams
-          });
+        try {
+          this.socket = this.createSocket(this.url);
+        } catch (err) {
+          return this.Promise.reject(err);
         }
-        return response;
-      }).then(function (response) {
-        if (response.error) {
-          closed.push(doc.api);
-          return _this3.Promise.resolve();
-        }
-        var handle = response.result.qReturn.qHandle;
-        doc.api.handle = handle;
-        changed.push(doc.api);
-        return _this3.Promise.resolve(doc.api);
-      });
-    }
 
-    /**
-    * Function used to restore the APIs on the doc.
-    * @param {Object} doc - The doc API on which the APIs we want to restore exist.
-    * @param {Array} closed - A list where the closed of APIs APIs will be added.
-    * @param {Object} changed - A list where the restored APIs will be added.
-    * @returns {Object} Returns a promise instance.
-    */
-
-  }, {
-    key: 'restoreDocObjects',
-    value: function restoreDocObjects(doc, closed, changed) {
-      var _this4 = this;
-
-      var tasks = [];
-      var apis = this.apis.getApis().map(function (entry) {
-        return entry.api;
-      }).filter(function (api) {
-        return api.type !== 'Global' && api.type !== 'Doc';
-      });
-
-      if (!doc) {
-        apis.forEach(function (api) {
-          return closed.push(api);
+        this.socket.onopen = this.onOpen.bind(this);
+        this.socket.onclose = this.onClose.bind(this);
+        this.socket.onerror = this.onError.bind(this);
+        this.socket.onmessage = this.onMessage.bind(this);
+        this.openedPromise = new this.Promise(function (resolve, reject) {
+          return _this.registerResolver('opened', resolve, reject);
         });
-        return this.Promise.resolve();
+        this.closedPromise = new this.Promise(function (resolve, reject) {
+          return _this.registerResolver('closed', resolve, reject);
+        });
+        return this.openedPromise;
       }
 
-      apis.forEach(function (api) {
-        var method = SuspendResume.buildGetMethodName(api.type);
+      /**
+      * Resolves the open promise when a connection is successfully established.
+      */
 
-        if (!method) {
-          closed.push(api);
+    }, {
+      key: 'onOpen',
+      value: function onOpen() {
+        var _this2 = this;
+
+        this.resolvers.opened.resolveWith(function () {
+          return _this2.closedPromise;
+        });
+      }
+
+      /**
+      * Resolves the close promise when a connection is closed.
+      * @param {Object} event - The event describing close.
+      */
+
+    }, {
+      key: 'onClose',
+      value: function onClose(event) {
+        this.emit('closed', event);
+        this.resolvers.closed.resolveWith(event);
+        this.rejectAllOutstandingResolvers({ code: -1, message: 'Socket closed' });
+      }
+
+      /**
+      * Closes a connection.
+      * @param {Number} [code=1000] - The reason code for closing the connection.
+      * @param {String} [reason=""] - The human readable string describing why the connection is closed.
+      * @returns {Object} Returns a promise instance.
+      */
+
+    }, {
+      key: 'close',
+      value: function close() {
+        var code = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1000;
+        var reason = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
+
+        if (this.socket) {
+          this.socket.close(code, reason);
+          this.socket = null;
+        }
+        return this.closedPromise;
+      }
+
+      /**
+      * Emits an error event and rejects the open promise if an error is raised on the connection.
+      * @param {Object} event - The event describing the error.
+      */
+
+    }, {
+      key: 'onError',
+      value: function onError(event) {
+        if (this.resolvers.opened) {
+          this.resolvers.opened.rejectWith(event);
         } else {
-          var request = _this4.rpc.send({
-            method: method,
-            handle: doc.handle,
-            params: [api.id]
-          }).then(function (response) {
-            if (response.error || !response.result.qReturn.qHandle) {
-              closed.push(api);
-            } else {
-              api.handle = response.result.qReturn.qHandle;
-              changed.push(api);
-            }
-          });
-          tasks.push(request);
+          // only emit errors after the initial open promise has been resolved,
+          // this makes it possible to catch early websocket errors as well
+          // as run-time ones:
+          this.emit('socket-error', event);
         }
-      });
-      return this.Promise.all(tasks);
-    }
+        this.rejectAllOutstandingResolvers({ code: -1, message: 'Socket error' });
+      }
 
-    /**
-    * Set the instance as suspended.
-    */
+      /**
+      * Parses the onMessage event on the connection and resolve the promise for the request.
+      * @param {Object} event - The event describing the message.
+      */
 
-  }, {
-    key: 'suspend',
-    value: function suspend() {
-      this.isSuspended = true;
-      return this.rpc.close(RPC_CLOSE_MANUAL_SUSPEND$1);
-    }
+    }, {
+      key: 'onMessage',
+      value: function onMessage(event) {
+        var data = JSON.parse(event.data);
+        this.emit('traffic', 'received', data);
+        if (typeof data.id !== 'undefined') {
+          this.emit('message', data);
+          this.resolvers[data.id].resolveWith(data);
+        } else {
+          this.emit(data.params ? 'notification' : 'message', data);
+        }
+      }
 
-    /**
-    * Resumes a previously suspended RPC connection, and refreshes the API cache.
-    *                                APIs unabled to be restored has their 'closed'
-    *                                event triggered, otherwise 'changed'.
-    * @param {Boolean} onlyIfAttached if true, resume only if the session was re-attached.
-    * @returns {Promise} Eventually resolved if the RPC connection was successfully resumed,
-    *                    otherwise rejected.
-    */
+      /**
+      * Rejects all outstanding resolvers.
+      * @param {Object} reason - The reject reason.
+      */
 
-  }, {
-    key: 'resume',
-    value: function resume(onlyIfAttached) {
-      var _this5 = this;
+    }, {
+      key: 'rejectAllOutstandingResolvers',
+      value: function rejectAllOutstandingResolvers(reason) {
+        var _this3 = this;
 
-      var changed = [];
-      var closed = [];
-
-      return this.restoreRpcConnection(onlyIfAttached).then(function () {
-        return _this5.restoreGlobal(changed);
-      }).then(function () {
-        return _this5.restoreDoc(closed, changed);
-      }).then(function (doc) {
-        return _this5.restoreDocObjects(doc, closed, changed);
-      }).then(function () {
-        _this5.isSuspended = false;
-        _this5.apis.clear();
-        closed.forEach(function (api) {
-          api.emit('closed');
-          api.removeAllListeners();
-        });
-        changed.forEach(function (api) {
-          _this5.apis.add(api.handle, api);
-          if (api.type !== 'Global') {
-            api.emit('changed');
+        Object.keys(this.resolvers).forEach(function (id) {
+          if (id === 'opened' || id === 'closed') {
+            return; // "opened" and "closed" should not be handled here
           }
+          var resolver = _this3.resolvers[id];
+          resolver.rejectWith(reason);
         });
-      }).catch(function (err) {
-        return _this5.rpc.close().then(function () {
-          return _this5.Promise.reject(err);
+      }
+
+      /**
+      * Unregisters a resolver.
+      * @param {Number|String} id - The ID to unregister the resolver with.
+      */
+
+    }, {
+      key: 'unregisterResolver',
+      value: function unregisterResolver(id) {
+        var resolver = this.resolvers[id];
+        resolver.removeAllListeners();
+        delete this.resolvers[id];
+      }
+
+      /**
+      * Registers a resolver.
+      * @param {Number|String} id - The ID to register the resolver with.
+      * @returns {Function} The promise executor function.
+      */
+
+    }, {
+      key: 'registerResolver',
+      value: function registerResolver(id, resolve, reject) {
+        var _this4 = this;
+
+        var resolver = new RPCResolver(id, resolve, reject);
+        this.resolvers[id] = resolver;
+        resolver.on('resolved', function (resolvedId) {
+          return _this4.unregisterResolver(resolvedId);
         });
-      });
-    }
+        resolver.on('rejected', function (rejectedId) {
+          return _this4.unregisterResolver(rejectedId);
+        });
+      }
 
-    /**
-    * Reopens the connection and waits for the OnConnected notification.
-    * @param {Number} timeout - The time to wait for the OnConnected notification.
-    * @returns {Object} A promise containing the session state (SESSION_CREATED or SESSION_ATTACHED).
-    */
+      /**
+      * Sends data on the socket.
+      * @param {Object} data - The data to send.
+      * @returns {Object} A promise instance.
+      */
 
-  }, {
-    key: 'reopen',
-    value: function reopen(timeout) {
-      var _this6 = this;
+    }, {
+      key: 'send',
+      value: function send(data) {
+        var _this5 = this;
 
-      var timer = void 0;
-      var notificationResolve = void 0;
-      var notificationReceived = false;
-      var notificationPromise = new this.Promise(function (resolve) {
-        notificationResolve = resolve;
-      });
-
-      var waitForNotification = function waitForNotification() {
-        if (!notificationReceived) {
-          timer = setTimeout(function () {
-            return notificationResolve('SESSION_CREATED');
-          }, timeout);
+        if (!this.socket || this.socket.readyState !== this.socket.OPEN) {
+          return this.Promise.reject(new Error('Not connected'));
         }
-        return notificationPromise;
-      };
-
-      var onNotification = function onNotification(data) {
-        if (data.method !== 'OnConnected') return;
-        clearTimeout(timer);
-        notificationResolve(data.params.qSessionState);
-        notificationReceived = true;
-      };
-
-      this.rpc.on('notification', onNotification);
-
-      return this.rpc.open(true).then(waitForNotification).then(function (state) {
-        _this6.rpc.removeListener('notification', onNotification);
-        return state;
-      }).catch(function (err) {
-        _this6.rpc.removeListener('notification', onNotification);
-        return _this6.Promise.reject(err);
-      });
-    }
-
-    /**
-    * Function used to build the get method names for Doc APIs.
-    * @param {String} type - The API type.
-    * @returns {String} Returns the get method name, or undefined if the type cannot be restored.
-    */
-
-  }], [{
-    key: 'buildGetMethodName',
-    value: function buildGetMethodName(type) {
-      if (type === 'Field' || type === 'Variable') {
-        return null;
-      } else if (type === 'GenericVariable') {
-        return 'GetVariableById';
-      }
-      return type.replace('Generic', 'Get');
-    }
-  }]);
-  return SuspendResume;
-}();
-
-var SUCCESS_KEY = 'qSuccess';
-
-function deltaRequestInterceptor(session, request) {
-  var delta = session.protocol.delta && request.outKey !== -1 && request.outKey !== SUCCESS_KEY;
-  if (delta) {
-    request.delta = delta;
-  }
-  return request;
-}
-
-/**
-* Response interceptor for generating APIs. Handles the quirks of engine not
-* returning an error when an object is missing.
-* @param {Object} session - The session the intercept is being executed on.
-* @param {Object} request - The JSON-RPC request.
-* @param {Object} response - The response.
-* @returns {Object} - Returns the generated API
-*/
-function apiInterceptor(session, request, response) {
-  if (response.qHandle && response.qType) {
-    return session.getObjectApi({
-      handle: response.qHandle,
-      type: response.qType,
-      id: response.qGenericId,
-      genericType: response.qGenericType
-    });
-  } else if (response.qHandle === null && response.qType === null) {
-    throw new Error('Object not found');
-  }
-  return response;
-}
-
-'use strict';
-
-var hasOwn = Object.prototype.hasOwnProperty;
-var toStr = Object.prototype.toString;
-
-var isArray$1 = function isArray(arr) {
-	if (typeof Array.isArray === 'function') {
-		return Array.isArray(arr);
-	}
-
-	return toStr.call(arr) === '[object Array]';
-};
-
-var isPlainObject = function isPlainObject(obj) {
-	if (!obj || toStr.call(obj) !== '[object Object]') {
-		return false;
-	}
-
-	var hasOwnConstructor = hasOwn.call(obj, 'constructor');
-	var hasIsPrototypeOf = obj.constructor && obj.constructor.prototype && hasOwn.call(obj.constructor.prototype, 'isPrototypeOf');
-	// Not own constructor property must be Object
-	if (obj.constructor && !hasOwnConstructor && !hasIsPrototypeOf) {
-		return false;
-	}
-
-	// Own properties are enumerated firstly, so to speed up,
-	// if last one is own, then all properties are own.
-	var key;
-	for (key in obj) { /**/ }
-
-	return typeof key === 'undefined' || hasOwn.call(obj, key);
-};
-
-var extend$1 = function extend() {
-	var options, name, src, copy, copyIsArray, clone;
-	var target = arguments[0];
-	var i = 1;
-	var length = arguments.length;
-	var deep = false;
-
-	// Handle a deep copy situation
-	if (typeof target === 'boolean') {
-		deep = target;
-		target = arguments[1] || {};
-		// skip the boolean and the target
-		i = 2;
-	}
-	if (target == null || (typeof target !== 'object' && typeof target !== 'function')) {
-		target = {};
-	}
-
-	for (; i < length; ++i) {
-		options = arguments[i];
-		// Only deal with non-null/undefined values
-		if (options != null) {
-			// Extend the base object
-			for (name in options) {
-				src = target[name];
-				copy = options[name];
-
-				// Prevent never-ending loop
-				if (target !== copy) {
-					// Recurse if we're merging plain objects or arrays
-					if (deep && copy && (isPlainObject(copy) || (copyIsArray = isArray$1(copy)))) {
-						if (copyIsArray) {
-							copyIsArray = false;
-							clone = src && isArray$1(src) ? src : [];
-						} else {
-							clone = src && isPlainObject(src) ? src : {};
-						}
-
-						// Never move original objects, clone them
-						target[name] = extend(deep, clone, copy);
-
-					// Don't bring in undefined values
-					} else if (typeof copy !== 'undefined') {
-						target[name] = copy;
-					}
-				}
-			}
-		}
-	}
-
-	// Return the modified object
-	return target;
-};
-
-var extend = extend$1.bind(null, true);
-var JSONPatch = {};
-var isArray = Array.isArray;
-
-function isObject(v) {
-  return v != null && !Array.isArray(v) && (typeof v === 'undefined' ? 'undefined' : _typeof(v)) === 'object';
-}
-function isUndef(v) {
-  return typeof v === 'undefined';
-}
-function isFunction(v) {
-  return typeof v === 'function';
-}
-
-/**
-* Generate an exact duplicate (with no references) of a specific value.
-*
-* @private
-* @param {Object} The value to duplicate
-* @returns {Object} a unique, duplicated value
-*/
-function generateValue(val) {
-  if (val) {
-    return extend({}, { val: val }).val;
-  }
-  return val;
-}
-
-/**
-* An additional type checker used to determine if the property is of internal
-* use or not a type that can be translated into JSON (like functions).
-*
-* @private
-* @param {Object} obj The object which has the property to check
-* @param {String} The property name to check
-* @returns {Boolean} Whether the property is deemed special or not
-*/
-function isSpecialProperty(obj, key) {
-  return isFunction(obj[key]) || key.substring(0, 2) === '$$' || key.substring(0, 1) === '_';
-}
-
-/**
-* Finds the parent object from a JSON-Pointer ("/foo/bar/baz" = "bar" is "baz" parent),
-* also creates the object structure needed.
-*
-* @private
-* @param {Object} data The root object to traverse through
-* @param {String} The JSON-Pointer string to use when traversing
-* @returns {Object} The parent object
-*/
-function getParent(data, str) {
-  var seperator = '/';
-  var parts = str.substring(1).split(seperator).slice(0, -1);
-  var numPart = void 0;
-
-  parts.forEach(function (part, i) {
-    if (i === parts.length) {
-      return;
-    }
-    numPart = +part;
-    var newPart = !isNaN(numPart) ? [] : {};
-    data[numPart || part] = isUndef(data[numPart || part]) ? newPart : data[part];
-    data = data[numPart || part];
-  });
-
-  return data;
-}
-
-/**
-* Cleans an object of all its properties, unless they're deemed special or
-* cannot be removed by configuration.
-*
-* @private
-* @param {Object} obj The object to clean
-*/
-function emptyObject(obj) {
-  Object.keys(obj).forEach(function (key) {
-    var config = Object.getOwnPropertyDescriptor(obj, key);
-
-    if (config.configurable && !isSpecialProperty(obj, key)) {
-      delete obj[key];
-    }
-  });
-}
-
-/**
-* Compare an object with another, could be object, array, number, string, bool.
-*
-* @param {Object} a The first object to compare
-* @param {Object} a The second object to compare
-* @returns {Boolean} Whether the objects are identical
-*/
-function compare(a, b) {
-  var isIdentical = true;
-
-  if (isObject(a) && isObject(b)) {
-    if (Object.keys(a).length !== Object.keys(b).length) {
-      return false;
-    }
-    Object.keys(a).forEach(function (key) {
-      if (!compare(a[key], b[key])) {
-        isIdentical = false;
-      }
-    });
-    return isIdentical;
-  } else if (isArray(a) && isArray(b)) {
-    if (a.length !== b.length) {
-      return false;
-    }
-    for (var i = 0, l = a.length; i < l; i += 1) {
-      if (!compare(a[i], b[i])) {
-        return false;
-      }
-    }
-    return true;
-  }
-  return a === b;
-}
-
-/**
-* Generates patches by comparing two arrays.
-*
-* @private
-* @param {Array} oldA The old (original) array, which will be patched
-* @param {Array} newA The new array, which will be used to compare against
-* @returns {Array} An array of patches (if any)
-*/
-function patchArray(original, newA, basePath) {
-  var patches = [];
-  var oldA = original.slice();
-  var tmpIdx = -1;
-
-  function findIndex(a, id, idx) {
-    if (a[idx] && isUndef(a[idx].qInfo)) {
-      return null;
-    } else if (a[idx] && a[idx].qInfo.qId === id) {
-      // shortcut if identical
-      return idx;
-    }
-    for (var ii = 0, ll = a.length; ii < ll; ii += 1) {
-      if (a[ii] && a[ii].qInfo.qId === id) {
-        return ii;
-      }
-    }
-    return -1;
-  }
-
-  if (compare(newA, oldA)) {
-    // array is unchanged
-    return patches;
-  }
-
-  if (!isUndef(newA[0]) && isUndef(newA[0].qInfo)) {
-    // we cannot create patches without unique identifiers, replace array...
-    patches.push({
-      op: 'replace',
-      path: basePath,
-      value: newA
-    });
-    return patches;
-  }
-
-  for (var i = oldA.length - 1; i >= 0; i -= 1) {
-    tmpIdx = findIndex(newA, oldA[i].qInfo && oldA[i].qInfo.qId, i);
-    if (tmpIdx === -1) {
-      patches.push({
-        op: 'remove',
-        path: basePath + '/' + i
-      });
-      oldA.splice(i, 1);
-    } else {
-      patches = patches.concat(JSONPatch.generate(oldA[i], newA[tmpIdx], basePath + '/' + i));
-    }
-  }
-
-  for (var _i = 0, l = newA.length; _i < l; _i += 1) {
-    tmpIdx = findIndex(oldA, newA[_i].qInfo && newA[_i].qInfo.qId);
-    if (tmpIdx === -1) {
-      patches.push({
-        op: 'add',
-        path: basePath + '/' + _i,
-        value: newA[_i]
-      });
-      oldA.splice(_i, 0, newA[_i]);
-    } else if (tmpIdx !== _i) {
-      patches.push({
-        op: 'move',
-        path: basePath + '/' + _i,
-        from: basePath + '/' + tmpIdx
-      });
-      oldA.splice(_i, 0, oldA.splice(tmpIdx, 1)[0]);
-    }
-  }
-  return patches;
-}
-
-/**
-* Generate an array of JSON-Patch:es following the JSON-Patch Specification Draft.
-*
-* See [specification draft](http://tools.ietf.org/html/draft-ietf-appsawg-json-patch-10)
-*
-* Does NOT currently generate patches for arrays (will replace them)
-*
-* @param {Object} original The object to patch to
-* @param {Object} newData The object to patch from
-* @param {String} [basePath] The base path to use when generating the paths for
-*                            the patches (normally not used)
-* @returns {Array} An array of patches
-*/
-JSONPatch.generate = function generate(original, newData, basePath) {
-  basePath = basePath || '';
-  var patches = [];
-
-  Object.keys(newData).forEach(function (key) {
-    var val = generateValue(newData[key]);
-    var oldVal = original[key];
-    var tmpPath = basePath + '/' + key;
-
-    if (compare(val, oldVal) || isSpecialProperty(newData, key)) {
-      return;
-    }
-    if (isUndef(oldVal)) {
-      // property does not previously exist
-      patches.push({
-        op: 'add',
-        path: tmpPath,
-        value: val
-      });
-    } else if (isObject(val) && isObject(oldVal)) {
-      // we need to generate sub-patches for this, since it already exist
-      patches = patches.concat(JSONPatch.generate(oldVal, val, tmpPath));
-    } else if (isArray(val) && isArray(oldVal)) {
-      patches = patches.concat(patchArray(oldVal, val, tmpPath));
-    } else {
-      // it's a simple property (bool, string, number)
-      patches.push({
-        op: 'replace',
-        path: basePath + '/' + key,
-        value: val
-      });
-    }
-  });
-
-  Object.keys(original).forEach(function (key) {
-    if (isUndef(newData[key]) && !isSpecialProperty(original, key)) {
-      // this property does not exist anymore
-      patches.push({
-        op: 'remove',
-        path: basePath + '/' + key
-      });
-    }
-  });
-
-  return patches;
-};
-
-/**
-* Apply a list of patches to an object.
-*
-* @param {Object} original The object to patch
-* @param {Array} patches The list of patches to apply
-*/
-JSONPatch.apply = function apply(original, patches) {
-  patches.forEach(function (patch) {
-    var parent = getParent(original, patch.path);
-    var key = patch.path.split('/').splice(-1)[0];
-    var target = key && isNaN(+key) ? parent[key] : parent[+key] || parent;
-    var from = patch.from ? patch.from.split('/').splice(-1)[0] : null;
-
-    if (patch.path === '/') {
-      parent = null;
-      target = original;
-    }
-
-    if (patch.op === 'add' || patch.op === 'replace') {
-      if (isArray(parent)) {
-        // trust indexes from patches, so don't replace the index if it's an add
-        if (key === '-') {
-          key = parent.length;
+        if (!data.id) {
+          data.id = this.createRequestId();
         }
-        parent.splice(+key, patch.op === 'add' ? 0 : 1, patch.value);
-      } else if (isArray(target) && isArray(patch.value)) {
-        var _target;
-
-        var newValues = patch.value.slice();
-        // keep array reference if possible...
-        target.length = 0;
-        (_target = target).push.apply(_target, toConsumableArray(newValues));
-      } else if (isObject(target) && isObject(patch.value)) {
-        // keep object reference if possible...
-        emptyObject(target);
-        extend(target, patch.value);
-      } else if (!parent) {
-        throw new Error('Patchee is not an object we can patch');
-      } else {
-        // simple value
-        parent[key] = patch.value;
+        data.jsonrpc = '2.0';
+        return new this.Promise(function (resolve, reject) {
+          _this5.socket.send(JSON.stringify(data));
+          _this5.emit('traffic', 'sent', data);
+          return _this5.registerResolver(data.id, resolve, reject);
+        });
       }
-    } else if (patch.op === 'move') {
-      var oldParent = getParent(original, patch.from);
-      if (isArray(parent)) {
-        parent.splice(+key, 0, oldParent.splice(+from, 1)[0]);
-      } else {
-        parent[key] = oldParent[from];
-        delete oldParent[from];
+    }, {
+      key: 'createRequestId',
+      value: function createRequestId() {
+        this.requestId += 1;
+        return this.requestId;
       }
-    } else if (patch.op === 'remove') {
-      if (isArray(parent)) {
-        parent.splice(+key, 1);
-      } else {
-        delete parent[key];
-      }
-    }
-  });
-};
+    }]);
+    return RPC;
+  }();
 
-/**
-* Deep clone an object.
-*
-* @param {Object} obj The object to clone
-* @returns {Object} A new object identical to the `obj`
-*/
-JSONPatch.clone = function clone(obj) {
-  return extend({}, obj);
-};
+  var ON_ATTACHED_TIMEOUT_MS = 5000;
+  var RPC_CLOSE_MANUAL_SUSPEND$1 = 4000;
 
-/**
-* Creates a JSON-patch.
-*
-* @param {String} op The operation of the patch. Available values: "add", "remove", "move"
-* @param {Object} [val] The value to set the `path` to. If `op` is `move`, `val`
-*                       is the "from JSON-path" path
-* @param {String} path The JSON-path for the property to change (e.g. "/qHyperCubeDef/columnOrder")
-* @returns {Object} A patch following the JSON-patch specification
-*/
-JSONPatch.createPatch = function createPatch(op, val, path) {
-  var patch = {
-    op: op.toLowerCase(),
-    path: path
-  };
-  if (patch.op === 'move') {
-    patch.from = val;
-  } else if (typeof val !== 'undefined') {
-    patch.value = val;
-  }
-  return patch;
-};
-
-/**
-* Apply the differences of two objects (keeping references if possible).
-* Identical to running `JSONPatch.apply(original, JSONPatch.generate(original, newData));`
-*
-* @param {Object} original The object to update/patch
-* @param {Object} newData the object to diff against
-*
-* @example
-* var obj1 = { foo: [1,2,3], bar: { baz: true, qux: 1 } };
-* var obj2 = { foo: [4,5,6], bar: { baz: false } };
-* JSONPatch.updateObject(obj1, obj2);
-* // => { foo: [4,5,6], bar: { baz: false } };
-*/
-JSONPatch.updateObject = function updateObject(original, newData) {
-  if (!Object.keys(original).length) {
-    extend(original, newData);
-    return;
-  }
-  JSONPatch.apply(original, JSONPatch.generate(original, newData));
-};
-
-var sessions = {};
-
-/**
-* Function to make sure we release handle caches when they are closed.
-*
-* @param {Session} session The session instance to listen on.
-*/
-var bindSession = function bindSession(session) {
-  if (!sessions[session.id]) {
-    var cache = {};
-    sessions[session.id] = cache;
-    session.on('traffic:received', function (data) {
-      return data.close && data.close.forEach(function (handle) {
-        return delete cache[handle];
-      });
-    });
-    session.on('closed', function () {
-      return delete sessions[session.id];
-    });
-  }
-};
-
-/**
-* Simple function that ensures the session events has been bound, and returns
-* either an existing key-value cache or creates one for the specified handle.
-*
-* @param {Session} session The session that owns the handle.
-* @param {Number} handle The object handle to retrieve the cache for.
-* @returns {KeyValueCache} The cache instance.
-*/
-var getHandleCache = function getHandleCache(session, handle) {
-  bindSession(session);
-  var cache = sessions[session.id];
-  if (!cache[handle]) {
-    cache[handle] = new KeyValueCache();
-  }
-  return cache[handle];
-};
-
-/**
-* Function used to apply a list of patches and return the patched value.
-* @param {Session} session The session.
-* @param {Number} handle The object handle.
-* @param {String} cacheId The cacheId.
-* @param {Array} patches The patches.
-* @returns {Object} Returns the patched value.
-*/
-var patchValue = function patchValue(session, handle, cacheId, patches) {
-  var cache = getHandleCache(session, handle);
-  var entry = cache.get(cacheId);
-  if (typeof entry === 'undefined') {
-    entry = Array.isArray(patches[0].value) ? [] : {};
-  }
-  if (patches.length) {
-    if (patches[0].path === '/' && _typeof(patches[0].value) !== 'object') {
-      // 'plain' values on root path is not supported (no object reference),
-      // so we simply store the value directly:
-      entry = patches[0].value;
-    } else {
-      JSONPatch.apply(entry, patches);
-    }
-    cache.set(cacheId, entry);
-  }
-  return entry;
-};
-
-/**
-* Process delta interceptor.
-* @param {Session} session The session the intercept is being executed on.
-* @param {Object} request The JSON-RPC request.
-* @param {Object} response The response.
-* @returns {Object} Returns the patched response
-*/
-function deltaInterceptor(session, request, response) {
-  var delta = response.delta,
-      result = response.result;
-
-  if (delta) {
-    // when delta is on the response data is expected to be an array of patches:
-    Object.keys(result).forEach(function (key) {
-      if (!Array.isArray(result[key])) {
-        throw new Error('Unexpected RPC response, expected array of patches');
-      }
-      result[key] = patchValue(session, request.handle, request.method + '-' + key, result[key]);
-    });
-    // return a cloned response object to avoid patched object references:
-    return JSON.parse(JSON.stringify(response));
-  }
-  return response;
-}
-
-// export object reference for testing purposes:
-deltaInterceptor.sessions = sessions;
-
-/**
-* Process error interceptor.
-* @param {Object} session - The session the intercept is being executed on.
-* @param {Object} request - The JSON-RPC request.
-* @param {Object} response - The response.
-* @returns {Object} - Returns the defined error for an error, else the response.
-*/
-function errorInterceptor(session, request, response) {
-  if (typeof response.error !== 'undefined') {
-    var data = response.error;
-    var error = new Error(data.message);
-    error.code = data.code;
-    error.parameter = data.parameter;
-    // reject the promise chain:
-    throw error;
-  }
-  return response;
-}
-
-var RETURN_KEY = 'qReturn';
-
-/**
-* Picks out the result "out" parameter based on the QIX method+schema, with
-* some specific handling for some methods that breaks the predictable protocol.
-* @param {Object} session - The session the intercept is being executed on.
-* @param {Object} request - The JSON-RPC request.
-* @param {Object} response - The response.
-* @returns {Object} - Returns the result property on the response
-*/
-function outParamInterceptor(session, request, response) {
-  if (request.method === 'CreateSessionApp' || request.method === 'CreateSessionAppFromApp') {
-    // this method returns multiple out params that we need
-    // to normalize before processing the response further:
-    response[RETURN_KEY].qGenericId = response[RETURN_KEY].qGenericId || response.qSessionAppId;
-  } else if (request.method === 'GetInteract') {
-    // this method returns a qReturn value when it should only return
-    // meta.outKey:
-    delete response[RETURN_KEY];
-  }
-
-  if (hasOwnProperty.call(response, RETURN_KEY)) {
-    return response[RETURN_KEY];
-  } else if (request.outKey !== -1) {
-    return response[request.outKey];
-  }
-
-  return response;
-}
-
-/**
-* Process result interceptor.
-* @param {Object} session - The session the intercept is being executed on.
-* @param {Object} request - The JSON-RPC request.
-* @param {Object} response - The response.
-* @returns {Object} - Returns the result property on the response
-*/
-function resultInterceptor(session, request, response) {
-  return response.result;
-}
-
-var Intercept = function () {
-  /**
-  * Create a new Intercept instance.
-  * @param {Object} options The configuration options for this class.
-  * @param {Promise} options.Promise The promise constructor to use.
-  * @param {ApiCache} options.apis The ApiCache instance to use.
-  * @param {Array<Object>} [options.request] The additional request interceptors to use.
-  * @param {Array<Object>} [options.response] The additional response interceptors to use.
-  */
-  function Intercept(options) {
-    classCallCheck(this, Intercept);
-
-    _extends(this, options);
-    this.request = [{ onFulfilled: deltaRequestInterceptor }].concat(toConsumableArray(this.request || []));
-    this.response = [{ onFulfilled: errorInterceptor }, { onFulfilled: deltaInterceptor }, { onFulfilled: resultInterceptor }, { onFulfilled: outParamInterceptor }].concat(toConsumableArray(this.response || []), [{ onFulfilled: apiInterceptor }]);
-  }
-
-  /**
-  * Execute the request interceptor queue, each interceptor will get the result from
-  * the previous interceptor.
-  * @param {Object} session The session instance to execute against.
-  * @param {Promise} promise The promise to chain on to.
-  * @returns {Promise}
-  */
-
-
-  createClass(Intercept, [{
-    key: 'executeRequests',
-    value: function executeRequests(session, promise) {
+  var SuspendResume = function () {
+    /**
+    * Creates a new SuspendResume instance.
+    * @param {Object} options The configuration option for this class.
+    * @param {Promise} options.Promise The promise constructor to use.
+    * @param {RPC} options.rpc The RPC instance to use when communicating towards Engine.
+    * @param {ApiCache} options.apis The ApiCache instance to use.
+    */
+    function SuspendResume(options) {
       var _this = this;
 
-      return this.request.reduce(function (interception, interceptor) {
-        var intercept = interceptor.onFulfilled && interceptor.onFulfilled.bind(_this, session);
-        return interception.then(intercept);
-      }, promise);
+      classCallCheck(this, SuspendResume);
+
+      _extends(this, options);
+      this.isSuspended = false;
+      this.rpc.on('traffic', function (dir, data) {
+        if (dir === 'sent' && data.method === 'OpenDoc') {
+          _this.openDocParams = data.params;
+        }
+      });
     }
 
     /**
-    * Execute the response interceptor queue, each interceptor will get the result from
+    * Function used to restore the rpc connection.
+    * @param {Boolean} onlyIfAttached - if true, the returned promise will resolve
+    *                                   only if the session can be re-attached.
+    * @returns {Object} Returns a promise instance.
+    */
+
+
+    createClass(SuspendResume, [{
+      key: 'restoreRpcConnection',
+      value: function restoreRpcConnection(onlyIfAttached) {
+        var _this2 = this;
+
+        return this.reopen(ON_ATTACHED_TIMEOUT_MS).then(function (sessionState) {
+          if (sessionState === 'SESSION_CREATED' && onlyIfAttached) {
+            return _this2.Promise.reject(new Error('Not attached'));
+          }
+          return _this2.Promise.resolve();
+        });
+      }
+
+      /**
+      * Function used to restore the global API.
+      * @param {Object} changed - A list where the restored APIs will be added.
+      * @returns {Object} Returns a promise instance.
+      */
+
+    }, {
+      key: 'restoreGlobal',
+      value: function restoreGlobal(changed) {
+        var global = this.apis.getApisByType('Global').pop();
+        changed.push(global.api);
+        return this.Promise.resolve();
+      }
+
+      /**
+      * Function used to restore the doc API.
+      * @param {String} sessionState - The state of the session, attached or created.
+      * @param {Array} closed - A list where the closed of APIs APIs will be added.
+      * @param {Object} changed - A list where the restored APIs will be added.
+      * @returns {Object} Returns a promise instance.
+      */
+
+    }, {
+      key: 'restoreDoc',
+      value: function restoreDoc(closed, changed) {
+        var _this3 = this;
+
+        var doc = this.apis.getApisByType('Doc').pop();
+
+        if (!doc) {
+          return this.Promise.resolve();
+        }
+
+        return this.rpc.send({
+          method: 'GetActiveDoc',
+          handle: -1,
+          params: []
+        }).then(function (response) {
+          if (response.error && _this3.openDocParams) {
+            return _this3.rpc.send({
+              method: 'OpenDoc',
+              handle: -1,
+              params: _this3.openDocParams
+            });
+          }
+          return response;
+        }).then(function (response) {
+          if (response.error) {
+            closed.push(doc.api);
+            return _this3.Promise.resolve();
+          }
+          var handle = response.result.qReturn.qHandle;
+          doc.api.handle = handle;
+          changed.push(doc.api);
+          return _this3.Promise.resolve(doc.api);
+        });
+      }
+
+      /**
+      * Function used to restore the APIs on the doc.
+      * @param {Object} doc - The doc API on which the APIs we want to restore exist.
+      * @param {Array} closed - A list where the closed of APIs APIs will be added.
+      * @param {Object} changed - A list where the restored APIs will be added.
+      * @returns {Object} Returns a promise instance.
+      */
+
+    }, {
+      key: 'restoreDocObjects',
+      value: function restoreDocObjects(doc, closed, changed) {
+        var _this4 = this;
+
+        var tasks = [];
+        var apis = this.apis.getApis().map(function (entry) {
+          return entry.api;
+        }).filter(function (api) {
+          return api.type !== 'Global' && api.type !== 'Doc';
+        });
+
+        if (!doc) {
+          apis.forEach(function (api) {
+            return closed.push(api);
+          });
+          return this.Promise.resolve();
+        }
+
+        apis.forEach(function (api) {
+          var method = SuspendResume.buildGetMethodName(api.type);
+
+          if (!method) {
+            closed.push(api);
+          } else {
+            var request = _this4.rpc.send({
+              method: method,
+              handle: doc.handle,
+              params: [api.id]
+            }).then(function (response) {
+              if (response.error || !response.result.qReturn.qHandle) {
+                closed.push(api);
+              } else {
+                api.handle = response.result.qReturn.qHandle;
+                changed.push(api);
+              }
+            });
+            tasks.push(request);
+          }
+        });
+        return this.Promise.all(tasks);
+      }
+
+      /**
+      * Set the instance as suspended.
+      */
+
+    }, {
+      key: 'suspend',
+      value: function suspend() {
+        this.isSuspended = true;
+        return this.rpc.close(RPC_CLOSE_MANUAL_SUSPEND$1);
+      }
+
+      /**
+      * Resumes a previously suspended RPC connection, and refreshes the API cache.
+      *                                APIs unabled to be restored has their 'closed'
+      *                                event triggered, otherwise 'changed'.
+      * @param {Boolean} onlyIfAttached if true, resume only if the session was re-attached.
+      * @returns {Promise} Eventually resolved if the RPC connection was successfully resumed,
+      *                    otherwise rejected.
+      */
+
+    }, {
+      key: 'resume',
+      value: function resume(onlyIfAttached) {
+        var _this5 = this;
+
+        var changed = [];
+        var closed = [];
+
+        return this.restoreRpcConnection(onlyIfAttached).then(function () {
+          return _this5.restoreGlobal(changed);
+        }).then(function () {
+          return _this5.restoreDoc(closed, changed);
+        }).then(function (doc) {
+          return _this5.restoreDocObjects(doc, closed, changed);
+        }).then(function () {
+          _this5.isSuspended = false;
+          _this5.apis.clear();
+          closed.forEach(function (api) {
+            api.emit('closed');
+            api.removeAllListeners();
+          });
+          changed.forEach(function (api) {
+            _this5.apis.add(api.handle, api);
+            if (api.type !== 'Global') {
+              api.emit('changed');
+            }
+          });
+        }).catch(function (err) {
+          return _this5.rpc.close().then(function () {
+            return _this5.Promise.reject(err);
+          });
+        });
+      }
+
+      /**
+      * Reopens the connection and waits for the OnConnected notification.
+      * @param {Number} timeout - The time to wait for the OnConnected notification.
+      * @returns {Object} A promise containing the session state (SESSION_CREATED or SESSION_ATTACHED).
+      */
+
+    }, {
+      key: 'reopen',
+      value: function reopen(timeout) {
+        var _this6 = this;
+
+        var timer = void 0;
+        var notificationResolve = void 0;
+        var notificationReceived = false;
+        var notificationPromise = new this.Promise(function (resolve) {
+          notificationResolve = resolve;
+        });
+
+        var waitForNotification = function waitForNotification() {
+          if (!notificationReceived) {
+            timer = setTimeout(function () {
+              return notificationResolve('SESSION_CREATED');
+            }, timeout);
+          }
+          return notificationPromise;
+        };
+
+        var onNotification = function onNotification(data) {
+          if (data.method !== 'OnConnected') return;
+          clearTimeout(timer);
+          notificationResolve(data.params.qSessionState);
+          notificationReceived = true;
+        };
+
+        this.rpc.on('notification', onNotification);
+
+        return this.rpc.open(true).then(waitForNotification).then(function (state) {
+          _this6.rpc.removeListener('notification', onNotification);
+          return state;
+        }).catch(function (err) {
+          _this6.rpc.removeListener('notification', onNotification);
+          return _this6.Promise.reject(err);
+        });
+      }
+
+      /**
+      * Function used to build the get method names for Doc APIs.
+      * @param {String} type - The API type.
+      * @returns {String} Returns the get method name, or undefined if the type cannot be restored.
+      */
+
+    }], [{
+      key: 'buildGetMethodName',
+      value: function buildGetMethodName(type) {
+        if (type === 'Field' || type === 'Variable') {
+          return null;
+        } else if (type === 'GenericVariable') {
+          return 'GetVariableById';
+        }
+        return type.replace('Generic', 'Get');
+      }
+    }]);
+    return SuspendResume;
+  }();
+
+  var SUCCESS_KEY = 'qSuccess';
+
+  function deltaRequestInterceptor(session, request) {
+    var delta = session.config.protocol.delta && request.outKey !== -1 && request.outKey !== SUCCESS_KEY;
+    if (delta) {
+      request.delta = delta;
+    }
+    return request;
+  }
+
+  /**
+  * Response interceptor for generating APIs. Handles the quirks of engine not
+  * returning an error when an object is missing.
+  * @param {Object} session - The session the intercept is being executed on.
+  * @param {Object} request - The JSON-RPC request.
+  * @param {Object} response - The response.
+  * @returns {Object} - Returns the generated API
+  */
+  function apiInterceptor(session, request, response) {
+    if (response.qHandle && response.qType) {
+      return session.getObjectApi({
+        handle: response.qHandle,
+        type: response.qType,
+        id: response.qGenericId,
+        genericType: response.qGenericType
+      });
+    } else if (response.qHandle === null && response.qType === null) {
+      return session.config.Promise.reject(new Error('Object not found'));
+    }
+    return response;
+  }
+
+  var hasOwn = Object.prototype.hasOwnProperty;
+  var toStr = Object.prototype.toString;
+
+  var isArray = function isArray(arr) {
+  	if (typeof Array.isArray === 'function') {
+  		return Array.isArray(arr);
+  	}
+
+  	return toStr.call(arr) === '[object Array]';
+  };
+
+  var isPlainObject = function isPlainObject(obj) {
+  	if (!obj || toStr.call(obj) !== '[object Object]') {
+  		return false;
+  	}
+
+  	var hasOwnConstructor = hasOwn.call(obj, 'constructor');
+  	var hasIsPrototypeOf = obj.constructor && obj.constructor.prototype && hasOwn.call(obj.constructor.prototype, 'isPrototypeOf');
+  	// Not own constructor property must be Object
+  	if (obj.constructor && !hasOwnConstructor && !hasIsPrototypeOf) {
+  		return false;
+  	}
+
+  	// Own properties are enumerated firstly, so to speed up,
+  	// if last one is own, then all properties are own.
+  	var key;
+  	for (key in obj) { /**/ }
+
+  	return typeof key === 'undefined' || hasOwn.call(obj, key);
+  };
+
+  var extend = function extend() {
+  	var options, name, src, copy, copyIsArray, clone;
+  	var target = arguments[0];
+  	var i = 1;
+  	var length = arguments.length;
+  	var deep = false;
+
+  	// Handle a deep copy situation
+  	if (typeof target === 'boolean') {
+  		deep = target;
+  		target = arguments[1] || {};
+  		// skip the boolean and the target
+  		i = 2;
+  	}
+  	if (target == null || (typeof target !== 'object' && typeof target !== 'function')) {
+  		target = {};
+  	}
+
+  	for (; i < length; ++i) {
+  		options = arguments[i];
+  		// Only deal with non-null/undefined values
+  		if (options != null) {
+  			// Extend the base object
+  			for (name in options) {
+  				src = target[name];
+  				copy = options[name];
+
+  				// Prevent never-ending loop
+  				if (target !== copy) {
+  					// Recurse if we're merging plain objects or arrays
+  					if (deep && copy && (isPlainObject(copy) || (copyIsArray = isArray(copy)))) {
+  						if (copyIsArray) {
+  							copyIsArray = false;
+  							clone = src && isArray(src) ? src : [];
+  						} else {
+  							clone = src && isPlainObject(src) ? src : {};
+  						}
+
+  						// Never move original objects, clone them
+  						target[name] = extend(deep, clone, copy);
+
+  					// Don't bring in undefined values
+  					} else if (typeof copy !== 'undefined') {
+  						target[name] = copy;
+  					}
+  				}
+  			}
+  		}
+  	}
+
+  	// Return the modified object
+  	return target;
+  };
+
+  var extend$1 = extend.bind(null, true);
+  var JSONPatch = {};
+  var isArray$1 = Array.isArray;
+
+  function isObject(v) {
+    return v != null && !Array.isArray(v) && (typeof v === 'undefined' ? 'undefined' : _typeof(v)) === 'object';
+  }
+  function isUndef(v) {
+    return typeof v === 'undefined';
+  }
+  function isFunction(v) {
+    return typeof v === 'function';
+  }
+
+  /**
+  * Generate an exact duplicate (with no references) of a specific value.
+  *
+  * @private
+  * @param {Object} The value to duplicate
+  * @returns {Object} a unique, duplicated value
+  */
+  function generateValue(val) {
+    if (val) {
+      return extend$1({}, { val: val }).val;
+    }
+    return val;
+  }
+
+  /**
+  * An additional type checker used to determine if the property is of internal
+  * use or not a type that can be translated into JSON (like functions).
+  *
+  * @private
+  * @param {Object} obj The object which has the property to check
+  * @param {String} The property name to check
+  * @returns {Boolean} Whether the property is deemed special or not
+  */
+  function isSpecialProperty(obj, key) {
+    return isFunction(obj[key]) || key.substring(0, 2) === '$$' || key.substring(0, 1) === '_';
+  }
+
+  /**
+  * Finds the parent object from a JSON-Pointer ("/foo/bar/baz" = "bar" is "baz" parent),
+  * also creates the object structure needed.
+  *
+  * @private
+  * @param {Object} data The root object to traverse through
+  * @param {String} The JSON-Pointer string to use when traversing
+  * @returns {Object} The parent object
+  */
+  function getParent(data, str) {
+    var seperator = '/';
+    var parts = str.substring(1).split(seperator).slice(0, -1);
+    var numPart = void 0;
+
+    parts.forEach(function (part, i) {
+      if (i === parts.length) {
+        return;
+      }
+      numPart = +part;
+      var newPart = !isNaN(numPart) ? [] : {};
+      data[numPart || part] = isUndef(data[numPart || part]) ? newPart : data[part];
+      data = data[numPart || part];
+    });
+
+    return data;
+  }
+
+  /**
+  * Cleans an object of all its properties, unless they're deemed special or
+  * cannot be removed by configuration.
+  *
+  * @private
+  * @param {Object} obj The object to clean
+  */
+  function emptyObject(obj) {
+    Object.keys(obj).forEach(function (key) {
+      var config = Object.getOwnPropertyDescriptor(obj, key);
+
+      if (config.configurable && !isSpecialProperty(obj, key)) {
+        delete obj[key];
+      }
+    });
+  }
+
+  /**
+  * Compare an object with another, could be object, array, number, string, bool.
+  *
+  * @param {Object} a The first object to compare
+  * @param {Object} a The second object to compare
+  * @returns {Boolean} Whether the objects are identical
+  */
+  function compare(a, b) {
+    var isIdentical = true;
+
+    if (isObject(a) && isObject(b)) {
+      if (Object.keys(a).length !== Object.keys(b).length) {
+        return false;
+      }
+      Object.keys(a).forEach(function (key) {
+        if (!compare(a[key], b[key])) {
+          isIdentical = false;
+        }
+      });
+      return isIdentical;
+    } else if (isArray$1(a) && isArray$1(b)) {
+      if (a.length !== b.length) {
+        return false;
+      }
+      for (var i = 0, l = a.length; i < l; i += 1) {
+        if (!compare(a[i], b[i])) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return a === b;
+  }
+
+  /**
+  * Generates patches by comparing two arrays.
+  *
+  * @private
+  * @param {Array} oldA The old (original) array, which will be patched
+  * @param {Array} newA The new array, which will be used to compare against
+  * @returns {Array} An array of patches (if any)
+  */
+  function patchArray(original, newA, basePath) {
+    var patches = [];
+    var oldA = original.slice();
+    var tmpIdx = -1;
+
+    function findIndex(a, id, idx) {
+      if (a[idx] && isUndef(a[idx].qInfo)) {
+        return null;
+      } else if (a[idx] && a[idx].qInfo.qId === id) {
+        // shortcut if identical
+        return idx;
+      }
+      for (var ii = 0, ll = a.length; ii < ll; ii += 1) {
+        if (a[ii] && a[ii].qInfo.qId === id) {
+          return ii;
+        }
+      }
+      return -1;
+    }
+
+    if (compare(newA, oldA)) {
+      // array is unchanged
+      return patches;
+    }
+
+    if (!isUndef(newA[0]) && isUndef(newA[0].qInfo)) {
+      // we cannot create patches without unique identifiers, replace array...
+      patches.push({
+        op: 'replace',
+        path: basePath,
+        value: newA
+      });
+      return patches;
+    }
+
+    for (var i = oldA.length - 1; i >= 0; i -= 1) {
+      tmpIdx = findIndex(newA, oldA[i].qInfo && oldA[i].qInfo.qId, i);
+      if (tmpIdx === -1) {
+        patches.push({
+          op: 'remove',
+          path: basePath + '/' + i
+        });
+        oldA.splice(i, 1);
+      } else {
+        patches = patches.concat(JSONPatch.generate(oldA[i], newA[tmpIdx], basePath + '/' + i));
+      }
+    }
+
+    for (var _i = 0, l = newA.length; _i < l; _i += 1) {
+      tmpIdx = findIndex(oldA, newA[_i].qInfo && newA[_i].qInfo.qId);
+      if (tmpIdx === -1) {
+        patches.push({
+          op: 'add',
+          path: basePath + '/' + _i,
+          value: newA[_i]
+        });
+        oldA.splice(_i, 0, newA[_i]);
+      } else if (tmpIdx !== _i) {
+        patches.push({
+          op: 'move',
+          path: basePath + '/' + _i,
+          from: basePath + '/' + tmpIdx
+        });
+        oldA.splice(_i, 0, oldA.splice(tmpIdx, 1)[0]);
+      }
+    }
+    return patches;
+  }
+
+  /**
+  * Generate an array of JSON-Patch:es following the JSON-Patch Specification Draft.
+  *
+  * See [specification draft](http://tools.ietf.org/html/draft-ietf-appsawg-json-patch-10)
+  *
+  * Does NOT currently generate patches for arrays (will replace them)
+  *
+  * @param {Object} original The object to patch to
+  * @param {Object} newData The object to patch from
+  * @param {String} [basePath] The base path to use when generating the paths for
+  *                            the patches (normally not used)
+  * @returns {Array} An array of patches
+  */
+  JSONPatch.generate = function generate(original, newData, basePath) {
+    basePath = basePath || '';
+    var patches = [];
+
+    Object.keys(newData).forEach(function (key) {
+      var val = generateValue(newData[key]);
+      var oldVal = original[key];
+      var tmpPath = basePath + '/' + key;
+
+      if (compare(val, oldVal) || isSpecialProperty(newData, key)) {
+        return;
+      }
+      if (isUndef(oldVal)) {
+        // property does not previously exist
+        patches.push({
+          op: 'add',
+          path: tmpPath,
+          value: val
+        });
+      } else if (isObject(val) && isObject(oldVal)) {
+        // we need to generate sub-patches for this, since it already exist
+        patches = patches.concat(JSONPatch.generate(oldVal, val, tmpPath));
+      } else if (isArray$1(val) && isArray$1(oldVal)) {
+        patches = patches.concat(patchArray(oldVal, val, tmpPath));
+      } else {
+        // it's a simple property (bool, string, number)
+        patches.push({
+          op: 'replace',
+          path: basePath + '/' + key,
+          value: val
+        });
+      }
+    });
+
+    Object.keys(original).forEach(function (key) {
+      if (isUndef(newData[key]) && !isSpecialProperty(original, key)) {
+        // this property does not exist anymore
+        patches.push({
+          op: 'remove',
+          path: basePath + '/' + key
+        });
+      }
+    });
+
+    return patches;
+  };
+
+  /**
+  * Apply a list of patches to an object.
+  *
+  * @param {Object} original The object to patch
+  * @param {Array} patches The list of patches to apply
+  */
+  JSONPatch.apply = function apply(original, patches) {
+    patches.forEach(function (patch) {
+      var parent = getParent(original, patch.path);
+      var key = patch.path.split('/').splice(-1)[0];
+      var target = key && isNaN(+key) ? parent[key] : parent[+key] || parent;
+      var from = patch.from ? patch.from.split('/').splice(-1)[0] : null;
+
+      if (patch.path === '/') {
+        parent = null;
+        target = original;
+      }
+
+      if (patch.op === 'add' || patch.op === 'replace') {
+        if (isArray$1(parent)) {
+          // trust indexes from patches, so don't replace the index if it's an add
+          if (key === '-') {
+            key = parent.length;
+          }
+          parent.splice(+key, patch.op === 'add' ? 0 : 1, patch.value);
+        } else if (isArray$1(target) && isArray$1(patch.value)) {
+          var _target;
+
+          var newValues = patch.value.slice();
+          // keep array reference if possible...
+          target.length = 0;
+          (_target = target).push.apply(_target, toConsumableArray(newValues));
+        } else if (isObject(target) && isObject(patch.value)) {
+          // keep object reference if possible...
+          emptyObject(target);
+          extend$1(target, patch.value);
+        } else if (!parent) {
+          throw new Error('Patchee is not an object we can patch');
+        } else {
+          // simple value
+          parent[key] = patch.value;
+        }
+      } else if (patch.op === 'move') {
+        var oldParent = getParent(original, patch.from);
+        if (isArray$1(parent)) {
+          parent.splice(+key, 0, oldParent.splice(+from, 1)[0]);
+        } else {
+          parent[key] = oldParent[from];
+          delete oldParent[from];
+        }
+      } else if (patch.op === 'remove') {
+        if (isArray$1(parent)) {
+          parent.splice(+key, 1);
+        } else {
+          delete parent[key];
+        }
+      }
+    });
+  };
+
+  /**
+  * Deep clone an object.
+  *
+  * @param {Object} obj The object to clone
+  * @returns {Object} A new object identical to the `obj`
+  */
+  JSONPatch.clone = function clone(obj) {
+    return extend$1({}, obj);
+  };
+
+  /**
+  * Creates a JSON-patch.
+  *
+  * @param {String} op The operation of the patch. Available values: "add", "remove", "move"
+  * @param {Object} [val] The value to set the `path` to. If `op` is `move`, `val`
+  *                       is the "from JSON-path" path
+  * @param {String} path The JSON-path for the property to change (e.g. "/qHyperCubeDef/columnOrder")
+  * @returns {Object} A patch following the JSON-patch specification
+  */
+  JSONPatch.createPatch = function createPatch(op, val, path) {
+    var patch = {
+      op: op.toLowerCase(),
+      path: path
+    };
+    if (patch.op === 'move') {
+      patch.from = val;
+    } else if (typeof val !== 'undefined') {
+      patch.value = val;
+    }
+    return patch;
+  };
+
+  /**
+  * Apply the differences of two objects (keeping references if possible).
+  * Identical to running `JSONPatch.apply(original, JSONPatch.generate(original, newData));`
+  *
+  * @param {Object} original The object to update/patch
+  * @param {Object} newData the object to diff against
+  *
+  * @example
+  * var obj1 = { foo: [1,2,3], bar: { baz: true, qux: 1 } };
+  * var obj2 = { foo: [4,5,6], bar: { baz: false } };
+  * JSONPatch.updateObject(obj1, obj2);
+  * // => { foo: [4,5,6], bar: { baz: false } };
+  */
+  JSONPatch.updateObject = function updateObject(original, newData) {
+    if (!Object.keys(original).length) {
+      extend$1(original, newData);
+      return;
+    }
+    JSONPatch.apply(original, JSONPatch.generate(original, newData));
+  };
+
+  var sessions = {};
+
+  /**
+  * Function to make sure we release handle caches when they are closed.
+  *
+  * @param {Session} session The session instance to listen on.
+  */
+  var bindSession = function bindSession(session) {
+    if (!sessions[session.id]) {
+      var cache = {};
+      sessions[session.id] = cache;
+      session.on('traffic:received', function (data) {
+        return data.close && data.close.forEach(function (handle) {
+          return delete cache[handle];
+        });
+      });
+      session.on('closed', function () {
+        return delete sessions[session.id];
+      });
+    }
+  };
+
+  /**
+  * Simple function that ensures the session events has been bound, and returns
+  * either an existing key-value cache or creates one for the specified handle.
+  *
+  * @param {Session} session The session that owns the handle.
+  * @param {Number} handle The object handle to retrieve the cache for.
+  * @returns {KeyValueCache} The cache instance.
+  */
+  var getHandleCache = function getHandleCache(session, handle) {
+    bindSession(session);
+    var cache = sessions[session.id];
+    if (!cache[handle]) {
+      cache[handle] = new KeyValueCache();
+    }
+    return cache[handle];
+  };
+
+  /**
+  * Function used to apply a list of patches and return the patched value.
+  * @param {Session} session The session.
+  * @param {Number} handle The object handle.
+  * @param {String} cacheId The cacheId.
+  * @param {Array} patches The patches.
+  * @returns {Object} Returns the patched value.
+  */
+  var patchValue = function patchValue(session, handle, cacheId, patches) {
+    var cache = getHandleCache(session, handle);
+    var entry = cache.get(cacheId);
+    if (typeof entry === 'undefined') {
+      entry = Array.isArray(patches[0].value) ? [] : {};
+    }
+    if (patches.length) {
+      if (patches[0].path === '/' && _typeof(patches[0].value) !== 'object') {
+        // 'plain' values on root path is not supported (no object reference),
+        // so we simply store the value directly:
+        entry = patches[0].value;
+      } else {
+        JSONPatch.apply(entry, patches);
+      }
+      cache.set(cacheId, entry);
+    }
+    return entry;
+  };
+
+  /**
+  * Process delta interceptor.
+  * @param {Session} session The session the intercept is being executed on.
+  * @param {Object} request The JSON-RPC request.
+  * @param {Object} response The response.
+  * @returns {Object} Returns the patched response
+  */
+  function deltaInterceptor(session, request, response) {
+    var delta = response.delta,
+        result = response.result;
+
+    if (delta) {
+      // when delta is on the response data is expected to be an array of patches:
+      Object.keys(result).forEach(function (key) {
+        if (!Array.isArray(result[key])) {
+          throw new Error('Unexpected RPC response, expected array of patches');
+        }
+        result[key] = patchValue(session, request.handle, request.method + '-' + key, result[key]);
+      });
+      // return a cloned response object to avoid patched object references:
+      return JSON.parse(JSON.stringify(response));
+    }
+    return response;
+  }
+
+  // export object reference for testing purposes:
+  deltaInterceptor.sessions = sessions;
+
+  /**
+  * Process error interceptor.
+  * @param {Object} session - The session the intercept is being executed on.
+  * @param {Object} request - The JSON-RPC request.
+  * @param {Object} response - The response.
+  * @returns {Object} - Returns the defined error for an error, else the response.
+  */
+  function errorInterceptor(session, request, response) {
+    if (typeof response.error !== 'undefined') {
+      var data = response.error;
+      var error = new Error(data.message);
+      error.code = data.code;
+      error.parameter = data.parameter;
+      return session.config.Promise.reject(error);
+    }
+    return response;
+  }
+
+  var RETURN_KEY = 'qReturn';
+
+  /**
+  * Picks out the result "out" parameter based on the QIX method+schema, with
+  * some specific handling for some methods that breaks the predictable protocol.
+  * @param {Object} session - The session the intercept is being executed on.
+  * @param {Object} request - The JSON-RPC request.
+  * @param {Object} response - The response.
+  * @returns {Object} - Returns the result property on the response
+  */
+  function outParamInterceptor(session, request, response) {
+    if (request.method === 'CreateSessionApp' || request.method === 'CreateSessionAppFromApp') {
+      // this method returns multiple out params that we need
+      // to normalize before processing the response further:
+      response[RETURN_KEY].qGenericId = response[RETURN_KEY].qGenericId || response.qSessionAppId;
+    } else if (request.method === 'GetInteract') {
+      // this method returns a qReturn value when it should only return
+      // meta.outKey:
+      delete response[RETURN_KEY];
+    }
+
+    if (hasOwnProperty.call(response, RETURN_KEY)) {
+      return response[RETURN_KEY];
+    } else if (request.outKey !== -1) {
+      return response[request.outKey];
+    }
+
+    return response;
+  }
+
+  /**
+  * Process result interceptor.
+  * @param {Object} session - The session the intercept is being executed on.
+  * @param {Object} request - The JSON-RPC request.
+  * @param {Object} response - The response.
+  * @returns {Object} - Returns the result property on the response
+  */
+  function resultInterceptor(session, request, response) {
+    return response.result;
+  }
+
+  var Intercept = function () {
+    /**
+    * Create a new Intercept instance.
+    * @param {Object} options The configuration options for this class.
+    * @param {Promise} options.Promise The promise constructor to use.
+    * @param {ApiCache} options.apis The ApiCache instance to use.
+    * @param {Array<Object>} [options.request] The additional request interceptors to use.
+    * @param {Array<Object>} [options.response] The additional response interceptors to use.
+    */
+    function Intercept(options) {
+      classCallCheck(this, Intercept);
+
+      _extends(this, options);
+      this.request = [{ onFulfilled: deltaRequestInterceptor }].concat(toConsumableArray(this.request || []));
+      this.response = [{ onFulfilled: errorInterceptor }, { onFulfilled: deltaInterceptor }, { onFulfilled: resultInterceptor }, { onFulfilled: outParamInterceptor }].concat(toConsumableArray(this.response || []), [{ onFulfilled: apiInterceptor }]);
+    }
+
+    /**
+    * Execute the request interceptor queue, each interceptor will get the result from
     * the previous interceptor.
     * @param {Object} session The session instance to execute against.
     * @param {Promise} promise The promise to chain on to.
-    * @param {Object} request The JSONRPC request object for the intercepted response.
     * @returns {Promise}
     */
 
-  }, {
-    key: 'executeResponses',
-    value: function executeResponses(session, promise, request) {
-      var _this2 = this;
 
-      return this.response.reduce(function (interception, interceptor) {
-        return interception.then(interceptor.onFulfilled && interceptor.onFulfilled.bind(_this2, session, request), interceptor.onRejected && interceptor.onRejected.bind(_this2, session, request));
-      }, promise);
-    }
-  }]);
-  return Intercept;
-}();
+    createClass(Intercept, [{
+      key: 'executeRequests',
+      value: function executeRequests(session, promise) {
+        var _this = this;
 
-/**
-* API cache for instances of QIX types, e.g. GenericObject.
-* @extends KeyValueCache
-*/
-
-var ApiCache = function (_KeyValueCache) {
-  inherits(ApiCache, _KeyValueCache);
-
-  function ApiCache() {
-    classCallCheck(this, ApiCache);
-    return possibleConstructorReturn(this, (ApiCache.__proto__ || Object.getPrototypeOf(ApiCache)).apply(this, arguments));
-  }
-
-  createClass(ApiCache, [{
-    key: 'add',
-
-    /**
-    * Adds an API.
-    * @function ApiCache#add
-    * @param {Number} handle - The handle for the API.
-    * @param {*} api - The API.
-    * @returns {{api: *}} The entry.
-    */
-    value: function add(handle, api) {
-      var _this2 = this;
-
-      var entry = { api: api };
-      get(ApiCache.prototype.__proto__ || Object.getPrototypeOf(ApiCache.prototype), 'add', this).call(this, handle.toString(), entry);
-      api.on('closed', function () {
-        return _this2.remove(handle);
-      });
-      return entry;
-    }
-
-    /**
-    * Gets an API.
-    * @function ApiCache#getApi
-    * @param {Number} handle - The handle for the API.
-    * @returns {*} The API for the handle.
-    */
-
-  }, {
-    key: 'getApi',
-    value: function getApi(handle) {
-      var entry = typeof handle !== 'undefined' ? this.get(handle.toString()) : undefined;
-      return entry && entry.api;
-    }
-
-    /**
-    * Gets a list of APIs.
-    * @function ApiCache#getApis
-    * @returns {Array} The list of entries including `handle` and `api` properties for each entry.
-    */
-
-  }, {
-    key: 'getApis',
-    value: function getApis() {
-      return get(ApiCache.prototype.__proto__ || Object.getPrototypeOf(ApiCache.prototype), 'getAll', this).call(this).map(function (entry) {
-        return {
-          handle: entry.key,
-          api: entry.value.api
-        };
-      });
-    }
-
-    /**
-    * Gets a list of APIs with a given type.
-    * @function ApiCache#getApisByType
-    * @param {String} type - The type of APIs to get.
-    * @returns {Array} The list of entries including `handle` and `api` properties for each entry.
-    */
-
-  }, {
-    key: 'getApisByType',
-    value: function getApisByType(type) {
-      return this.getApis().filter(function (entry) {
-        return entry.api.type === type;
-      });
-    }
-  }]);
-  return ApiCache;
-}(KeyValueCache);
-
-/**
-* Qix service.
-*/
-
-var Qix = function () {
-  function Qix() {
-    classCallCheck(this, Qix);
-  }
-
-  createClass(Qix, null, [{
-    key: 'getSession',
-
-    /**
-    * Function used to get a session.
-    * @param {Configuration} config The configuration object for this session.
-    * @returns {Object} Returns a session instance.
-    */
-    value: function getSession(config) {
-      var createSocket = config.createSocket,
-          definition = config.definition,
-          Promise = config.Promise,
-          protocol = config.protocol,
-          requestInterceptors = config.requestInterceptors,
-          responseInterceptors = config.responseInterceptors,
-          suspendOnClose = config.suspendOnClose,
-          url = config.url;
-
-      var apis = new ApiCache();
-      var intercept = new Intercept({
-        apis: apis,
-        request: requestInterceptors,
-        response: responseInterceptors,
-        Promise: Promise
-      });
-      var rpc = new RPC({ createSocket: createSocket, Promise: Promise, url: url });
-      var suspendResume = new SuspendResume({ apis: apis, Promise: Promise, rpc: rpc });
-      var session = new Session({
-        apis: apis,
-        definition: definition,
-        intercept: intercept,
-        Promise: Promise,
-        protocol: protocol,
-        rpc: rpc,
-        suspendOnClose: suspendOnClose,
-        suspendResume: suspendResume
-      });
-      return session;
-    }
-
-    /**
-    * Function used to create a QIX session.
-    * @param {Object} config The configuration object for the QIX session.
-    * @returns {Session} Returns a new QIX session.
-    */
-
-  }, {
-    key: 'create',
-    value: function create(config) {
-      Qix.configureDefaults(config);
-      config.mixins.forEach(function (mixin) {
-        config.definition.registerMixin(mixin);
-      });
-      return Qix.getSession(config);
-    }
-
-    /**
-    * Function used to configure defaults.
-    * @param {Configuration} config The configuration object for how to connect
-    *                               and retrieve end QIX APIs.
-    */
-
-  }, {
-    key: 'configureDefaults',
-    value: function configureDefaults(config) {
-      if (!config) {
-        throw new Error('You need to supply a configuration.');
+        return this.request.reduce(function (interception, interceptor) {
+          var intercept = interceptor.onFulfilled && interceptor.onFulfilled.bind(_this, session);
+          return interception.then(intercept);
+        }, promise);
       }
 
-      // eslint-disable-next-line no-restricted-globals
-      if (!config.Promise && typeof Promise === 'undefined') {
-        throw new Error('Your environment has no Promise implementation. You must provide a Promise implementation in the config.');
-      }
+      /**
+      * Execute the response interceptor queue, each interceptor will get the result from
+      * the previous interceptor.
+      * @param {Object} session The session instance to execute against.
+      * @param {Promise} promise The promise to chain on to.
+      * @param {Object} request The JSONRPC request object for the intercepted response.
+      * @returns {Promise}
+      */
 
-      if (typeof config.createSocket !== 'function' && typeof WebSocket === 'function') {
-        // eslint-disable-next-line no-undef
-        config.createSocket = function (url) {
-          return new WebSocket(url);
-        };
-      }
+    }, {
+      key: 'executeResponses',
+      value: function executeResponses(session, promise, request) {
+        var _this2 = this;
 
-      if (typeof config.suspendOnClose === 'undefined') {
-        config.suspendOnClose = false;
+        return this.response.reduce(function (interception, interceptor) {
+          return interception.then(interceptor.onFulfilled && interceptor.onFulfilled.bind(_this2, session, request), interceptor.onRejected && interceptor.onRejected.bind(_this2, session, request));
+        }, promise);
       }
+    }]);
+    return Intercept;
+  }();
 
-      config.protocol = config.protocol || {};
-      config.protocol.delta = typeof config.protocol.delta !== 'undefined' ? config.protocol.delta : true;
-      // eslint-disable-next-line no-restricted-globals
-      config.Promise = config.Promise || Promise;
-      config.mixins = config.mixins || [];
-      config.definition = config.definition || new Schema(config);
+  /**
+  * API cache for instances of QIX types, e.g. GenericObject.
+  * @extends KeyValueCache
+  */
+
+  var ApiCache = function (_KeyValueCache) {
+    inherits(ApiCache, _KeyValueCache);
+
+    function ApiCache() {
+      classCallCheck(this, ApiCache);
+      return possibleConstructorReturn(this, (ApiCache.__proto__ || Object.getPrototypeOf(ApiCache)).apply(this, arguments));
     }
-  }]);
+
+    createClass(ApiCache, [{
+      key: 'add',
+
+      /**
+      * Adds an API.
+      * @function ApiCache#add
+      * @param {Number} handle - The handle for the API.
+      * @param {*} api - The API.
+      * @returns {{api: *}} The entry.
+      */
+      value: function add(handle, api) {
+        var _this2 = this;
+
+        var entry = { api: api };
+        get(ApiCache.prototype.__proto__ || Object.getPrototypeOf(ApiCache.prototype), 'add', this).call(this, handle.toString(), entry);
+        api.on('closed', function () {
+          return _this2.remove(handle);
+        });
+        return entry;
+      }
+
+      /**
+      * Gets an API.
+      * @function ApiCache#getApi
+      * @param {Number} handle - The handle for the API.
+      * @returns {*} The API for the handle.
+      */
+
+    }, {
+      key: 'getApi',
+      value: function getApi(handle) {
+        var entry = typeof handle !== 'undefined' ? this.get(handle.toString()) : undefined;
+        return entry && entry.api;
+      }
+
+      /**
+      * Gets a list of APIs.
+      * @function ApiCache#getApis
+      * @returns {Array} The list of entries including `handle` and `api` properties for each entry.
+      */
+
+    }, {
+      key: 'getApis',
+      value: function getApis() {
+        return get(ApiCache.prototype.__proto__ || Object.getPrototypeOf(ApiCache.prototype), 'getAll', this).call(this).map(function (entry) {
+          return {
+            handle: entry.key,
+            api: entry.value.api
+          };
+        });
+      }
+
+      /**
+      * Gets a list of APIs with a given type.
+      * @function ApiCache#getApisByType
+      * @param {String} type - The type of APIs to get.
+      * @returns {Array} The list of entries including `handle` and `api` properties for each entry.
+      */
+
+    }, {
+      key: 'getApisByType',
+      value: function getApisByType(type) {
+        return this.getApis().filter(function (entry) {
+          return entry.api.type === type;
+        });
+      }
+    }]);
+    return ApiCache;
+  }(KeyValueCache);
+
+  /**
+  * Qix service.
+  */
+
+  var Qix = function () {
+    function Qix() {
+      classCallCheck(this, Qix);
+    }
+
+    createClass(Qix, null, [{
+      key: 'getSession',
+
+      /**
+      * Function used to get a session.
+      * @param {Configuration} config The configuration object for this session.
+      * @returns {Object} Returns a session instance.
+      */
+      value: function getSession(config) {
+        var createSocket = config.createSocket,
+            Promise = config.Promise,
+            requestInterceptors = config.requestInterceptors,
+            responseInterceptors = config.responseInterceptors,
+            url = config.url;
+
+        var apis = new ApiCache();
+        var intercept = new Intercept({
+          apis: apis,
+          Promise: Promise,
+          request: requestInterceptors,
+          response: responseInterceptors
+        });
+        var rpc = new RPC({ createSocket: createSocket, Promise: Promise, url: url });
+        var suspendResume = new SuspendResume({ apis: apis, Promise: Promise, rpc: rpc });
+        var session = new Session({
+          apis: apis,
+          config: config,
+          intercept: intercept,
+          rpc: rpc,
+          suspendResume: suspendResume
+        });
+        return session;
+      }
+
+      /**
+      * Function used to create a QIX session.
+      * @param {Object} config The configuration object for the QIX session.
+      * @returns {Session} Returns a new QIX session.
+      */
+
+    }, {
+      key: 'create',
+      value: function create(config) {
+        Qix.configureDefaults(config);
+        config.mixins.forEach(function (mixin) {
+          config.definition.registerMixin(mixin);
+        });
+        return Qix.getSession(config);
+      }
+
+      /**
+      * Function used to configure defaults.
+      * @param {Configuration} config The configuration object for how to connect
+      *                               and retrieve end QIX APIs.
+      */
+
+    }, {
+      key: 'configureDefaults',
+      value: function configureDefaults(config) {
+        if (!config) {
+          throw new Error('You need to supply a configuration.');
+        }
+
+        // eslint-disable-next-line no-restricted-globals
+        if (!config.Promise && typeof Promise === 'undefined') {
+          throw new Error('Your environment has no Promise implementation. You must provide a Promise implementation in the config.');
+        }
+
+        if (typeof config.createSocket !== 'function' && typeof WebSocket === 'function') {
+          // eslint-disable-next-line no-undef
+          config.createSocket = function (url) {
+            return new WebSocket(url);
+          };
+        }
+
+        if (typeof config.suspendOnClose === 'undefined') {
+          config.suspendOnClose = false;
+        }
+
+        config.protocol = config.protocol || {};
+        config.protocol.delta = typeof config.protocol.delta !== 'undefined' ? config.protocol.delta : true;
+        // eslint-disable-next-line no-restricted-globals
+        config.Promise = config.Promise || Promise;
+        config.mixins = config.mixins || [];
+        config.definition = config.definition || new Schema(config);
+      }
+    }]);
+    return Qix;
+  }();
+
   return Qix;
-}();
-
-return Qix;
 
 })));
 
 
-},{}],61:[function(require,module,exports){
+},{}],62:[function(require,module,exports){
 module.exports={
 	"structs": {
 		"Field":{
@@ -18914,437 +19098,319 @@ module.exports={
 			"NX_EXT_MSGTYPE_RETURN_MULTIPLE": 4,
 			"NX_EXT_MSGTYPE_RETURN_ERROR": 5
 		}
-	}
+	},
+	"version": "12.20.0"
 }
 
-},{}],62:[function(require,module,exports){
+},{}],63:[function(require,module,exports){
 /**
- * enigma.js v2.1.1
- * Copyright (c) 2017 QlikTech International AB
+ * enigma.js v2.2.1
+ * Copyright (c) 2018 QlikTech International AB
  * This library is licensed under MIT - See the LICENSE file for full details
  */
 
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-	typeof define === 'function' && define.amd ? define(factory) :
-	(global.senseUtilities = factory());
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+  typeof define === 'function' && define.amd ? define(factory) :
+  (global.senseUtilities = factory());
 }(this, (function () { 'use strict';
 
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
+  // Copyright Joyent, Inc. and other Node contributors.
+  //
+  // Permission is hereby granted, free of charge, to any person obtaining a
+  // copy of this software and associated documentation files (the
+  // "Software"), to deal in the Software without restriction, including
+  // without limitation the rights to use, copy, modify, merge, publish,
+  // distribute, sublicense, and/or sell copies of the Software, and to permit
+  // persons to whom the Software is furnished to do so, subject to the
+  // following conditions:
+  //
+  // The above copyright notice and this permission notice shall be included
+  // in all copies or substantial portions of the Software.
+  //
+  // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+  // OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+  // NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+  // DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+  // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+  // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-// If obj.hasOwnProperty has been overridden, then calling
-// obj.hasOwnProperty(prop) will break.
-// See: https://github.com/joyent/node/issues/1707
-function hasOwnProperty(obj, prop) {
-  return Object.prototype.hasOwnProperty.call(obj, prop);
-}
-var isArray = Array.isArray || function (xs) {
-  return Object.prototype.toString.call(xs) === '[object Array]';
-};
-function stringifyPrimitive(v) {
-  switch (typeof v) {
-    case 'string':
-      return v;
-
-    case 'boolean':
-      return v ? 'true' : 'false';
-
-    case 'number':
-      return isFinite(v) ? v : '';
-
-    default:
-      return '';
+  // If obj.hasOwnProperty has been overridden, then calling
+  // obj.hasOwnProperty(prop) will break.
+  // See: https://github.com/joyent/node/issues/1707
+  function hasOwnProperty(obj, prop) {
+    return Object.prototype.hasOwnProperty.call(obj, prop);
   }
-}
+  var isArray = Array.isArray || function (xs) {
+    return Object.prototype.toString.call(xs) === '[object Array]';
+  };
+  function stringifyPrimitive(v) {
+    switch (typeof v) {
+      case 'string':
+        return v;
 
-function stringify (obj, sep, eq, name) {
-  sep = sep || '&';
-  eq = eq || '=';
-  if (obj === null) {
-    obj = undefined;
+      case 'boolean':
+        return v ? 'true' : 'false';
+
+      case 'number':
+        return isFinite(v) ? v : '';
+
+      default:
+        return '';
+    }
   }
 
-  if (typeof obj === 'object') {
-    return map(objectKeys(obj), function(k) {
-      var ks = encodeURIComponent(stringifyPrimitive(k)) + eq;
-      if (isArray(obj[k])) {
-        return map(obj[k], function(v) {
-          return ks + encodeURIComponent(stringifyPrimitive(v));
-        }).join(sep);
+  function stringify (obj, sep, eq, name) {
+    sep = sep || '&';
+    eq = eq || '=';
+    if (obj === null) {
+      obj = undefined;
+    }
+
+    if (typeof obj === 'object') {
+      return map(objectKeys(obj), function(k) {
+        var ks = encodeURIComponent(stringifyPrimitive(k)) + eq;
+        if (isArray(obj[k])) {
+          return map(obj[k], function(v) {
+            return ks + encodeURIComponent(stringifyPrimitive(v));
+          }).join(sep);
+        } else {
+          return ks + encodeURIComponent(stringifyPrimitive(obj[k]));
+        }
+      }).join(sep);
+
+    }
+
+    if (!name) return '';
+    return encodeURIComponent(stringifyPrimitive(name)) + eq +
+           encodeURIComponent(stringifyPrimitive(obj));
+  }
+  function map (xs, f) {
+    if (xs.map) return xs.map(f);
+    var res = [];
+    for (var i = 0; i < xs.length; i++) {
+      res.push(f(xs[i], i));
+    }
+    return res;
+  }
+
+  var objectKeys = Object.keys || function (obj) {
+    var res = [];
+    for (var key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) res.push(key);
+    }
+    return res;
+  };
+
+  function parse(qs, sep, eq, options) {
+    sep = sep || '&';
+    eq = eq || '=';
+    var obj = {};
+
+    if (typeof qs !== 'string' || qs.length === 0) {
+      return obj;
+    }
+
+    var regexp = /\+/g;
+    qs = qs.split(sep);
+
+    var maxKeys = 1000;
+    if (options && typeof options.maxKeys === 'number') {
+      maxKeys = options.maxKeys;
+    }
+
+    var len = qs.length;
+    // maxKeys <= 0 means that we should not limit keys count
+    if (maxKeys > 0 && len > maxKeys) {
+      len = maxKeys;
+    }
+
+    for (var i = 0; i < len; ++i) {
+      var x = qs[i].replace(regexp, '%20'),
+          idx = x.indexOf(eq),
+          kstr, vstr, k, v;
+
+      if (idx >= 0) {
+        kstr = x.substr(0, idx);
+        vstr = x.substr(idx + 1);
       } else {
-        return ks + encodeURIComponent(stringifyPrimitive(obj[k]));
+        kstr = x;
+        vstr = '';
       }
-    }).join(sep);
 
-  }
+      k = decodeURIComponent(kstr);
+      v = decodeURIComponent(vstr);
 
-  if (!name) return '';
-  return encodeURIComponent(stringifyPrimitive(name)) + eq +
-         encodeURIComponent(stringifyPrimitive(obj));
-}
+      if (!hasOwnProperty(obj, k)) {
+        obj[k] = v;
+      } else if (isArray(obj[k])) {
+        obj[k].push(v);
+      } else {
+        obj[k] = [obj[k], v];
+      }
+    }
 
-function map (xs, f) {
-  if (xs.map) return xs.map(f);
-  var res = [];
-  for (var i = 0; i < xs.length; i++) {
-    res.push(f(xs[i], i));
-  }
-  return res;
-}
-
-var objectKeys = Object.keys || function (obj) {
-  var res = [];
-  for (var key in obj) {
-    if (Object.prototype.hasOwnProperty.call(obj, key)) res.push(key);
-  }
-  return res;
-};
-
-function parse(qs, sep, eq, options) {
-  sep = sep || '&';
-  eq = eq || '=';
-  var obj = {};
-
-  if (typeof qs !== 'string' || qs.length === 0) {
     return obj;
+  }var QueryString = {
+    encode: stringify,
+    stringify: stringify,
+    decode: parse,
+    parse: parse
   }
 
-  var regexp = /\+/g;
-  qs = qs.split(sep);
-
-  var maxKeys = 1000;
-  if (options && typeof options.maxKeys === 'number') {
-    maxKeys = options.maxKeys;
-  }
-
-  var len = qs.length;
-  // maxKeys <= 0 means that we should not limit keys count
-  if (maxKeys > 0 && len > maxKeys) {
-    len = maxKeys;
-  }
-
-  for (var i = 0; i < len; ++i) {
-    var x = qs[i].replace(regexp, '%20'),
-        idx = x.indexOf(eq),
-        kstr, vstr, k, v;
-
-    if (idx >= 0) {
-      kstr = x.substr(0, idx);
-      vstr = x.substr(idx + 1);
-    } else {
-      kstr = x;
-      vstr = '';
+  var classCallCheck = function (instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
     }
+  };
 
-    k = decodeURIComponent(kstr);
-    v = decodeURIComponent(vstr);
-
-    if (!hasOwnProperty(obj, k)) {
-      obj[k] = v;
-    } else if (isArray(obj[k])) {
-      obj[k].push(v);
-    } else {
-      obj[k] = [obj[k], v];
-    }
-  }
-
-  return obj;
-}
-var QueryString = {
-  encode: stringify,
-  stringify: stringify,
-  decode: parse,
-  parse: parse
-};
-
-var asyncGenerator = function () {
-  function AwaitValue(value) {
-    this.value = value;
-  }
-
-  function AsyncGenerator(gen) {
-    var front, back;
-
-    function send(key, arg) {
-      return new Promise(function (resolve, reject) {
-        var request = {
-          key: key,
-          arg: arg,
-          resolve: resolve,
-          reject: reject,
-          next: null
-        };
-
-        if (back) {
-          back = back.next = request;
-        } else {
-          front = back = request;
-          resume(key, arg);
-        }
-      });
-    }
-
-    function resume(key, arg) {
-      try {
-        var result = gen[key](arg);
-        var value = result.value;
-
-        if (value instanceof AwaitValue) {
-          Promise.resolve(value.value).then(function (arg) {
-            resume("next", arg);
-          }, function (arg) {
-            resume("throw", arg);
-          });
-        } else {
-          settle(result.done ? "return" : "normal", result.value);
-        }
-      } catch (err) {
-        settle("throw", err);
+  var createClass = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];
+        descriptor.enumerable = descriptor.enumerable || false;
+        descriptor.configurable = true;
+        if ("value" in descriptor) descriptor.writable = true;
+        Object.defineProperty(target, descriptor.key, descriptor);
       }
     }
 
-    function settle(type, value) {
-      switch (type) {
-        case "return":
-          front.resolve({
-            value: value,
-            done: true
-          });
-          break;
-
-        case "throw":
-          front.reject(value);
-          break;
-
-        default:
-          front.resolve({
-            value: value,
-            done: false
-          });
-          break;
-      }
-
-      front = front.next;
-
-      if (front) {
-        resume(front.key, front.arg);
-      } else {
-        back = null;
-      }
-    }
-
-    this._invoke = send;
-
-    if (typeof gen.return !== "function") {
-      this.return = undefined;
-    }
-  }
-
-  if (typeof Symbol === "function" && Symbol.asyncIterator) {
-    AsyncGenerator.prototype[Symbol.asyncIterator] = function () {
-      return this;
+    return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);
+      if (staticProps) defineProperties(Constructor, staticProps);
+      return Constructor;
     };
+  }();
+
+  /**
+  * The Qlik Sense configuration object.
+  * @typedef {Object} SenseConfiguration
+  * @property {String} [appId] The app id. If omitted, only the global object is returned.
+  *                            Otherwise both global and app object are returned.
+  * @property {Boolean} [noData=false] Whether to open the app without data.
+  * @property {Boolean} [secure=true] Set to false if an unsecure WebSocket should be used.
+  * @property {String} [host] Host address.
+  * @property {Number} [port] Port to connect to.
+  * @property {String} [prefix="/"] The absolute base path to use when connecting.
+  *                             Used for proxy prefixes.
+  * @property {String} [subpath=""] The subpath.
+  * @property {String} [route=""] Used to instruct Proxy to route to the correct receiver.
+  * @property {String} [identity=""] Identity to use.
+  * @property {Object} [urlParams={}] Used to add parameters to the WebSocket URL.
+  * @property {Number} [ttl] A value in seconds that QIX Engine should keep the session
+  *                             alive after socket disconnect (only works if QIX Engine supports it).
+  */
+
+  function replaceLeadingAndTrailingSlashes(str) {
+    return str.replace(/(^[/]+)|([/]+$)/g, '');
   }
 
-  AsyncGenerator.prototype.next = function (arg) {
-    return this._invoke("next", arg);
-  };
-
-  AsyncGenerator.prototype.throw = function (arg) {
-    return this._invoke("throw", arg);
-  };
-
-  AsyncGenerator.prototype.return = function (arg) {
-    return this._invoke("return", arg);
-  };
-
-  return {
-    wrap: function (fn) {
-      return function () {
-        return new AsyncGenerator(fn.apply(this, arguments));
-      };
-    },
-    await: function (value) {
-      return new AwaitValue(value);
-    }
-  };
-}();
-
-
-
-
-
-var classCallCheck = function (instance, Constructor) {
-  if (!(instance instanceof Constructor)) {
-    throw new TypeError("Cannot call a class as a function");
-  }
-};
-
-var createClass = function () {
-  function defineProperties(target, props) {
-    for (var i = 0; i < props.length; i++) {
-      var descriptor = props[i];
-      descriptor.enumerable = descriptor.enumerable || false;
-      descriptor.configurable = true;
-      if ("value" in descriptor) descriptor.writable = true;
-      Object.defineProperty(target, descriptor.key, descriptor);
-    }
-  }
-
-  return function (Constructor, protoProps, staticProps) {
-    if (protoProps) defineProperties(Constructor.prototype, protoProps);
-    if (staticProps) defineProperties(Constructor, staticProps);
-    return Constructor;
-  };
-}();
-
-/**
-* The Qlik Sense configuration object.
-* @typedef {Object} SenseConfiguration
-* @property {String} [appId] The app id. If omitted, only the global object is returned.
-*                            Otherwise both global and app object are returned.
-* @property {Boolean} [noData=false] Whether to open the app without data.
-* @property {Boolean} [secure=true] Set to false if an unsecure WebSocket should be used.
-* @property {String} [host] Host address.
-* @property {Number} [port] Port to connect to.
-* @property {String} [prefix="/"] The absolute base path to use when connecting.
-*                             Used for proxy prefixes.
-* @property {String} [subpath=""] The subpath.
-* @property {String} [route=""] Used to instruct Proxy to route to the correct receiver.
-* @property {String} [identity=""] Identity to use.
-* @property {Object} [urlParams={}] Used to add parameters to the WebSocket URL.
-* @property {Number} [ttl] A value in seconds that QIX Engine should keep the session
-*                             alive after socket disconnect (only works if QIX Engine supports it).
-*/
-
-function replaceLeadingAndTrailingSlashes(str) {
-  return str.replace(/(^[/]+)|([/]+$)/g, '');
-}
-
-var SenseUtilities = function () {
-  function SenseUtilities() {
-    classCallCheck(this, SenseUtilities);
-  }
-
-  createClass(SenseUtilities, null, [{
-    key: 'configureDefaults',
-
-    /**
-    * Ensures that the configuration has defaults set.
-    *
-    * @private
-    * @param {SenseConfiguration} senseConfig The configuration to ensure defaults on.
-    */
-    value: function configureDefaults(senseConfig) {
-      if (!senseConfig.host) {
-        senseConfig.host = 'localhost';
-      }
-
-      if (typeof senseConfig.secure === 'undefined') {
-        senseConfig.secure = true;
-      }
-
-      if (!senseConfig.appId && !senseConfig.route) {
-        senseConfig.route = 'app/engineData';
-      }
-
-      if (typeof senseConfig.noData === 'undefined') {
-        senseConfig.noData = false;
-      }
+  var SenseUtilities = function () {
+    function SenseUtilities() {
+      classCallCheck(this, SenseUtilities);
     }
 
-    /**
-    * Function used to build an URL.
-    * @param {SenseUrlConfiguration} urlConfig - The URL configuration object.
-    * @returns {String} Returns the URL.
-    */
+    createClass(SenseUtilities, null, [{
+      key: 'configureDefaults',
 
-  }, {
-    key: 'buildUrl',
-    value: function buildUrl(urlConfig) {
-      SenseUtilities.configureDefaults(urlConfig);
+      /**
+      * Ensures that the configuration has defaults set.
+      *
+      * @private
+      * @param {SenseConfiguration} senseConfig The configuration to ensure defaults on.
+      */
+      value: function configureDefaults(senseConfig) {
+        if (!senseConfig.host) {
+          senseConfig.host = 'localhost';
+        }
 
-      var secure = urlConfig.secure,
-          host = urlConfig.host,
-          port = urlConfig.port,
-          prefix = urlConfig.prefix,
-          subpath = urlConfig.subpath,
-          route = urlConfig.route,
-          identity = urlConfig.identity,
-          urlParams = urlConfig.urlParams,
-          ttl = urlConfig.ttl,
-          appId = urlConfig.appId;
+        if (typeof senseConfig.secure === 'undefined') {
+          senseConfig.secure = true;
+        }
 
+        if (!senseConfig.appId && !senseConfig.route) {
+          senseConfig.route = 'app/engineData';
+        }
 
-      var url = '';
-
-      url += (secure ? 'wss' : 'ws') + '://';
-      url += host || 'localhost';
-
-      if (port) {
-        url += ':' + port;
+        if (typeof senseConfig.noData === 'undefined') {
+          senseConfig.noData = false;
+        }
       }
 
-      if (prefix) {
-        url += '/' + replaceLeadingAndTrailingSlashes(prefix);
-      }
+      /**
+      * Function used to build an URL.
+      * @param {SenseUrlConfiguration} urlConfig - The URL configuration object.
+      * @returns {String} Returns the URL.
+      */
 
-      if (subpath) {
-        url += '/' + replaceLeadingAndTrailingSlashes(subpath);
-      }
+    }, {
+      key: 'buildUrl',
+      value: function buildUrl(urlConfig) {
+        SenseUtilities.configureDefaults(urlConfig);
 
-      if (route) {
-        url += '/' + replaceLeadingAndTrailingSlashes(route);
-      } else if (appId && appId !== '') {
-        url += '/app/' + encodeURIComponent(appId);
-      }
+        var secure = urlConfig.secure,
+            host = urlConfig.host,
+            port = urlConfig.port,
+            prefix = urlConfig.prefix,
+            subpath = urlConfig.subpath,
+            route = urlConfig.route,
+            identity = urlConfig.identity,
+            urlParams = urlConfig.urlParams,
+            ttl = urlConfig.ttl,
+            appId = urlConfig.appId;
 
-      if (identity) {
-        url += '/identity/' + encodeURIComponent(identity);
-      }
 
-      if (ttl) {
-        url += '/ttl/' + ttl;
-      }
+        var url = '';
 
-      if (urlParams) {
-        url += '?' + QueryString.stringify(urlParams);
-      }
+        url += (secure ? 'wss' : 'ws') + '://';
+        url += host || 'localhost';
 
-      return url;
-    }
-  }]);
+        if (port) {
+          url += ':' + port;
+        }
+
+        if (prefix) {
+          url += '/' + replaceLeadingAndTrailingSlashes(prefix);
+        }
+
+        if (subpath) {
+          url += '/' + replaceLeadingAndTrailingSlashes(subpath);
+        }
+
+        if (route) {
+          url += '/' + replaceLeadingAndTrailingSlashes(route);
+        } else if (appId && appId !== '') {
+          url += '/app/' + encodeURIComponent(appId);
+        }
+
+        if (identity) {
+          url += '/identity/' + encodeURIComponent(identity);
+        }
+
+        if (ttl) {
+          url += '/ttl/' + ttl;
+        }
+
+        if (urlParams) {
+          url += '?' + QueryString.stringify(urlParams);
+        }
+
+        return url;
+      }
+    }]);
+    return SenseUtilities;
+  }();
+
   return SenseUtilities;
-}();
-
-return SenseUtilities;
 
 })));
 
 
-},{}],63:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 //! moment.js
-//! version : 2.18.1
+//! version : 2.19.3
 //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
 //! license : MIT
 //! momentjs.com
@@ -19378,12 +19444,17 @@ function isObject(input) {
 }
 
 function isObjectEmpty(obj) {
-    var k;
-    for (k in obj) {
-        // even if its not own property I'd still call it non-empty
-        return false;
+    if (Object.getOwnPropertyNames) {
+        return (Object.getOwnPropertyNames(obj).length === 0);
+    } else {
+        var k;
+        for (k in obj) {
+            if (obj.hasOwnProperty(k)) {
+                return false;
+            }
+        }
+        return true;
     }
-    return true;
 }
 
 function isUndefined(input) {
@@ -19477,12 +19548,10 @@ if (Array.prototype.some) {
     };
 }
 
-var some$1 = some;
-
 function isValid(m) {
     if (m._isValid == null) {
         var flags = getParsingFlags(m);
-        var parsedParts = some$1.call(flags.parsedDateParts, function (i) {
+        var parsedParts = some.call(flags.parsedDateParts, function (i) {
             return i != null;
         });
         var isNowValid = !isNaN(m._d.getTime()) &&
@@ -19490,6 +19559,7 @@ function isValid(m) {
             !flags.empty &&
             !flags.invalidMonth &&
             !flags.invalidWeekday &&
+            !flags.weekdayMismatch &&
             !flags.nullInput &&
             !flags.invalidFormat &&
             !flags.userInvalidated &&
@@ -19755,8 +19825,6 @@ if (Object.keys) {
     };
 }
 
-var keys$1 = keys;
-
 var defaultCalendar = {
     sameDay : '[Today at] LT',
     nextDay : '[Tomorrow at] LT',
@@ -19882,56 +19950,6 @@ function getPrioritizedUnits(unitsObj) {
     return units;
 }
 
-function makeGetSet (unit, keepTime) {
-    return function (value) {
-        if (value != null) {
-            set$1(this, unit, value);
-            hooks.updateOffset(this, keepTime);
-            return this;
-        } else {
-            return get(this, unit);
-        }
-    };
-}
-
-function get (mom, unit) {
-    return mom.isValid() ?
-        mom._d['get' + (mom._isUTC ? 'UTC' : '') + unit]() : NaN;
-}
-
-function set$1 (mom, unit, value) {
-    if (mom.isValid()) {
-        mom._d['set' + (mom._isUTC ? 'UTC' : '') + unit](value);
-    }
-}
-
-// MOMENTS
-
-function stringGet (units) {
-    units = normalizeUnits(units);
-    if (isFunction(this[units])) {
-        return this[units]();
-    }
-    return this;
-}
-
-
-function stringSet (units, value) {
-    if (typeof units === 'object') {
-        units = normalizeObjectUnits(units);
-        var prioritized = getPrioritizedUnits(units);
-        for (var i = 0; i < prioritized.length; i++) {
-            this[prioritized[i].unit](units[prioritized[i].unit]);
-        }
-    } else {
-        units = normalizeUnits(units);
-        if (isFunction(this[units])) {
-            return this[units](value);
-        }
-    }
-    return this;
-}
-
 function zeroFill(number, targetLength, forceSign) {
     var absNumber = '' + Math.abs(number),
         zerosToFill = targetLength - absNumber.length,
@@ -20052,7 +20070,7 @@ var matchTimestamp = /[+-]?\d+(\.\d{1,3})?/; // 123456789 123456789.123
 
 // any word (or two) characters or numbers including two/three word month in arabic.
 // includes scottish gaelic two word and hyphenated months
-var matchWord = /[0-9]*['a-z\u00A0-\u05FF\u0700-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+|[\u0600-\u06FF\/]+(\s*?[\u0600-\u06FF]+){1,2}/i;
+var matchWord = /[0-9]{0,256}['a-z\u00A0-\u05FF\u0700-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]{1,256}|[\u0600-\u06FF\/]{1,256}(\s*?[\u0600-\u06FF]{1,256}){1,2}/i;
 
 
 var regexes = {};
@@ -20122,6 +20140,131 @@ var MILLISECOND = 6;
 var WEEK = 7;
 var WEEKDAY = 8;
 
+// FORMATTING
+
+addFormatToken('Y', 0, 0, function () {
+    var y = this.year();
+    return y <= 9999 ? '' + y : '+' + y;
+});
+
+addFormatToken(0, ['YY', 2], 0, function () {
+    return this.year() % 100;
+});
+
+addFormatToken(0, ['YYYY',   4],       0, 'year');
+addFormatToken(0, ['YYYYY',  5],       0, 'year');
+addFormatToken(0, ['YYYYYY', 6, true], 0, 'year');
+
+// ALIASES
+
+addUnitAlias('year', 'y');
+
+// PRIORITIES
+
+addUnitPriority('year', 1);
+
+// PARSING
+
+addRegexToken('Y',      matchSigned);
+addRegexToken('YY',     match1to2, match2);
+addRegexToken('YYYY',   match1to4, match4);
+addRegexToken('YYYYY',  match1to6, match6);
+addRegexToken('YYYYYY', match1to6, match6);
+
+addParseToken(['YYYYY', 'YYYYYY'], YEAR);
+addParseToken('YYYY', function (input, array) {
+    array[YEAR] = input.length === 2 ? hooks.parseTwoDigitYear(input) : toInt(input);
+});
+addParseToken('YY', function (input, array) {
+    array[YEAR] = hooks.parseTwoDigitYear(input);
+});
+addParseToken('Y', function (input, array) {
+    array[YEAR] = parseInt(input, 10);
+});
+
+// HELPERS
+
+function daysInYear(year) {
+    return isLeapYear(year) ? 366 : 365;
+}
+
+function isLeapYear(year) {
+    return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+}
+
+// HOOKS
+
+hooks.parseTwoDigitYear = function (input) {
+    return toInt(input) + (toInt(input) > 68 ? 1900 : 2000);
+};
+
+// MOMENTS
+
+var getSetYear = makeGetSet('FullYear', true);
+
+function getIsLeapYear () {
+    return isLeapYear(this.year());
+}
+
+function makeGetSet (unit, keepTime) {
+    return function (value) {
+        if (value != null) {
+            set$1(this, unit, value);
+            hooks.updateOffset(this, keepTime);
+            return this;
+        } else {
+            return get(this, unit);
+        }
+    };
+}
+
+function get (mom, unit) {
+    return mom.isValid() ?
+        mom._d['get' + (mom._isUTC ? 'UTC' : '') + unit]() : NaN;
+}
+
+function set$1 (mom, unit, value) {
+    if (mom.isValid() && !isNaN(value)) {
+        if (unit === 'FullYear' && isLeapYear(mom.year()) && mom.month() === 1 && mom.date() === 29) {
+            mom._d['set' + (mom._isUTC ? 'UTC' : '') + unit](value, mom.month(), daysInMonth(value, mom.month()));
+        }
+        else {
+            mom._d['set' + (mom._isUTC ? 'UTC' : '') + unit](value);
+        }
+    }
+}
+
+// MOMENTS
+
+function stringGet (units) {
+    units = normalizeUnits(units);
+    if (isFunction(this[units])) {
+        return this[units]();
+    }
+    return this;
+}
+
+
+function stringSet (units, value) {
+    if (typeof units === 'object') {
+        units = normalizeObjectUnits(units);
+        var prioritized = getPrioritizedUnits(units);
+        for (var i = 0; i < prioritized.length; i++) {
+            this[prioritized[i].unit](units[prioritized[i].unit]);
+        }
+    } else {
+        units = normalizeUnits(units);
+        if (isFunction(this[units])) {
+            return this[units](value);
+        }
+    }
+    return this;
+}
+
+function mod(n, x) {
+    return ((n % x) + x) % x;
+}
+
 var indexOf;
 
 if (Array.prototype.indexOf) {
@@ -20139,10 +20282,13 @@ if (Array.prototype.indexOf) {
     };
 }
 
-var indexOf$1 = indexOf;
-
 function daysInMonth(year, month) {
-    return new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+    if (isNaN(year) || isNaN(month)) {
+        return NaN;
+    }
+    var modMonth = mod(month, 12);
+    year += (month - modMonth) / 12;
+    return modMonth === 1 ? (isLeapYear(year) ? 29 : 28) : (31 - modMonth % 7 % 2);
 }
 
 // FORMATTING
@@ -20231,26 +20377,26 @@ function handleStrictParse(monthName, format, strict) {
 
     if (strict) {
         if (format === 'MMM') {
-            ii = indexOf$1.call(this._shortMonthsParse, llc);
+            ii = indexOf.call(this._shortMonthsParse, llc);
             return ii !== -1 ? ii : null;
         } else {
-            ii = indexOf$1.call(this._longMonthsParse, llc);
+            ii = indexOf.call(this._longMonthsParse, llc);
             return ii !== -1 ? ii : null;
         }
     } else {
         if (format === 'MMM') {
-            ii = indexOf$1.call(this._shortMonthsParse, llc);
+            ii = indexOf.call(this._shortMonthsParse, llc);
             if (ii !== -1) {
                 return ii;
             }
-            ii = indexOf$1.call(this._longMonthsParse, llc);
+            ii = indexOf.call(this._longMonthsParse, llc);
             return ii !== -1 ? ii : null;
         } else {
-            ii = indexOf$1.call(this._longMonthsParse, llc);
+            ii = indexOf.call(this._longMonthsParse, llc);
             if (ii !== -1) {
                 return ii;
             }
-            ii = indexOf$1.call(this._shortMonthsParse, llc);
+            ii = indexOf.call(this._shortMonthsParse, llc);
             return ii !== -1 ? ii : null;
         }
     }
@@ -20407,72 +20553,6 @@ function computeMonthsParse () {
     this._monthsShortRegex = this._monthsRegex;
     this._monthsStrictRegex = new RegExp('^(' + longPieces.join('|') + ')', 'i');
     this._monthsShortStrictRegex = new RegExp('^(' + shortPieces.join('|') + ')', 'i');
-}
-
-// FORMATTING
-
-addFormatToken('Y', 0, 0, function () {
-    var y = this.year();
-    return y <= 9999 ? '' + y : '+' + y;
-});
-
-addFormatToken(0, ['YY', 2], 0, function () {
-    return this.year() % 100;
-});
-
-addFormatToken(0, ['YYYY',   4],       0, 'year');
-addFormatToken(0, ['YYYYY',  5],       0, 'year');
-addFormatToken(0, ['YYYYYY', 6, true], 0, 'year');
-
-// ALIASES
-
-addUnitAlias('year', 'y');
-
-// PRIORITIES
-
-addUnitPriority('year', 1);
-
-// PARSING
-
-addRegexToken('Y',      matchSigned);
-addRegexToken('YY',     match1to2, match2);
-addRegexToken('YYYY',   match1to4, match4);
-addRegexToken('YYYYY',  match1to6, match6);
-addRegexToken('YYYYYY', match1to6, match6);
-
-addParseToken(['YYYYY', 'YYYYYY'], YEAR);
-addParseToken('YYYY', function (input, array) {
-    array[YEAR] = input.length === 2 ? hooks.parseTwoDigitYear(input) : toInt(input);
-});
-addParseToken('YY', function (input, array) {
-    array[YEAR] = hooks.parseTwoDigitYear(input);
-});
-addParseToken('Y', function (input, array) {
-    array[YEAR] = parseInt(input, 10);
-});
-
-// HELPERS
-
-function daysInYear(year) {
-    return isLeapYear(year) ? 366 : 365;
-}
-
-function isLeapYear(year) {
-    return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
-}
-
-// HOOKS
-
-hooks.parseTwoDigitYear = function (input) {
-    return toInt(input) + (toInt(input) > 68 ? 1900 : 2000);
-};
-
-// MOMENTS
-
-var getSetYear = makeGetSet('FullYear', true);
-
-function getIsLeapYear () {
-    return isLeapYear(this.year());
 }
 
 function createDate (y, m, d, h, M, s, ms) {
@@ -20742,48 +20822,48 @@ function handleStrictParse$1(weekdayName, format, strict) {
 
     if (strict) {
         if (format === 'dddd') {
-            ii = indexOf$1.call(this._weekdaysParse, llc);
+            ii = indexOf.call(this._weekdaysParse, llc);
             return ii !== -1 ? ii : null;
         } else if (format === 'ddd') {
-            ii = indexOf$1.call(this._shortWeekdaysParse, llc);
+            ii = indexOf.call(this._shortWeekdaysParse, llc);
             return ii !== -1 ? ii : null;
         } else {
-            ii = indexOf$1.call(this._minWeekdaysParse, llc);
+            ii = indexOf.call(this._minWeekdaysParse, llc);
             return ii !== -1 ? ii : null;
         }
     } else {
         if (format === 'dddd') {
-            ii = indexOf$1.call(this._weekdaysParse, llc);
+            ii = indexOf.call(this._weekdaysParse, llc);
             if (ii !== -1) {
                 return ii;
             }
-            ii = indexOf$1.call(this._shortWeekdaysParse, llc);
+            ii = indexOf.call(this._shortWeekdaysParse, llc);
             if (ii !== -1) {
                 return ii;
             }
-            ii = indexOf$1.call(this._minWeekdaysParse, llc);
+            ii = indexOf.call(this._minWeekdaysParse, llc);
             return ii !== -1 ? ii : null;
         } else if (format === 'ddd') {
-            ii = indexOf$1.call(this._shortWeekdaysParse, llc);
+            ii = indexOf.call(this._shortWeekdaysParse, llc);
             if (ii !== -1) {
                 return ii;
             }
-            ii = indexOf$1.call(this._weekdaysParse, llc);
+            ii = indexOf.call(this._weekdaysParse, llc);
             if (ii !== -1) {
                 return ii;
             }
-            ii = indexOf$1.call(this._minWeekdaysParse, llc);
+            ii = indexOf.call(this._minWeekdaysParse, llc);
             return ii !== -1 ? ii : null;
         } else {
-            ii = indexOf$1.call(this._minWeekdaysParse, llc);
+            ii = indexOf.call(this._minWeekdaysParse, llc);
             if (ii !== -1) {
                 return ii;
             }
-            ii = indexOf$1.call(this._weekdaysParse, llc);
+            ii = indexOf.call(this._weekdaysParse, llc);
             if (ii !== -1) {
                 return ii;
             }
-            ii = indexOf$1.call(this._shortWeekdaysParse, llc);
+            ii = indexOf.call(this._shortWeekdaysParse, llc);
             return ii !== -1 ? ii : null;
         }
     }
@@ -21172,11 +21252,10 @@ function loadLocale(name) {
             module && module.exports) {
         try {
             oldLocale = globalLocale._abbr;
-            require('./locale/' + name);
-            // because defineLocale currently also sets the global locale, we
-            // want to undo that for lazy loaded locales
+            var aliasedRequire = require;
+            aliasedRequire('./locale/' + name);
             getSetGlobalLocale(oldLocale);
-        } catch (e) { }
+        } catch (e) {}
     }
     return locales[name];
 }
@@ -21252,10 +21331,11 @@ function defineLocale (name, config) {
 
 function updateLocale(name, config) {
     if (config != null) {
-        var locale, parentConfig = baseConfig;
+        var locale, tmpLocale, parentConfig = baseConfig;
         // MERGE
-        if (locales[name] != null) {
-            parentConfig = locales[name]._config;
+        tmpLocale = loadLocale(name);
+        if (tmpLocale != null) {
+            parentConfig = tmpLocale._config;
         }
         config = mergeConfigs(parentConfig, config);
         locale = new Locale(config);
@@ -21302,7 +21382,7 @@ function getLocale (key) {
 }
 
 function listLocales() {
-    return keys$1(locales);
+    return keys(locales);
 }
 
 function checkOverflow (m) {
@@ -21333,6 +21413,154 @@ function checkOverflow (m) {
     }
 
     return m;
+}
+
+// Pick the first defined of two or three arguments.
+function defaults(a, b, c) {
+    if (a != null) {
+        return a;
+    }
+    if (b != null) {
+        return b;
+    }
+    return c;
+}
+
+function currentDateArray(config) {
+    // hooks is actually the exported moment object
+    var nowValue = new Date(hooks.now());
+    if (config._useUTC) {
+        return [nowValue.getUTCFullYear(), nowValue.getUTCMonth(), nowValue.getUTCDate()];
+    }
+    return [nowValue.getFullYear(), nowValue.getMonth(), nowValue.getDate()];
+}
+
+// convert an array to a date.
+// the array should mirror the parameters below
+// note: all values past the year are optional and will default to the lowest possible value.
+// [year, month, day , hour, minute, second, millisecond]
+function configFromArray (config) {
+    var i, date, input = [], currentDate, yearToUse;
+
+    if (config._d) {
+        return;
+    }
+
+    currentDate = currentDateArray(config);
+
+    //compute day of the year from weeks and weekdays
+    if (config._w && config._a[DATE] == null && config._a[MONTH] == null) {
+        dayOfYearFromWeekInfo(config);
+    }
+
+    //if the day of the year is set, figure out what it is
+    if (config._dayOfYear != null) {
+        yearToUse = defaults(config._a[YEAR], currentDate[YEAR]);
+
+        if (config._dayOfYear > daysInYear(yearToUse) || config._dayOfYear === 0) {
+            getParsingFlags(config)._overflowDayOfYear = true;
+        }
+
+        date = createUTCDate(yearToUse, 0, config._dayOfYear);
+        config._a[MONTH] = date.getUTCMonth();
+        config._a[DATE] = date.getUTCDate();
+    }
+
+    // Default to current date.
+    // * if no year, month, day of month are given, default to today
+    // * if day of month is given, default month and year
+    // * if month is given, default only year
+    // * if year is given, don't default anything
+    for (i = 0; i < 3 && config._a[i] == null; ++i) {
+        config._a[i] = input[i] = currentDate[i];
+    }
+
+    // Zero out whatever was not defaulted, including time
+    for (; i < 7; i++) {
+        config._a[i] = input[i] = (config._a[i] == null) ? (i === 2 ? 1 : 0) : config._a[i];
+    }
+
+    // Check for 24:00:00.000
+    if (config._a[HOUR] === 24 &&
+            config._a[MINUTE] === 0 &&
+            config._a[SECOND] === 0 &&
+            config._a[MILLISECOND] === 0) {
+        config._nextDay = true;
+        config._a[HOUR] = 0;
+    }
+
+    config._d = (config._useUTC ? createUTCDate : createDate).apply(null, input);
+    // Apply timezone offset from input. The actual utcOffset can be changed
+    // with parseZone.
+    if (config._tzm != null) {
+        config._d.setUTCMinutes(config._d.getUTCMinutes() - config._tzm);
+    }
+
+    if (config._nextDay) {
+        config._a[HOUR] = 24;
+    }
+
+    // check for mismatching day of week
+    if (config._w && typeof config._w.d !== 'undefined' && config._w.d !== config._d.getDay()) {
+        getParsingFlags(config).weekdayMismatch = true;
+    }
+}
+
+function dayOfYearFromWeekInfo(config) {
+    var w, weekYear, week, weekday, dow, doy, temp, weekdayOverflow;
+
+    w = config._w;
+    if (w.GG != null || w.W != null || w.E != null) {
+        dow = 1;
+        doy = 4;
+
+        // TODO: We need to take the current isoWeekYear, but that depends on
+        // how we interpret now (local, utc, fixed offset). So create
+        // a now version of current config (take local/utc/offset flags, and
+        // create now).
+        weekYear = defaults(w.GG, config._a[YEAR], weekOfYear(createLocal(), 1, 4).year);
+        week = defaults(w.W, 1);
+        weekday = defaults(w.E, 1);
+        if (weekday < 1 || weekday > 7) {
+            weekdayOverflow = true;
+        }
+    } else {
+        dow = config._locale._week.dow;
+        doy = config._locale._week.doy;
+
+        var curWeek = weekOfYear(createLocal(), dow, doy);
+
+        weekYear = defaults(w.gg, config._a[YEAR], curWeek.year);
+
+        // Default to current week.
+        week = defaults(w.w, curWeek.week);
+
+        if (w.d != null) {
+            // weekday -- low day numbers are considered next week
+            weekday = w.d;
+            if (weekday < 0 || weekday > 6) {
+                weekdayOverflow = true;
+            }
+        } else if (w.e != null) {
+            // local weekday -- counting starts from begining of week
+            weekday = w.e + dow;
+            if (w.e < 0 || w.e > 6) {
+                weekdayOverflow = true;
+            }
+        } else {
+            // default to begining of week
+            weekday = dow;
+        }
+    }
+    if (week < 1 || week > weeksInYear(weekYear, dow, doy)) {
+        getParsingFlags(config)._overflowWeeks = true;
+    } else if (weekdayOverflow != null) {
+        getParsingFlags(config)._overflowWeekday = true;
+    } else {
+        temp = dayOfYearFromWeeks(weekYear, week, weekday, dow, doy);
+        config._a[YEAR] = temp.year;
+        config._dayOfYear = temp.dayOfYear;
+    }
 }
 
 // iso 8601 regex
@@ -21426,70 +21654,94 @@ function configFromISO(config) {
 }
 
 // RFC 2822 regex: For details see https://tools.ietf.org/html/rfc2822#section-3.3
-var basicRfcRegex = /^((?:Mon|Tue|Wed|Thu|Fri|Sat|Sun),?\s)?(\d?\d\s(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s(?:\d\d)?\d\d\s)(\d\d:\d\d)(\:\d\d)?(\s(?:UT|GMT|[ECMP][SD]T|[A-IK-Za-ik-z]|[+-]\d{4}))$/;
+var rfc2822 = /^(?:(Mon|Tue|Wed|Thu|Fri|Sat|Sun),?\s)?(\d{1,2})\s(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s(\d{2,4})\s(\d\d):(\d\d)(?::(\d\d))?\s(?:(UT|GMT|[ECMP][SD]T)|([Zz])|([+-]\d{4}))$/;
+
+function extractFromRFC2822Strings(yearStr, monthStr, dayStr, hourStr, minuteStr, secondStr) {
+    var result = [
+        untruncateYear(yearStr),
+        defaultLocaleMonthsShort.indexOf(monthStr),
+        parseInt(dayStr, 10),
+        parseInt(hourStr, 10),
+        parseInt(minuteStr, 10)
+    ];
+
+    if (secondStr) {
+        result.push(parseInt(secondStr, 10));
+    }
+
+    return result;
+}
+
+function untruncateYear(yearStr) {
+    var year = parseInt(yearStr, 10);
+    if (year <= 49) {
+        return 2000 + year;
+    } else if (year <= 999) {
+        return 1900 + year;
+    }
+    return year;
+}
+
+function preprocessRFC2822(s) {
+    // Remove comments and folding whitespace and replace multiple-spaces with a single space
+    return s.replace(/\([^)]*\)|[\n\t]/g, ' ').replace(/(\s\s+)/g, ' ').trim();
+}
+
+function checkWeekday(weekdayStr, parsedInput, config) {
+    if (weekdayStr) {
+        // TODO: Replace the vanilla JS Date object with an indepentent day-of-week check.
+        var weekdayProvided = defaultLocaleWeekdaysShort.indexOf(weekdayStr),
+            weekdayActual = new Date(parsedInput[0], parsedInput[1], parsedInput[2]).getDay();
+        if (weekdayProvided !== weekdayActual) {
+            getParsingFlags(config).weekdayMismatch = true;
+            config._isValid = false;
+            return false;
+        }
+    }
+    return true;
+}
+
+var obsOffsets = {
+    UT: 0,
+    GMT: 0,
+    EDT: -4 * 60,
+    EST: -5 * 60,
+    CDT: -5 * 60,
+    CST: -6 * 60,
+    MDT: -6 * 60,
+    MST: -7 * 60,
+    PDT: -7 * 60,
+    PST: -8 * 60
+};
+
+function calculateOffset(obsOffset, militaryOffset, numOffset) {
+    if (obsOffset) {
+        return obsOffsets[obsOffset];
+    } else if (militaryOffset) {
+        // the only allowed military tz is Z
+        return 0;
+    } else {
+        var hm = parseInt(numOffset, 10);
+        var m = hm % 100, h = (hm - m) / 100;
+        return h * 60 + m;
+    }
+}
 
 // date and time from ref 2822 format
 function configFromRFC2822(config) {
-    var string, match, dayFormat,
-        dateFormat, timeFormat, tzFormat;
-    var timezones = {
-        ' GMT': ' +0000',
-        ' EDT': ' -0400',
-        ' EST': ' -0500',
-        ' CDT': ' -0500',
-        ' CST': ' -0600',
-        ' MDT': ' -0600',
-        ' MST': ' -0700',
-        ' PDT': ' -0700',
-        ' PST': ' -0800'
-    };
-    var military = 'YXWVUTSRQPONZABCDEFGHIKLM';
-    var timezone, timezoneIndex;
-
-    string = config._i
-        .replace(/\([^\)]*\)|[\n\t]/g, ' ') // Remove comments and folding whitespace
-        .replace(/(\s\s+)/g, ' ') // Replace multiple-spaces with a single space
-        .replace(/^\s|\s$/g, ''); // Remove leading and trailing spaces
-    match = basicRfcRegex.exec(string);
-
+    var match = rfc2822.exec(preprocessRFC2822(config._i));
     if (match) {
-        dayFormat = match[1] ? 'ddd' + ((match[1].length === 5) ? ', ' : ' ') : '';
-        dateFormat = 'D MMM ' + ((match[2].length > 10) ? 'YYYY ' : 'YY ');
-        timeFormat = 'HH:mm' + (match[4] ? ':ss' : '');
-
-        // TODO: Replace the vanilla JS Date object with an indepentent day-of-week check.
-        if (match[1]) { // day of week given
-            var momentDate = new Date(match[2]);
-            var momentDay = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][momentDate.getDay()];
-
-            if (match[1].substr(0,3) !== momentDay) {
-                getParsingFlags(config).weekdayMismatch = true;
-                config._isValid = false;
-                return;
-            }
+        var parsedArray = extractFromRFC2822Strings(match[4], match[3], match[2], match[5], match[6], match[7]);
+        if (!checkWeekday(match[1], parsedArray, config)) {
+            return;
         }
 
-        switch (match[5].length) {
-            case 2: // military
-                if (timezoneIndex === 0) {
-                    timezone = ' +0000';
-                } else {
-                    timezoneIndex = military.indexOf(match[5][1].toUpperCase()) - 12;
-                    timezone = ((timezoneIndex < 0) ? ' -' : ' +') +
-                        (('' + timezoneIndex).replace(/^-?/, '0')).match(/..$/)[0] + '00';
-                }
-                break;
-            case 4: // Zone
-                timezone = timezones[match[5]];
-                break;
-            default: // UT or +/-9999
-                timezone = timezones[' GMT'];
-        }
-        match[5] = timezone;
-        config._i = match.splice(1).join('');
-        tzFormat = ' ZZ';
-        config._f = dayFormat + dateFormat + timeFormat + tzFormat;
-        configFromStringAndFormat(config);
+        config._a = parsedArray;
+        config._tzm = calculateOffset(match[8], match[9], match[10]);
+
+        config._d = createUTCDate.apply(null, config._a);
+        config._d.setUTCMinutes(config._d.getUTCMinutes() - config._tzm);
+
         getParsingFlags(config).rfc2822 = true;
     } else {
         config._isValid = false;
@@ -21532,149 +21784,6 @@ hooks.createFromInputFallback = deprecate(
         config._d = new Date(config._i + (config._useUTC ? ' UTC' : ''));
     }
 );
-
-// Pick the first defined of two or three arguments.
-function defaults(a, b, c) {
-    if (a != null) {
-        return a;
-    }
-    if (b != null) {
-        return b;
-    }
-    return c;
-}
-
-function currentDateArray(config) {
-    // hooks is actually the exported moment object
-    var nowValue = new Date(hooks.now());
-    if (config._useUTC) {
-        return [nowValue.getUTCFullYear(), nowValue.getUTCMonth(), nowValue.getUTCDate()];
-    }
-    return [nowValue.getFullYear(), nowValue.getMonth(), nowValue.getDate()];
-}
-
-// convert an array to a date.
-// the array should mirror the parameters below
-// note: all values past the year are optional and will default to the lowest possible value.
-// [year, month, day , hour, minute, second, millisecond]
-function configFromArray (config) {
-    var i, date, input = [], currentDate, yearToUse;
-
-    if (config._d) {
-        return;
-    }
-
-    currentDate = currentDateArray(config);
-
-    //compute day of the year from weeks and weekdays
-    if (config._w && config._a[DATE] == null && config._a[MONTH] == null) {
-        dayOfYearFromWeekInfo(config);
-    }
-
-    //if the day of the year is set, figure out what it is
-    if (config._dayOfYear != null) {
-        yearToUse = defaults(config._a[YEAR], currentDate[YEAR]);
-
-        if (config._dayOfYear > daysInYear(yearToUse) || config._dayOfYear === 0) {
-            getParsingFlags(config)._overflowDayOfYear = true;
-        }
-
-        date = createUTCDate(yearToUse, 0, config._dayOfYear);
-        config._a[MONTH] = date.getUTCMonth();
-        config._a[DATE] = date.getUTCDate();
-    }
-
-    // Default to current date.
-    // * if no year, month, day of month are given, default to today
-    // * if day of month is given, default month and year
-    // * if month is given, default only year
-    // * if year is given, don't default anything
-    for (i = 0; i < 3 && config._a[i] == null; ++i) {
-        config._a[i] = input[i] = currentDate[i];
-    }
-
-    // Zero out whatever was not defaulted, including time
-    for (; i < 7; i++) {
-        config._a[i] = input[i] = (config._a[i] == null) ? (i === 2 ? 1 : 0) : config._a[i];
-    }
-
-    // Check for 24:00:00.000
-    if (config._a[HOUR] === 24 &&
-            config._a[MINUTE] === 0 &&
-            config._a[SECOND] === 0 &&
-            config._a[MILLISECOND] === 0) {
-        config._nextDay = true;
-        config._a[HOUR] = 0;
-    }
-
-    config._d = (config._useUTC ? createUTCDate : createDate).apply(null, input);
-    // Apply timezone offset from input. The actual utcOffset can be changed
-    // with parseZone.
-    if (config._tzm != null) {
-        config._d.setUTCMinutes(config._d.getUTCMinutes() - config._tzm);
-    }
-
-    if (config._nextDay) {
-        config._a[HOUR] = 24;
-    }
-}
-
-function dayOfYearFromWeekInfo(config) {
-    var w, weekYear, week, weekday, dow, doy, temp, weekdayOverflow;
-
-    w = config._w;
-    if (w.GG != null || w.W != null || w.E != null) {
-        dow = 1;
-        doy = 4;
-
-        // TODO: We need to take the current isoWeekYear, but that depends on
-        // how we interpret now (local, utc, fixed offset). So create
-        // a now version of current config (take local/utc/offset flags, and
-        // create now).
-        weekYear = defaults(w.GG, config._a[YEAR], weekOfYear(createLocal(), 1, 4).year);
-        week = defaults(w.W, 1);
-        weekday = defaults(w.E, 1);
-        if (weekday < 1 || weekday > 7) {
-            weekdayOverflow = true;
-        }
-    } else {
-        dow = config._locale._week.dow;
-        doy = config._locale._week.doy;
-
-        var curWeek = weekOfYear(createLocal(), dow, doy);
-
-        weekYear = defaults(w.gg, config._a[YEAR], curWeek.year);
-
-        // Default to current week.
-        week = defaults(w.w, curWeek.week);
-
-        if (w.d != null) {
-            // weekday -- low day numbers are considered next week
-            weekday = w.d;
-            if (weekday < 0 || weekday > 6) {
-                weekdayOverflow = true;
-            }
-        } else if (w.e != null) {
-            // local weekday -- counting starts from begining of week
-            weekday = w.e + dow;
-            if (w.e < 0 || w.e > 6) {
-                weekdayOverflow = true;
-            }
-        } else {
-            // default to begining of week
-            weekday = dow;
-        }
-    }
-    if (week < 1 || week > weeksInYear(weekYear, dow, doy)) {
-        getParsingFlags(config)._overflowWeeks = true;
-    } else if (weekdayOverflow != null) {
-        getParsingFlags(config)._overflowWeekday = true;
-    } else {
-        temp = dayOfYearFromWeeks(weekYear, week, weekday, dow, doy);
-        config._a[YEAR] = temp.year;
-        config._dayOfYear = temp.dayOfYear;
-    }
-}
 
 // constant that refers to the ISO standard
 hooks.ISO_8601 = function () {};
@@ -22000,7 +22109,7 @@ var ordering = ['year', 'quarter', 'month', 'week', 'day', 'hour', 'minute', 'se
 
 function isDurationValid(m) {
     for (var key in m) {
-        if (!(ordering.indexOf(key) !== -1 && (m[key] == null || !isNaN(m[key])))) {
+        if (!(indexOf.call(ordering, key) !== -1 && (m[key] == null || !isNaN(m[key])))) {
             return false;
         }
     }
@@ -22051,7 +22160,7 @@ function Duration (duration) {
     // day when working around DST, we need to store them separately
     this._days = +days +
         weeks * 7;
-    // It is impossible translate months into days without knowing
+    // It is impossible to translate months into days without knowing
     // which months you are are talking about, so we have to store
     // it separately.
     this._months = +months +
@@ -22298,12 +22407,12 @@ function isUtc () {
 }
 
 // ASP.NET json date format regex
-var aspNetRegex = /^(\-)?(?:(\d*)[. ])?(\d+)\:(\d+)(?:\:(\d+)(\.\d*)?)?$/;
+var aspNetRegex = /^(\-|\+)?(?:(\d*)[. ])?(\d+)\:(\d+)(?:\:(\d+)(\.\d*)?)?$/;
 
 // from http://docs.closure-library.googlecode.com/git/closure_goog_date_date.js.source.html
 // somewhat more in line with 4.4.3.2 2004 spec, but allows decimal anywhere
 // and further modified to allow for strings containing both week and day
-var isoRegex = /^(-)?P(?:(-?[0-9,.]*)Y)?(?:(-?[0-9,.]*)M)?(?:(-?[0-9,.]*)W)?(?:(-?[0-9,.]*)D)?(?:T(?:(-?[0-9,.]*)H)?(?:(-?[0-9,.]*)M)?(?:(-?[0-9,.]*)S)?)?$/;
+var isoRegex = /^(-|\+)?P(?:([-+]?[0-9,.]*)Y)?(?:([-+]?[0-9,.]*)M)?(?:([-+]?[0-9,.]*)W)?(?:([-+]?[0-9,.]*)D)?(?:T(?:([-+]?[0-9,.]*)H)?(?:([-+]?[0-9,.]*)M)?(?:([-+]?[0-9,.]*)S)?)?$/;
 
 function createDuration (input, key) {
     var duration = input,
@@ -22337,7 +22446,7 @@ function createDuration (input, key) {
             ms : toInt(absRound(match[MILLISECOND] * 1000)) * sign // the millisecond decimal point is included in the match
         };
     } else if (!!(match = isoRegex.exec(input))) {
-        sign = (match[1] === '-') ? -1 : 1;
+        sign = (match[1] === '-') ? -1 : (match[1] === '+') ? 1 : 1;
         duration = {
             y : parseIso(match[2], sign),
             M : parseIso(match[3], sign),
@@ -22440,14 +22549,14 @@ function addSubtract (mom, duration, isAdding, updateOffset) {
 
     updateOffset = updateOffset == null ? true : updateOffset;
 
-    if (milliseconds) {
-        mom._d.setTime(mom._d.valueOf() + milliseconds * isAdding);
+    if (months) {
+        setMonth(mom, get(mom, 'Month') + months * isAdding);
     }
     if (days) {
         set$1(mom, 'Date', get(mom, 'Date') + days * isAdding);
     }
-    if (months) {
-        setMonth(mom, get(mom, 'Month') + months * isAdding);
+    if (milliseconds) {
+        mom._d.setTime(mom._d.valueOf() + milliseconds * isAdding);
     }
     if (updateOffset) {
         hooks.updateOffset(mom, days || months);
@@ -22557,22 +22666,18 @@ function diff (input, units, asFloat) {
 
     units = normalizeUnits(units);
 
-    if (units === 'year' || units === 'month' || units === 'quarter') {
-        output = monthDiff(this, that);
-        if (units === 'quarter') {
-            output = output / 3;
-        } else if (units === 'year') {
-            output = output / 12;
-        }
-    } else {
-        delta = this - that;
-        output = units === 'second' ? delta / 1e3 : // 1000
-            units === 'minute' ? delta / 6e4 : // 1000 * 60
-            units === 'hour' ? delta / 36e5 : // 1000 * 60 * 60
-            units === 'day' ? (delta - zoneDelta) / 864e5 : // 1000 * 60 * 60 * 24, negate dst
-            units === 'week' ? (delta - zoneDelta) / 6048e5 : // 1000 * 60 * 60 * 24 * 7, negate dst
-            delta;
+    switch (units) {
+        case 'year': output = monthDiff(this, that) / 12; break;
+        case 'month': output = monthDiff(this, that); break;
+        case 'quarter': output = monthDiff(this, that) / 3; break;
+        case 'second': output = (this - that) / 1e3; break; // 1000
+        case 'minute': output = (this - that) / 6e4; break; // 1000 * 60
+        case 'hour': output = (this - that) / 36e5; break; // 1000 * 60 * 60
+        case 'day': output = (this - that - zoneDelta) / 864e5; break; // 1000 * 60 * 60 * 24, negate dst
+        case 'week': output = (this - that - zoneDelta) / 6048e5; break; // 1000 * 60 * 60 * 24 * 7, negate dst
+        default: output = this - that;
     }
+
     return asFloat ? output : absFloor(output);
 }
 
@@ -23550,6 +23655,10 @@ var asWeeks        = makeAs('w');
 var asMonths       = makeAs('M');
 var asYears        = makeAs('y');
 
+function clone$1 () {
+    return createDuration(this);
+}
+
 function get$2 (units) {
     units = normalizeUnits(units);
     return this.isValid() ? this[units + 's']() : NaN;
@@ -23659,6 +23768,10 @@ function humanize (withSuffix) {
 
 var abs$1 = Math.abs;
 
+function sign(x) {
+    return ((x > 0) - (x < 0)) || +x;
+}
+
 function toISOString$1() {
     // for ISO strings we do not use the normal bubbling rules:
     //  * milliseconds bubble up until they become hours
@@ -23693,7 +23806,7 @@ function toISOString$1() {
     var D = days;
     var h = hours;
     var m = minutes;
-    var s = seconds;
+    var s = seconds ? seconds.toFixed(3).replace(/\.?0+$/, '') : '';
     var total = this.asSeconds();
 
     if (!total) {
@@ -23702,15 +23815,19 @@ function toISOString$1() {
         return 'P0D';
     }
 
-    return (total < 0 ? '-' : '') +
-        'P' +
-        (Y ? Y + 'Y' : '') +
-        (M ? M + 'M' : '') +
-        (D ? D + 'D' : '') +
+    var totalSign = total < 0 ? '-' : '';
+    var ymSign = sign(this._months) !== sign(total) ? '-' : '';
+    var daysSign = sign(this._days) !== sign(total) ? '-' : '';
+    var hmsSign = sign(this._milliseconds) !== sign(total) ? '-' : '';
+
+    return totalSign + 'P' +
+        (Y ? ymSign + Y + 'Y' : '') +
+        (M ? ymSign + M + 'M' : '') +
+        (D ? daysSign + D + 'D' : '') +
         ((h || m || s) ? 'T' : '') +
-        (h ? h + 'H' : '') +
-        (m ? m + 'M' : '') +
-        (s ? s + 'S' : '');
+        (h ? hmsSign + h + 'H' : '') +
+        (m ? hmsSign + m + 'M' : '') +
+        (s ? hmsSign + s + 'S' : '');
 }
 
 var proto$2 = Duration.prototype;
@@ -23730,6 +23847,7 @@ proto$2.asMonths       = asMonths;
 proto$2.asYears        = asYears;
 proto$2.valueOf        = valueOf$1;
 proto$2._bubble        = bubble;
+proto$2.clone          = clone$1;
 proto$2.get            = get$2;
 proto$2.milliseconds   = milliseconds;
 proto$2.seconds        = seconds;
@@ -23771,7 +23889,7 @@ addParseToken('x', function (input, array, config) {
 // Side effect imports
 
 
-hooks.version = '2.18.1';
+hooks.version = '2.19.3';
 
 setHookCallback(createLocal);
 
@@ -23798,7 +23916,7 @@ hooks.updateLocale          = updateLocale;
 hooks.locales               = listLocales;
 hooks.weekdaysShort         = listWeekdaysShort;
 hooks.normalizeUnits        = normalizeUnits;
-hooks.relativeTimeRounding = getSetRelativeTimeRounding;
+hooks.relativeTimeRounding  = getSetRelativeTimeRounding;
 hooks.relativeTimeThreshold = getSetRelativeTimeThreshold;
 hooks.calendarFormat        = getCalendarFormat;
 hooks.prototype             = proto;
@@ -23807,12 +23925,12 @@ return hooks;
 
 })));
 
-},{}],64:[function(require,module,exports){
+},{}],65:[function(require,module,exports){
 'use strict';
 
 module.exports = require('./lib')
 
-},{"./lib":69}],65:[function(require,module,exports){
+},{"./lib":70}],66:[function(require,module,exports){
 'use strict';
 
 var asap = require('asap/raw');
@@ -24027,7 +24145,7 @@ function doResolve(fn, promise) {
   }
 }
 
-},{"asap/raw":3}],66:[function(require,module,exports){
+},{"asap/raw":3}],67:[function(require,module,exports){
 'use strict';
 
 var Promise = require('./core.js');
@@ -24042,7 +24160,7 @@ Promise.prototype.done = function (onFulfilled, onRejected) {
   });
 };
 
-},{"./core.js":65}],67:[function(require,module,exports){
+},{"./core.js":66}],68:[function(require,module,exports){
 'use strict';
 
 //This file contains the ES6 extensions to the core Promises/A+ API
@@ -24151,7 +24269,7 @@ Promise.prototype['catch'] = function (onRejected) {
   return this.then(null, onRejected);
 };
 
-},{"./core.js":65}],68:[function(require,module,exports){
+},{"./core.js":66}],69:[function(require,module,exports){
 'use strict';
 
 var Promise = require('./core.js');
@@ -24169,7 +24287,7 @@ Promise.prototype['finally'] = function (f) {
   });
 };
 
-},{"./core.js":65}],69:[function(require,module,exports){
+},{"./core.js":66}],70:[function(require,module,exports){
 'use strict';
 
 module.exports = require('./core.js');
@@ -24179,7 +24297,7 @@ require('./es6-extensions.js');
 require('./node-extensions.js');
 require('./synchronous.js');
 
-},{"./core.js":65,"./done.js":66,"./es6-extensions.js":67,"./finally.js":68,"./node-extensions.js":70,"./synchronous.js":71}],70:[function(require,module,exports){
+},{"./core.js":66,"./done.js":67,"./es6-extensions.js":68,"./finally.js":69,"./node-extensions.js":71,"./synchronous.js":72}],71:[function(require,module,exports){
 'use strict';
 
 // This file contains then/promise specific extensions that are only useful
@@ -24311,7 +24429,7 @@ Promise.prototype.nodeify = function (callback, ctx) {
   });
 };
 
-},{"./core.js":65,"asap":2}],71:[function(require,module,exports){
+},{"./core.js":66,"asap":2}],72:[function(require,module,exports){
 'use strict';
 
 var Promise = require('./core.js');
@@ -24375,7 +24493,7 @@ Promise.disableSynchronous = function() {
   Promise.prototype.getState = undefined;
 };
 
-},{"./core.js":65}],72:[function(require,module,exports){
+},{"./core.js":66}],73:[function(require,module,exports){
 
 var qrcode = require('./lib/qrcode.js');
 
@@ -24396,7 +24514,7 @@ module.exports = {
     }
 };
 
-},{"./lib/qrcode.js":73}],73:[function(require,module,exports){
+},{"./lib/qrcode.js":74}],74:[function(require,module,exports){
 // The original source of this file is: http://d-project.googlecode.com/svn/trunk/misc/qrcode/js/qrcode.js
 
 //---------------------------------------------------------------------
@@ -26077,7 +26195,7 @@ var qrcode = function() {
 }();
 
 module.exports = qrcode;
-},{}],74:[function(require,module,exports){
+},{}],75:[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter;
 var util = require('util');
 
@@ -26651,7 +26769,7 @@ Doc.prototype.searchAssociations = function(Options, Terms, Page) {
     });
 };
 module.exports = Doc;
-},{"events":84,"util":88}],75:[function(require,module,exports){
+},{"events":85,"util":89}],76:[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter;
 var util = require('util');
 
@@ -26744,7 +26862,7 @@ Field.prototype.setNxProperties = function(Properties) {
     return this.connection.ask(this.handle, 'SetNxProperties', arguments);
 };
 module.exports = Field;
-},{"events":84,"util":88}],76:[function(require,module,exports){
+},{"events":85,"util":89}],77:[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter;
 var util = require('util');
 
@@ -26788,7 +26906,7 @@ GenericBookmark.prototype.unPublish = function() {
     return this.connection.ask(this.handle, 'UnPublish', arguments);
 };
 module.exports = GenericBookmark;
-},{"events":84,"util":88}],77:[function(require,module,exports){
+},{"events":85,"util":89}],78:[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter;
 var util = require('util');
 
@@ -26837,7 +26955,7 @@ GenericDimension.prototype.unPublish = function() {
     return this.connection.ask(this.handle, 'UnPublish', arguments);
 };
 module.exports = GenericDimension;
-},{"events":84,"util":88}],78:[function(require,module,exports){
+},{"events":85,"util":89}],79:[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter;
 var util = require('util');
 
@@ -26886,7 +27004,7 @@ GenericMeasure.prototype.unPublish = function() {
     return this.connection.ask(this.handle, 'UnPublish', arguments);
 };
 module.exports = GenericMeasure;
-},{"events":84,"util":88}],79:[function(require,module,exports){
+},{"events":85,"util":89}],80:[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter;
 var util = require('util');
 
@@ -27137,7 +27255,7 @@ GenericObject.prototype.selectHyperCubeContinuousRange = function(qPath, qRanges
     });
 };
 module.exports = GenericObject;
-},{"events":84,"util":88}],80:[function(require,module,exports){
+},{"events":85,"util":89}],81:[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter;
 var util = require('util');
 
@@ -27207,7 +27325,7 @@ GenericVariable.prototype.setNxProperties = function() {
     return new Error('This method was deprecated in 2.1. Replaced with GetProperties');
 };
 module.exports = GenericVariable;
-},{"events":84,"util":88}],81:[function(require,module,exports){
+},{"events":85,"util":89}],82:[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter;
 var util = require('util');
 
@@ -27453,7 +27571,7 @@ Global.prototype.getStreamList = function() {
 };
 
 module.exports = Global;
-},{"events":84,"util":88}],82:[function(require,module,exports){
+},{"events":85,"util":89}],83:[function(require,module,exports){
 (function (process,global){
 var doc = require('./lib/doc');
 var field = require('./lib/field');
@@ -27794,9 +27912,9 @@ Connection.prototype.close = function () {
 };
 module.exports = qsocks;
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./lib/doc":74,"./lib/field":75,"./lib/genericBookmark":76,"./lib/genericDimension":77,"./lib/genericMeasure":78,"./lib/genericObject":79,"./lib/genericVariable":80,"./lib/global":81,"_process":85,"promise":64,"ws":83}],83:[function(require,module,exports){
+},{"./lib/doc":75,"./lib/field":76,"./lib/genericBookmark":77,"./lib/genericDimension":78,"./lib/genericMeasure":79,"./lib/genericObject":80,"./lib/genericVariable":81,"./lib/global":82,"_process":86,"promise":65,"ws":84}],84:[function(require,module,exports){
 
-},{}],84:[function(require,module,exports){
+},{}],85:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -28100,7 +28218,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],85:[function(require,module,exports){
+},{}],86:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -28286,7 +28404,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],86:[function(require,module,exports){
+},{}],87:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -28311,14 +28429,14 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],87:[function(require,module,exports){
+},{}],88:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],88:[function(require,module,exports){
+},{}],89:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -28908,4 +29026,4 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":87,"_process":85,"inherits":86}]},{},[1]);
+},{"./support/isBuffer":88,"_process":86,"inherits":87}]},{},[1]);

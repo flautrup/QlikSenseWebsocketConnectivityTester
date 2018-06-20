@@ -7,11 +7,12 @@
     "lib": "lib"
   },
   "dependencies": {
-    "chart.js": "^2.7.0",
-    "enigma.js": "^2.1.1",
+    "chart.js": "^2.7.2",
+    "enigma.js": "^2.2.1",
+    "moment": "^2.19.3",
     "qrcode-js": "0.0.2",
     "qsocks": "^3.2.1",
-    "ws": "^3.2.0"
+    "ws": "^5.2.0"
   },
   "devDependencies": {},
   "scripts": {
